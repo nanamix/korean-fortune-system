@@ -1,5 +1,4 @@
-
-HELP.md
+### Git Ignore File ###
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -16,9 +15,11 @@ target/
 
 ### IntelliJ IDEA ###
 .idea
+.idea/**
 *.iws
 *.iml
 *.ipr
+
 
 ### NetBeans ###
 /nbproject/private/
@@ -33,11 +34,7 @@ build/
 ### VS Code ###
 .vscode/
 /.mvn/
+/.mvn/**
 /.gradle/
-/.mvn/
+/.gradle/**
 /logs/korean-fortune.log
-/.mvn/
-
-
-.idea/
-
