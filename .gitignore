@@ -35,3 +35,4 @@ build/
 /.gradle/
 /.mvn/
 /logs/korean-fortune.log
+/.mvn/
