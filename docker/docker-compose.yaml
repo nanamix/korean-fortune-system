@@ -1,0 +1,41 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  korean-fortune-app:
+    build:
+        context: ..
+        dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/korean_fortune
+      - SPRING_DATASOURCE_USERNAME=fortune_user
+      - SPRING_DATASOURCE_PASSWORD=fortune_password
+    depends_on:
+      - mysql
+    networks:
+      - fortune-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=korean_fortune
+      - MYSQL_USER=fortune_user
+      - MYSQL_PASSWORD=fortune_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - fortune-network
+
+volumes:
+  mysql_data:
+
+networks:
+  fortune-network:
+    driver: bridge
