@@ -1,41 +1,320 @@
-# docker-compose.yml
+# 🔮 한국형 만세력 운세 시스템 - Docker Compose 설정
+# Version: 2.0.0
+# 전체 시스템을 컨테이너로 구성하여 개발/운영 환경을 통일합니다.
+
 version: '3.8'
 
-services:
-  korean-fortune-app:
-    build:
-        context: ..
-        dockerfile: docker/Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/korean_fortune
-      - SPRING_DATASOURCE_USERNAME=fortune_user
-      - SPRING_DATASOURCE_PASSWORD=fortune_password
-    depends_on:
-      - mysql
-    networks:
-      - fortune-network
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=root_password
-      - MYSQL_DATABASE=korean_fortune
-      - MYSQL_USER=fortune_user
-      - MYSQL_PASSWORD=fortune_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - fortune-network
-
-volumes:
-  mysql_data:
-
+# 🌐 네트워크 정의
 networks:
   fortune-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# 💾 볼륨 정의
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  logs:
+    driver: local
+
+# 🔧 서비스 정의
+services:
+  # 🗄️ MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0.35
+    container_name: korean-fortune-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_fortune_2025!}
+      MYSQL_DATABASE: korean_fortune
+      MYSQL_USER: fortune_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-fortune_secure_2025!}
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - ./docker/mysql/conf:/etc/mysql/conf.d
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-authentication-plugin=mysql_native_password
+      --innodb-buffer-pool-size=256M
+      --max-connections=200
+      --slow-query-log=1
+      --slow-query-log-file=/var/lib/mysql/slow.log
+      --long-query-time=2
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.10
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # 🔴 Redis 캐시
+  redis:
+    image: redis:7.2-alpine
+    container_name: korean-fortune-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.11
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # 🤖 Ollama (AI 모델 서버)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: korean-fortune-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ./docker/ollama:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.12
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # 🚀 메인 애플리케이션
+  app:
+    build:
+      context: ${PWD}
+      dockerfile: ${PWD}/docker/Dockerfile
+      args:
+        - JAR_FILE=build/libs/korean-fortune-system-2.0.0.jar
+    container_name: korean-fortune-app
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - DB_URL=jdbc:mysql://mysql:3306/korean_fortune?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+      - DB_USERNAME=fortune_user
+      - DB_PASSWORD=${MYSQL_PASSWORD:-fortune_secure_2025!}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-korean-fortune-jwt-secret-key-2025-very-secure-256-bits-minimum}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID:-}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET:-}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - logs:/app/logs
+      - ./docker/app/config:/app/config
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.20
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # 🌐 Nginx 리버스 프록시
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: korean-fortune-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./docker/nginx/html:/usr/share/nginx/html:ro
+      - logs:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.30
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # 📊 Prometheus 모니터링
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: korean-fortune-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.40
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # 📈 Grafana 대시보드
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: korean-fortune-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-fortune_grafana_2025!}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.41
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # 📋 ElasticSearch (로그 수집)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: korean-fortune-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - ./docker/elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.50
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # 🔍 Kibana (로그 시각화)
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.9.0
+    container_name: korean-fortune-kibana
+    restart: unless-stopped
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.51
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # 🔄 Logstash (로그 처리)
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.0
+    container_name: korean-fortune-logstash
+    restart: unless-stopped
+    volumes:
+      - ./docker/logstash/config:/usr/share/logstash/config
+      - ./docker/logstash/pipeline:/usr/share/logstash/pipeline
+      - logs:/usr/share/logstash/logs
+    depends_on:
+      - elasticsearch
+    networks:
+      fortune-network:
+        ipv4_address: 172.20.0.52
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"

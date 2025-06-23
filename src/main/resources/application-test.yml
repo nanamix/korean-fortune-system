@@ -1,25 +1,20 @@
 spring:
+  config:
+    activate:
+      on-profile: test
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:h2:mem:testdb
+    username: test
+    password: test
   jpa:
     hibernate:
       ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.H2Dialect
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:data-test.sql
-  show-sql: false
-  properties:
-    hibernate:
-      format_sql: true
-h2:
-  console:
-    enabled: false
+    show-sql: false
+jwt:
+  secret: test-secret-key-for-testing-environment-123456789
+  expiration: 300
+  refresh-expiration: 600
 logging:
   level:
-    org.springframework.security: DEBUG
-    com.fortune: DEBUG
+    root: WARN
+    com.fortune: INFO 

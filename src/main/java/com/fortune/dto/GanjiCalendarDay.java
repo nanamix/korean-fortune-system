@@ -1,34 +1,23 @@
 package com.fortune.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * 간지 달력 일자
- * 날짜
- * 일간 지지
- * 음력 소양
- * 길방위
- * 길한 색깔
- * 일일 운세
- * 좋은 날
- * 특이 사항
- */
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class GanjiCalendarDay {
-    private LocalDate date;   // 날짜   
-    private String dayPillar; // 일간 지지
-    private String solarTerm; // 음력 소양
-    private String luckyDirection; // 길방위
-    private List<String> luckyColors; // 길한 색깔
-    private String dailyLuck; // 일일 운세
-    private boolean isGoodDay; // 좋은 날
-    private String specialNote; // 특이 사항
+    private LocalDate date;                 // 날짜
+    private String dayPillar;               // 일주 (예: 갑자, 을축 등)
+    private String dayHeavenlyStem;         // 천간 (갑, 을, 병 등)
+    private String dayBranch;               // 지지 (자, 축, 인 등)
+    private String wuxingElement;           // 오행 (목, 화, 토, 금, 수)
+    private String fortuneLevel;            // 길흉 수준 (대길/길/평/흉)
+    private int fortuneScore;               // 길흉 점수 (0-100)
+    private String luckyDirection;          // 길방위 (동쪽, 서쪽, 남쪽 등)
+    private List<String> luckyColors;       // 길한 색깔 목록
+    private String solarTerm;               // 절기 (있는 경우만, 예: 입춘, 춘분 등)
+    private boolean isLuckyDay;             // 길일 여부
+    private String dailyAdvice;             // 일일 조언
 }

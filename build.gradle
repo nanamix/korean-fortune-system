@@ -1,148 +1,173 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.3'
-    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group = 'com.fortune'
 version = '1.0.0'
-sourceCompatibility = '17'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    
+    // 로깅 의존성 강제 해결
+    all {
+        resolutionStrategy {
+            force 'org.apache.logging.log4j:log4j-to-slf4j:2.20.0'
+            force 'org.apache.logging.log4j:log4j-api:2.20.0'
+            force 'ch.qos.logback:logback-classic:1.4.11'
+            force 'org.slf4j:slf4j-api:2.0.7'
+            force 'org.slf4j:jul-to-slf4j:2.0.7'
+            force 'org.slf4j:jcl-over-slf4j:2.0.7'
+            force 'org.slf4j:slf4j-simple:2.0.7'
+            force 'org.slf4j:slf4j-log4j12:2.0.7'
+            force 'org.slf4j:log4j-to-slf4j:2.0.7'
+            // Netty 의존성 강제 버전 지정
+            force 'io.netty:netty-common:4.1.107.Final'
+            force 'io.netty:netty-buffer:4.1.107.Final'
+            force 'io.netty:netty-transport:4.1.107.Final'
+            force 'io.netty:netty-codec:4.1.107.Final'
+            force 'io.netty:netty-handler:4.1.107.Final'
+            force 'io.netty:netty-codec-http:4.1.107.Final'
+            force 'io.netty:netty-codec-http2:4.1.107.Final'
+        }
+    }
 }
 
 repositories {
-    mavenCentral() // Maven Central 저장소 추가
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
-    // Spring Boot 기본
+    // ✅ Spring Boot 핵심 의존성
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-logging'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
-    // JPA & Database
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'mysql:mysql-connector-java:8.0.33'
-    implementation 'com.h2database:h2:2.2.224'
-
-    // Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
-    // Cache
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 
-    // Validation
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // ✅ JWT 의존성
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // Lombok
+    // ✅ 캐시
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // ✅ Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // JSON Processing
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    // ✅ JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // SpringDoc OpenAPI (Swagger) for Spring Boot 3.x
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
+    // ✅ AI(OpenAI)
+    implementation platform('org.springframework.ai:spring-ai-bom:1.0.0-M6')
+    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
 
-    // Actuator (헬스체크)
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // ✅ OAuth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    // Test
+    // ✅ API 문서화
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+    // ✅ 개발 및 테스트
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    // ✅ JAXB
+    implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
+    implementation 'org.glassfish.jaxb:jaxb-core:3.0.2'
+    implementation 'org.glassfish.jaxb:txw2:3.0.2'
+
+    // ✅ H2 Database
+    implementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
 
-// JAR 빌드 설정
-jar {
-    enabled = false
-    archiveBaseName = 'korean-fortune-system'
-    archiveVersion = '1.0.0'
+wrapper {
+    gradleVersion = '8.4'
 }
 
-bootJar {
-    archiveBaseName = 'korean-fortune-system'
-    archiveVersion = '1.0.0'
-    mainClass = 'com.fortune.KoreanFortuneApplication'
-}
-
-// Java 컴파일 옵션
 compileJava {
     options.encoding = 'UTF-8'
-    options.compilerArgs += ['-parameters']
 }
 
-// 테스트 설정
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat "full"
-    }
+compileTestJava {
+    options.encoding = 'UTF-8'
 }
 
-// 개발 환경 설정
-bootRun {
-    jvmArgs = ['-Dspring.profiles.active=dev']
-    systemProperty 'file.encoding', 'UTF-8'
-    systemProperty 'user.timezone', 'Asia/Seoul'
-}
+// ==================== Docker Compose 자동화 Task ====================
+import org.gradle.api.tasks.Exec
 
-task dockerBuild(type: Exec, dependsOn: bootJar) {
+def dockerComposeBase = "docker/docker-compose.yaml"
+def dockerComposeDev = "docker/docker-compose.dev.yaml"
+def dockerComposeProd = "docker/docker-compose.prod.yaml"
+def dockerComposeTest = "docker/docker-compose.test.yaml"
+
+task buildDockerDev(type: Exec) {
     group = 'docker'
-    description = 'Docker 이미지 빌드'
-    commandLine '/usr/local/bin/docker', 'build', '-f', 'docker/Dockerfile', '-t', 'korean-fortune-system:latest', '.'
+    description = '개발 환경용 도커 이미지 빌드'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeDev, 'build'
 }
-
-task devRun(type: org.springframework.boot.gradle.tasks.run.BootRun) {
-    group = 'application'
-    description = '개발 환경에서 애플리케이션 실행'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fortune.KoreanFortuneApplication'
-    systemProperty 'spring.profiles.active', 'dev'
-    systemProperty 'server.port', '8080'
-}
-
-task prodJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar) {
-    group = 'build'
-    description = '운영 환경용 JAR 빌드'
-    archiveClassifier = 'prod'
-    mainClass = 'com.fortune.KoreanFortuneApplication'
-
-    doLast {
-        println "운영 환경용 JAR 빌드 완료: ${archiveFile.get()}"
-    }
-}
-
-task testReport(type: TestReport) {
-    group = 'verification'
-    description = '테스트 결과 리포트 생성'
-    destinationDirectory = file("$buildDir/reports/tests")
-    testResults.from test
-}
-
-task dependencyUpdates {
-    group = 'help'
-    description = '업데이트 가능한 의존성 확인'
-    doLast {
-        println '의존성 업데이트 확인을 위해 ./gradlew dependencyUpdates 실행'
-    }
-}
-
-task dockerComposeUp(type: Exec) {
+task upDockerDev(type: Exec) {
     group = 'docker'
-    description = 'docker-compose를 사용하여 컨테이너를 시작합니다.'
-    commandLine '/usr/local/bin/docker-compose', '-f', 'docker/docker-compose.yaml', 'up', '-d'
+    description = '개발 환경용 도커 컨테이너 기동'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeDev, 'up', '-d'
+}
+task downDockerDev(type: Exec) {
+    group = 'docker'
+    description = '개발 환경용 도커 컨테이너 중지/삭제'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeDev, 'down'
 }
 
-task dockerComposeDown(type: Exec) {
+task buildDockerProd(type: Exec) {
     group = 'docker'
-    description = 'docker-compose를 사용하여 컨테이너를 중지합니다.'
-    commandLine '/usr/local/bin/docker-compose', '-f', 'docker/docker-compose.yaml', 'down'
+    description = '운영 환경용 도커 이미지 빌드'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeProd, 'build'
+}
+task upDockerProd(type: Exec) {
+    group = 'docker'
+    description = '운영 환경용 도커 컨테이너 기동'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeProd, 'up', '-d'
+}
+task downDockerProd(type: Exec) {
+    group = 'docker'
+    description = '운영 환경용 도커 컨테이너 중지/삭제'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeProd, 'down'
+}
+
+task buildDockerTest(type: Exec) {
+    group = 'docker'
+    description = '테스트 환경용 도커 이미지 빌드'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeTest, 'build'
+    onlyIf { file(dockerComposeTest).exists() }
+}
+task upDockerTest(type: Exec) {
+    group = 'docker'
+    description = '테스트 환경용 도커 컨테이너 기동'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeTest, 'up', '-d'
+    onlyIf { file(dockerComposeTest).exists() }
+}
+task downDockerTest(type: Exec) {
+    group = 'docker'
+    description = '테스트 환경용 도커 컨테이너 중지/삭제'
+    commandLine 'docker-compose', '-f', dockerComposeBase, '-f', dockerComposeTest, 'down'
+    onlyIf { file(dockerComposeTest).exists() }
 }

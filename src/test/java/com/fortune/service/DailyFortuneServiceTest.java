@@ -3,13 +3,16 @@ package com.fortune.service;
 import com.fortune.dto.DailyFortuneResult;
 import com.fortune.dto.SajuResult;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /*
  * 일주 운세 테스트 (1981년 3월 20일 남자, 양력, 01:59)
@@ -17,31 +20,40 @@ import static org.junit.jupiter.api.Assertions.*;
  * @version 1.0
  * @since 2025-06-21
  */
-@SpringBootTest
-@ActiveProfiles("test")
 public class DailyFortuneServiceTest {
-    /**
-     * 일주 운세 서비스
-     */
-    @Autowired
+
+    @Mock
+    private GanjiCalculatorService ganjiCalculatorService;
+
+    @Mock
+    private SinsalService sinsalService;
+
+    @InjectMocks
     private DailyFortuneService dailyFortuneService;
-    /**
-     * 사주 계산 서비스
-     */
-    @Autowired
-    private GanjiCalculatorService ganjiCalculator;
+
+    private GanjiCalculatorService realGanjiCalculator;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        realGanjiCalculator = new GanjiCalculatorService();
+    }
 
     /**
      * 일주 운세 테스트 (1981년 3월 20일 남자, 양력, 01:59)
-     */ 
+     */
     @Test
     public void testDailyFortuneWith1981TestData() {
-        
+
         // 테스트용 사주 데이터: 1981년 3월 20일 남자, 양력, 01:59
-        SajuResult saju = ganjiCalculator.calculateCompleteSaju(
+        SajuResult saju = realGanjiCalculator.calculateCompleteSaju(
                 1981, 3, 20, 1, 59, "M", "SOLAR"
         );
         LocalDate targetDate = LocalDate.of(2025, 6, 21);
+
+        // Mock 설정
+        when(ganjiCalculatorService.calculateDayPillar(targetDate)).thenReturn("갑자");
+        when(sinsalService.calculateDailySinsals(targetDate, saju)).thenReturn(new ArrayList<>());
 
         DailyFortuneResult result = dailyFortuneService.calculateDailyFortune(saju, targetDate);
 

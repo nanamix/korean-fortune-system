@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/fortune_db
+    username: ${POSTGRES_USER:fortune}
+    password: ${POSTGRES_PASSWORD:fortune123}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+server:
+  port: 8080
+logging:
+  level:
+    root: INFO
+    com.fortune: INFO 

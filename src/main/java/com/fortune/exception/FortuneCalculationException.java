@@ -6,18 +6,11 @@ package com.fortune.exception;
  * 원인
  */
 public class FortuneCalculationException extends RuntimeException {
-    /**
-     * 메시지
-     * @param message 메시지
-     */
+
     public FortuneCalculationException(String message) {
         super(message);
     }
 
-    /**
-     * 메시지
-     * @param message 메시지
-     */
     public FortuneCalculationException(String message, Throwable cause) {
         super(message, cause);
     }

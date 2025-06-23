@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  app:
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+    volumes:
+      - ./src:/app/src
+      - ./build:/app/build
+    command: ["java", "-jar", "-Dspring.profiles.active=dev", "app.jar"] 

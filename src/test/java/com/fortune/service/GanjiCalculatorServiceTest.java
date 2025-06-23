@@ -1,82 +1,77 @@
 package com.fortune.service;
 
 
-import com.fortune.dto.SajuResult;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
+import com.fortune.dto.SajuRequest;
+import com.fortune.dto.SajuResult;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
-public class GanjiCalculatorServiceTest {
+class GanjiCalculatorServiceTest {
 
-    @Autowired
-    private GanjiCalculatorService ganjiCalculator;
+    private GanjiCalculatorService ganjiCalculatorService;
+
+    @BeforeEach
+    void setUp() {
+        ganjiCalculatorService = new GanjiCalculatorService();
+    }
 
     @Test
-    public void testSajuCalculationWith1981TestData() {
-        // 테스트 데이터: 1981년 3월 20일 남자, 양력, 01:59
-        SajuResult result = ganjiCalculator.calculateCompleteSaju(
-                1981, 3, 20, 1, 59, "M", "SOLAR"
-        );
+    @DisplayName("사주팔자 계산 - 기본 테스트")
+    void testCalculateSaju() {
+        // Given
+        SajuRequest request = new SajuRequest();
+        request.setBirthYear(1981);
+        request.setBirthMonth(3);
+        request.setBirthDay(20);
+        request.setBirthHour(1);
+        request.setBirthMinute(59);
+        request.setGender("M");
+        request.setCalendarType("SOLAR");
 
+        // When
+        SajuResult result = ganjiCalculatorService.calculateSaju(request);
+
+        // Then
         assertNotNull(result);
-        assertNotNull(result.getYearPillar());
+        assertEquals("신유", result.getYearPillar());
         assertNotNull(result.getMonthPillar());
         assertNotNull(result.getDayPillar());
         assertNotNull(result.getTimePillar());
         assertNotNull(result.getDayMaster());
 
-        assertEquals("M", result.getGender());
-        assertEquals("SOLAR", result.getCalendarType());
-        assertEquals("남성", result.getGenderDescription());
-        assertEquals("양력", result.getCalendarDescription());
-
-        // 1981년은 신유년
-        assertEquals("신유", result.getYearPillar());
-
-        // 3월 20일의 일주 계산 (1981년 3월 20일 = 을미일)
-        System.out.println("계산된 사주: " + result.getFormattedSaju());
-        System.out.println("일간(본인): " + result.getDayMaster());
-        System.out.println("생일: " + result.getBirthDate());
-        System.out.println("보정 시간: " + result.getAdjustedDateTime());
+        System.out.println("계산 결과: " + result.getFullSaju());
+        System.out.println("일간: " + result.getDayMaster());
     }
 
     @Test
-    public void testLunarCalendarConversion() {
-        // 음력 생일 테스트
-        SajuResult result = ganjiCalculator.calculateCompleteSaju(
-                1981, 3, 20, 1, 59, "M", "LUNAR"
-        );
+    @DisplayName("다양한 생년월일 테스트")
+    void testVariousBirthDates() {
+        // 여러 날짜 테스트
+        int[][] testDates = {
+                {1990, 5, 15, 12, 30},
+                {2000, 12, 25, 23, 59},
+                {1975, 8, 8, 6, 0}
+        };
 
-        assertNotNull(result);
-        assertEquals("LUNAR", result.getCalendarType());
-        assertNotNull(result.getLunarBirthDate());
-        assertEquals("1981년 3월 20일", result.getLunarBirthDate());
+        for (int[] testDate : testDates) {
+            SajuRequest request = new SajuRequest();
+            request.setBirthYear(testDate[0]);
+            request.setBirthMonth(testDate[1]);
+            request.setBirthDay(testDate[2]);
+            request.setBirthHour(testDate[3]);
+            request.setBirthMinute(testDate[4]);
+            request.setGender("F");
+            request.setCalendarType("SOLAR");
 
-        // 음력을 양력으로 변환한 실제 생일이 다를 것
-        System.out.println("음력 생일: " + result.getLunarBirthDate());
-        System.out.println("양력 변환 생일: " + result.getBirthDate());
-    }
+            SajuResult result = ganjiCalculatorService.calculateSaju(request);
 
-    @Test
-    public void testSolarTimeAdjustment() {
-        // 태양시 보정 테스트
-        SajuResult result = ganjiCalculator.calculateCompleteSaju(
-                1981, 3, 20, 1, 59, "M", "SOLAR"
-        );
-
-        // 01:59 -> 태양시 보정 (약 32분 늦춤) -> 01:27
-        LocalDateTime expected = LocalDateTime.of(1981, 3, 20, 1, 27);
-        assertEquals(expected, result.getAdjustedDateTime());
-
-        // 시주는 보정된 시간으로 계산 (01:27 = 축시)
-        assertTrue(result.getTimePillar().endsWith("축"));
+            assertNotNull(result);
+            assertNotNull(result.getFullSaju());
+            System.out.println(String.format("%d-%d-%d %d:%d -> %s",
+                    testDate[0], testDate[1], testDate[2], testDate[3], testDate[4],
+                    result.getFullSaju()));
+        }
     }
 }

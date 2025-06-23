@@ -1,36 +1,22 @@
 package com.fortune.dto;
 
-import com.fortune.enums.Zodiac;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fortune.enums.Zodiac;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * 별자리 운세 결과
- * 별자리
- * 대상 날짜
- * 오늘 운세
- * 주간 운세
- * 월간 운세
- * 궁합 별자리
- */
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ZodiacFortuneResult {
-    private Zodiac zodiac;  // 별자리
-    private LocalDate targetDate;  // 대상 날짜
-    private ZodiacFortune todayFortune;  // 오늘 운세
-    private ZodiacFortune weeklyFortune;  // 주간 운세
-    private ZodiacFortune monthlyFortune;  // 월간 운세
-    private List<Zodiac> compatibleZodiacs;  // 궁합 별자리
-    private List<Integer> luckyNumbers;  // 행운의 숫자
-    private String advice;  // 조언
-    private String luckyDirection;  // 길방위
-    private List<String> luckyColors;  // 길한 색깔
-    private int totalScore;  // 전체 점수
+    private Zodiac zodiac;                      // 별자리 enum
+    private String zodiacKoreanName;            // 별자리 한글명
+    private LocalDate targetDate;               // 대상 날짜
+    private ZodiacDailyFortune todayFortune;    // 오늘의 운세
+    private ZodiacMonthlyFortune monthlyFortune; // 월별 운세
+    private List<Zodiac> compatibleZodiacs;     // 궁합 좋은 별자리
+    private List<Integer> luckyNumbers;         // 행운의 숫자
+    private String luckyColor;                  // 행운의 색깔
+    private String luckyStone;                  // 행운의 보석
+    private String personality;                 // 성격 특성
 }

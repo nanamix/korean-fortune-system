@@ -7,28 +7,29 @@ import lombok.Data;
 
 /**
  * 토정과 요청 DTO
- * 생년월일
- * 대상 년도
+ * 생년, 생월, 생일, 대상년도를 포함하며, 각 필드는 유효성 검사를 통해 올바른 값인지 확인합니다.
+ * @author 하진영
+ * @version 1.0.0
  */
 @Data
 public class TojeongRequest {
-    @NotNull
-    @Min(1900)
-    @Max(2100)
-    private Integer birthYear; // 생년월일 - 필수 (1900-2100)
+    @NotNull(message = "생년은 필수입니다")
+    @Min(value = 1900, message = "생년은 1900년 이후여야 합니다")
+    @Max(value = 2100, message = "생년은 2100년 이전이어야 합니다")
+    private Integer birthYear;
 
-    @NotNull
-    @Min(1)
-    @Max(12)
-    private Integer birthMonth; // 생년월일 - 필수 (1-12)
+    @NotNull(message = "생월은 필수입니다")
+    @Min(value = 1, message = "생월은 1-12 사이여야 합니다")
+    @Max(value = 12, message = "생월은 1-12 사이여야 합니다")
+    private Integer birthMonth;
 
-    @NotNull
-    @Min(1)
-    @Max(31)
-    private Integer birthDay; // 생년월일 - 필수 (1-31)
+    @NotNull(message = "생일은 필수입니다")
+    @Min(value = 1, message = "생일은 1-31 사이여야 합니다")
+    @Max(value = 31, message = "생일은 1-31 사이여야 합니다")
+    private Integer birthDay;
 
-    @NotNull
-    @Min(2024)
-    @Max(2100)
-    private Integer targetYear; // 대상 년도 - 필수 (2024-2100)
+    @NotNull(message = "대상년도는 필수입니다")
+    @Min(value = 2020, message = "대상년도는 2020년 이후여야 합니다")
+    @Max(value = 2050, message = "대상년도는 2050년 이전이어야 합니다")
+    private Integer targetYear;
 }
