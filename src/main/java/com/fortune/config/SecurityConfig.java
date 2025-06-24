@@ -1,59 +1,113 @@
 package com.fortune.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.util.List;
 
-/*
- * 보안 설정
- * 보안 필터 체인 설정
- * CORS 설정
+/**
+ * 🔒 Spring Security 6.x 최신 설정 적용 (Warning 없음)
+ *
+ * <p>운세 API를 위한 최소한의 보안 설정</p>
+ *
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /*
-     * 보안 필터 체인 설정
-     * CORS 설정
-     * CSRF 설정
-     * 인증 요청 설정
+    /**
+     * 🔐 보안 활성화 시 설정
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정
-                .csrf(csrf -> csrf.disable())                                    // CSRF 설정
+    @ConditionalOnProperty(name = "app.fortune.security.enabled", havingValue = "true")
+    public SecurityFilterChain securedFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/fortune/**").permitAll()           // 허용 URL
-                        .requestMatchers("/actuator/health").permitAll()
-                        .anyRequest().authenticated()                            // 인증 요청 설정
-                );
-
-        return http.build();
+                        .requestMatchers(
+                                "/api/fortune/**",          // 모든 운세 API 허용
+                                "/swagger-ui/**",           // Swagger UI
+                                "/api-docs/**",             // API 문서
+                                "/actuator/health",         // 헬스체크
+                                "/h2-console/**",           // H2 콘솔
+                                "/error"                    // 에러 페이지
+                        ).permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                // 최신 Lambda DSL 방식으로 헤더 설정
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.sameOrigin())
+                        .contentTypeOptions(contentTypeOptions -> {})
+                        .httpStrictTransportSecurity(hstsConfig -> {})
+                )
+                .build();
     }
 
-    /*
-     * CORS 설정
-     * CORS 설정 소스 반환
+    /**
+     * 🚫 보안 비활성화 시 설정 (기본)
+     */
+    @Bean
+    @ConditionalOnProperty(name = "app.fortune.security.enabled", havingValue = "false", matchIfMissing = true)
+    public SecurityFilterChain openFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
+                // H2 콘솔을 위한 프레임 옵션 비활성화
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.disable())
+                )
+                .build();
+    }
+
+    /**
+     * 🌐 CORS 설정
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));            // 모든 출처 허용
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));                    // 모든 헤더 허용
-        configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource(); // URL 기반 CORS 설정 소스 생성
-        source.registerCorsConfiguration("/api/**", configuration);                    // CORS 설정 등록
-        return source;                                                                // CORS 설정 소스 반환
+        // 개발 환경을 위한 허용 설정
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://localhost:*",
+                "http://127.0.0.1:*",
+                "https://127.0.0.1:*"
+        ));
+
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    /**
+     * 🔑 비밀번호 인코더
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

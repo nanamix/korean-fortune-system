@@ -1,0 +1,93 @@
+# 🔮 한국형 만세력 운세 시스템 - 개발 환경 오버라이드
+
+services:
+  # 🔮 애플리케이션 (개발 모드)
+  app:
+    build:
+      target: development
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: true
+      DB_USERNAME: fortune_user
+      DB_PASSWORD: fortune_dev_2025!
+      AI_ENABLED: false
+      LOGGING_LEVEL_COM_FORTUNE: DEBUG
+      TZ: Asia/Seoul
+    volumes:
+      - .:/app/src:cached  # 소스 코드 실시간 반영
+      - logs:/app/logs
+    ports:
+      - "8080:8080"   # 애플리케이션
+      - "5005:5005"   # 디버깅 포트
+    command: >
+      sh -c "cd /app/src && 
+             ./gradlew bootRun 
+             --args='--spring.profiles.active=dev 
+                     --server.port=8080
+                     --management.endpoints.web.exposure.include=*'"
+
+  # 🗄️ MySQL (개발 설정)
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: root_dev_2025!
+      MYSQL_PASSWORD: fortune_dev_2025!
+      MYSQL_DATABASE: korean_fortune_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/dev-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+
+  # 🔴 Redis (개발 설정)
+  redis:
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb
+
+  # 📊 개발용 도구들
+  # phpMyAdmin (MySQL 관리)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: korean-fortune-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: fortune_user
+      PMA_PASSWORD: fortune_dev_2025!
+      MYSQL_ROOT_PASSWORD: root_dev_2025!
+    ports:
+      - "8081:80"
+    networks:
+      - fortune-network
+    depends_on:
+      - mysql
+
+  # Redis Commander (Redis 관리)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: korean-fortune-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8082:8081"
+    networks:
+      - fortune-network
+    depends_on:
+      - redis
+
+  # 🌐 Nginx (개발 설정)
+  nginx:
+    volumes:
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+
+# 개발용 추가 볼륨
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local

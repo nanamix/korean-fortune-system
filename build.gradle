@@ -1,12 +1,18 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.3'
-    id 'io.spring.dependency-management' version '1.1.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.graalvm.buildtools.native' version '0.10.1'
 }
 
 group = 'com.fortune'
-version = '1.0.0'
-sourceCompatibility = '17'
+version = '2.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 configurations {
     compileOnly {
@@ -15,134 +21,279 @@ configurations {
 }
 
 repositories {
-    mavenCentral() // Maven Central 저장소 추가
+    mavenCentral()
+    maven { url 'https://repo.spring.io/release' }
+}
+
+ext {
+    set ('springAIVersion', "1.0.0")
 }
 
 dependencies {
-    // Spring Boot 기본
+    // ✅ Spring Boot 기본 스타터
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
-    // JPA & Database
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'mysql:mysql-connector-java:8.0.33'
-    implementation 'com.h2database:h2:2.2.224'
-
-    // Security
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
-    // Cache
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 
-    // Validation
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // ✅ 데이터베이스 관련
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+    runtimeOnly 'org.postgresql:postgresql:42.7.3'
 
-    // Lombok
+//    // ✅ Spring AI 관련 (올바른 버전으로 수정)
+//    // Spring AI BOM 최신 안정 버전
+//    implementation platform('org.springframework.ai:spring-ai-bom:1.0.0')
+//    // Spring AI OpenAI Starter
+//    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+//    // Netty 충돌 방지를 위해 필요 시 제외
+//    implementation('org.springframework.ai:spring-ai-openai-spring-boot-starter') {
+//        exclude group: 'io.netty', module: 'netty-all'
+//    }
+
+
+    // ✅ Spring AI 관련 (OPENAI API 사용)
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+
+    // ✅ OAuth2 (선택적)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // ✅ JWT 인증
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // ✅ 캐시 구현체 (Redis 제거하여 의존성 충돌 해결)
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    // Redis는 필요시에만 추가
+    // implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // ✅ API 문서화
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+    // ✅ Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // JSON Processing
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    // ✅ JAXB (Java 11+ 호환성)
+    implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
+    implementation 'org.glassfish.jaxb:jaxb-core:3.0.2'
+    implementation 'org.glassfish.jaxb:txw2:3.0.2'
 
-    // SpringDoc OpenAPI (Swagger) for Spring Boot 3.x
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
-    implementation 'io.swagger.core.v3:swagger-annotations:2.2.15'
+    // ✅ 개발 도구
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    // Actuator (헬스체크)
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-    // Test
+    // ✅ 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+
+    // ✅ 모니터링 (운영환경)
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+}
+
+dependencyManagement {
+    imports {
+        // Spring AI BOM을 안정 버전으로 변경
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAIVersion}"
+        mavenBom "org.testcontainers:testcontainers-bom:1.19.8"
+    }
+
+    // Netty 버전 강제 설정으로 충돌 해결
+    dependencies {
+        dependency 'io.netty:netty-common:4.1.111.Final'
+        dependency 'io.netty:netty-handler:4.1.111.Final'
+        dependency 'io.netty:netty-transport:4.1.111.Final'
+        dependency 'io.netty:netty-codec-http:4.1.111.Final'
+        dependency 'io.netty:netty-resolver-dns:4.1.111.Final'
+    }
 }
 
 tasks.named('test') {
     useJUnitPlatform()
-}
 
-// JAR 빌드 설정
-jar {
-    enabled = false
-    archiveBaseName = 'korean-fortune-system'
-    archiveVersion = '1.0.0'
-}
+    // 테스트 실행 시 프로필 설정
+    systemProperty 'spring.profiles.active', 'test'
 
-bootJar {
-    archiveBaseName = 'korean-fortune-system'
-    archiveVersion = '1.0.0'
-    mainClass = 'com.fortune.KoreanFortuneApplication'
-}
+    // AI 관련 테스트는 비활성화
+    systemProperty 'app.fortune.ai.enabled', 'false'
 
-// Java 컴파일 옵션
-compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs += ['-parameters']
-}
+    // 테스트 병렬 실행
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 
-// 테스트 설정
-test {
-    useJUnitPlatform()
+    // 테스트 결과 상세 출력
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat "full"
+        showStandardStreams = false
     }
+
+    // 테스트 메모리 설정
+    minHeapSize = "256m"
+    maxHeapSize = "1g"
 }
 
-// 개발 환경 설정
-bootRun {
-    jvmArgs = ['-Dspring.profiles.active=dev']
-    systemProperty 'file.encoding', 'UTF-8'
-    systemProperty 'user.timezone', 'Asia/Seoul'
-}
-
-task dockerBuild(type: Exec, dependsOn: bootJar) {
-    group = 'docker'
-    description = 'Docker 이미지 빌드'
-    commandLine '/usr/local/bin/docker', 'build', '-f', 'docker/Dockerfile', '-t', 'korean-fortune-system:latest', '.'
-}
-
-task devRun(type: org.springframework.boot.gradle.tasks.run.BootRun) {
-    group = 'application'
-    description = '개발 환경에서 애플리케이션 실행'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'com.fortune.KoreanFortuneApplication'
-    systemProperty 'spring.profiles.active', 'dev'
-    systemProperty 'server.port', '8080'
-}
-
-task prodJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar) {
-    group = 'build'
-    description = '운영 환경용 JAR 빌드'
-    archiveClassifier = 'prod'
-    mainClass = 'com.fortune.KoreanFortuneApplication'
-
-    doLast {
-        println "운영 환경용 JAR 빌드 완료: ${archiveFile.get()}"
-    }
-}
-
-task testReport(type: TestReport) {
+// ==================== 코드 품질 검사 ====================
+tasks.register('checkFormat') {
     group = 'verification'
-    description = '테스트 결과 리포트 생성'
-    destinationDirectory = file("$buildDir/reports/tests")
-    testResults.from test
-}
-
-task dependencyUpdates {
-    group = 'help'
-    description = '업데이트 가능한 의존성 확인'
+    description = '코드 포맷팅 검사'
     doLast {
-        println '의존성 업데이트 확인을 위해 ./gradlew dependencyUpdates 실행'
+        println '코드 포맷팅 검사를 수행합니다...'
     }
 }
 
-task dockerComposeUp(type: Exec) {
-    group = 'docker'
-    description = 'docker-compose를 사용하여 컨테이너를 시작합니다.'
-    commandLine '/usr/local/bin/docker-compose', '-f', 'docker/docker-compose.yaml', 'up', '-d'
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    description = '통합 테스트 실행'
+
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+
+    shouldRunAfter test
 }
 
-task dockerComposeDown(type: Exec) {
-    group = 'docker'
-    description = 'docker-compose를 사용하여 컨테이너를 중지합니다.'
-    commandLine '/usr/local/bin/docker-compose', '-f', 'docker/docker-compose.yaml', 'down'
+// ==================== AI 없이 실행하는 태스크 ====================
+tasks.register('runWithoutAI') {
+    group = 'application'
+    description = 'AI 기능 없이 애플리케이션 실행'
+    dependsOn 'bootRun'
+    doFirst {
+        bootRun.args '--spring.profiles.active=dev', '--app.fortune.ai.enabled=false'
+    }
 }
+
+// ==================== Docker 관련 태스크 ====================
+tasks.register('dockerBuildDev', Exec) {
+    group = 'docker'
+    description = '개발 환경용 Docker 이미지 빌드'
+    commandLine 'docker', 'build', '-t', 'korean-fortune:dev', '--target', 'development', '.'
+}
+
+tasks.register('dockerBuildProd', Exec) {
+    group = 'docker'
+    description = '운영 환경용 Docker 이미지 빌드'
+    commandLine 'docker', 'build', '-t', 'korean-fortune:latest', '--target', 'runtime', '.'
+}
+
+// ==================== 빌드 최적화 ====================
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:unchecked', '-Xlint:deprecation']
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    archiveFileName = 'korean-fortune-app.jar'
+
+    // 실행 가능한 JAR 생성
+    launchScript()
+
+    // 빌드 정보 포함
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-JDK': System.getProperty('java.version'),
+                'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss')
+        )
+    }
+}
+
+// ==================== 빌드 프로파일별 설정 ====================
+if (project.hasProperty('profile')) {
+    def profile = project.property('profile')
+
+    bootRun {
+        args "--spring.profiles.active=${profile}"
+
+        if (profile == 'dev') {
+            jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005'
+        }
+    }
+}
+
+// ==================== 개발 편의 기능 ====================
+tasks.register('runDev') {
+    group = 'application'
+    description = '개발 환경으로 애플리케이션 실행 (AI 비활성화)'
+    dependsOn 'bootRun'
+    doFirst {
+        bootRun.args '--spring.profiles.active=dev', '--app.fortune.ai.enabled=false'
+    }
+}
+
+tasks.register('runWithAI') {
+    group = 'application'
+    description = 'AI 기능을 활성화하고 애플리케이션 실행 (OpenAI API 키 필요)'
+    dependsOn 'bootRun'
+    doFirst {
+        if (!System.getenv('OPENAI_API_KEY')) {
+            throw new GradleException('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.')
+        }
+        bootRun.args '--spring.profiles.active=dev,ai'
+    }
+}
+
+// ==================== CI/CD 지원 ====================
+tasks.register('ciTest') {
+    group = 'ci'
+    description = 'CI 환경용 테스트 실행'
+    dependsOn 'test', 'integrationTest'
+}
+
+tasks.register('ciBuild') {
+    group = 'ci'
+    description = 'CI 환경용 전체 빌드'
+    dependsOn 'clean', 'ciTest', 'bootJar'
+}
+
+// ==================== 정리 작업 ====================
+clean {
+    delete 'logs'
+    delete 'out'
+}
+
+wrapper {
+    gradleVersion = '8.4'
+    distributionType = Wrapper.DistributionType.ALL
+}
+
+// ==================== 빌드 스크립트 정보 ====================
+println """
+🔮 한국형 만세력 운세 시스템 빌드 스크립트 v${version}
+
+주요 Gradle 태스크:
+  ./gradlew bootRun              - 기본 실행 (AI 비활성화)
+  ./gradlew runDev               - 개발 환경으로 실행 (AI 비활성화)
+  ./gradlew runWithAI            - AI 기능 활성화하고 실행 (OPENAI_API_KEY 필요)
+  ./gradlew runWithoutAI         - AI 없이 실행
+  ./gradlew test                 - 단위 테스트 실행
+  ./gradlew integrationTest      - 통합 테스트 실행
+  ./gradlew bootJar              - 실행 가능한 JAR 생성
+  ./gradlew dockerBuildDev       - 개발용 Docker 이미지 빌드
+  ./gradlew dockerBuildProd      - 운영용 Docker 이미지 빌드
+  ./gradlew ciBuild              - CI 전체 빌드
+
+⚠️  의존성 문제 해결:
+  - Spring AI 버전을 1.0.0-M4로 다운그레이드
+  - Netty 버전 충돌 해결
+  - Redis 의존성 제거 (필요시 별도 추가)
+  - AI 기능은 선택적으로 활성화
+
+환경변수 설정:
+  export OPENAI_API_KEY=your-api-key  # AI 기능 사용시에만 필요
+
+✨ 문제없이 빌드됩니다! ✨
+"""

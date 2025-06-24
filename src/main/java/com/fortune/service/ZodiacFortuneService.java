@@ -1,272 +1,387 @@
 package com.fortune.service;
 
+import com.fortune.dto.*;
 import com.fortune.enums.Zodiac;
-import com.fortune.dto.ZodiacFortuneResult;
-import com.fortune.dto.ZodiacFortune;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDate;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.time.MonthDay;
+import java.util.*;
 
 /**
  * 별자리 운세 서비스
- * 별자리 운세 계산
- * 별자리 운세 결과 반환
+ *
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
+@Slf4j
 @Service
 public class ZodiacFortuneService {
 
+    // 별자리 날짜 범위
+    private static final Map<Zodiac, List<MonthDay>> ZODIAC_DATES = new HashMap<>();
+
+    // 별자리별 운세 문구
+    private static final Map<Zodiac, Map<String, String>> ZODIAC_FORTUNES = new HashMap<>();
+
+    // 별자리 궁합
+    private static final Map<Zodiac, List<Zodiac>> ZODIAC_COMPATIBILITY = new HashMap<>();
+
+    // 별자리별 성격 특성
+    private static final Map<Zodiac, String> ZODIAC_PERSONALITIES = new HashMap<>();
+
+    // 별자리별 행운의 색깔
+    private static final Map<Zodiac, String> ZODIAC_LUCKY_COLORS = new HashMap<>();
+
+    // 별자리별 행운의 보석
+    private static final Map<Zodiac, String> ZODIAC_LUCKY_STONES = new HashMap<>();
+
+    static {
+        initializeZodiacDates();
+        initializeZodiacFortunes();
+        initializeZodiacCompatibility();
+        initializeZodiacPersonalities();
+        initializeZodiacLuckyColors();
+        initializeZodiacLuckyStones();
+    }
+
     /**
      * 별자리 운세 계산
-     * @param birthDate 생일
-     * @param targetDate 대상 날짜
-     * @return 별자리 운세 결과
      */
     public ZodiacFortuneResult calculateZodiacFortune(LocalDate birthDate, LocalDate targetDate) {
-        // 1. 생일로부터 별자리 결정
-        Zodiac zodiac = determineZodiac(birthDate);
+        log.info("⭐ 별자리 운세 계산 시작: {} -> {}", birthDate, targetDate);
 
-        // 2. 오늘의 별자리 운세 계산
-        ZodiacFortune todayFortune = calculateTodayZodiacFortune(zodiac, targetDate);
+        try {
+            // 1. 별자리 판정
+            Zodiac zodiac = determineZodiac(birthDate);
 
-        // 3. 주간 운세
-        ZodiacFortune weeklyFortune = calculateWeeklyZodiacFortune(zodiac, targetDate);
+            // 2. 오늘의 운세 계산
+            ZodiacDailyFortune dailyFortune = calculateDetailedDailyFortune(zodiac, targetDate);
 
-        // 4. 월간 운세
-        ZodiacFortune monthlyFortune = calculateMonthlyZodiacFortune(zodiac, targetDate);
+            // 3. 월별 운세 계산
+            ZodiacMonthlyFortune monthlyFortune = calculateMonthlyFortune(zodiac, targetDate);
 
-        return ZodiacFortuneResult.builder()
-                .zodiac(zodiac)
-                .targetDate(targetDate)
-                .todayFortune(todayFortune)
-                .weeklyFortune(weeklyFortune)
-                .monthlyFortune(monthlyFortune)
-                .compatibleZodiacs(getCompatibleZodiacs(zodiac))
-                .luckyNumbers(getLuckyNumbers(zodiac, targetDate))
-                .build();
+            // 4. 궁합 별자리 조회
+            List<Zodiac> compatibleZodiacs = ZODIAC_COMPATIBILITY.getOrDefault(zodiac, new ArrayList<>());
+
+            // 5. 행운의 숫자 생성
+            List<Integer> luckyNumbers = generateLuckyNumbers(birthDate);
+
+            ZodiacFortuneResult result = ZodiacFortuneResult.builder()
+                    .zodiac(zodiac)
+                    .zodiacKoreanName(zodiac.getKoreanName())
+                    .targetDate(targetDate)
+                    .todayFortune(dailyFortune)
+                    .monthlyFortune(monthlyFortune)
+                    .compatibleZodiacs(compatibleZodiacs)
+                    .luckyNumbers(luckyNumbers)
+                    .luckyColor(ZODIAC_LUCKY_COLORS.getOrDefault(zodiac, "흰색"))
+                    .luckyStone(ZODIAC_LUCKY_STONES.getOrDefault(zodiac, "수정"))
+                    .personality(ZODIAC_PERSONALITIES.getOrDefault(zodiac, "균형잡힌 성격입니다."))
+                    .build();
+
+            log.info("✅ 별자리 운세 계산 완료: {}", zodiac.getKoreanName());
+            return result;
+
+        } catch (Exception e) {
+            log.error("❌ 별자리 운세 계산 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("별자리 운세 계산 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
 
     /**
-     * 생일로부터 별자리 결정
-     * @param birthDate 생일
-     * @return 별자리
+     * 별자리 판정
      */
     private Zodiac determineZodiac(LocalDate birthDate) {
-        Month month = birthDate.getMonth();
-        int day = birthDate.getDayOfMonth();
+        MonthDay birthMonthDay = MonthDay.from(birthDate);
 
-        switch (month) {
-            case MARCH:
-                return day >= 21 ? Zodiac.ARIES : Zodiac.PISCES;
-            case APRIL:
-                return day <= 19 ? Zodiac.ARIES : Zodiac.TAURUS;
-            case MAY:
-                return day <= 20 ? Zodiac.TAURUS : Zodiac.GEMINI;
-            case JUNE:
-                return day <= 21 ? Zodiac.GEMINI : Zodiac.CANCER;
-            case JULY:
-                return day <= 22 ? Zodiac.CANCER : Zodiac.LEO;
-            case AUGUST:
-                return day <= 22 ? Zodiac.LEO : Zodiac.VIRGO;
-            case SEPTEMBER:
-                return day <= 22 ? Zodiac.VIRGO : Zodiac.LIBRA;
-            case OCTOBER:
-                return day <= 22 ? Zodiac.LIBRA : Zodiac.SCORPIO;
-            case NOVEMBER:
-                return day <= 22 ? Zodiac.SCORPIO : Zodiac.SAGITTARIUS;
-            case DECEMBER:
-                return day <= 21 ? Zodiac.SAGITTARIUS : Zodiac.CAPRICORN;
-            case JANUARY:
-                return day <= 19 ? Zodiac.CAPRICORN : Zodiac.AQUARIUS;
-            case FEBRUARY:
-                return day <= 18 ? Zodiac.AQUARIUS : Zodiac.PISCES;
-            default:
-                return Zodiac.ARIES;
+        for (Map.Entry<Zodiac, List<MonthDay>> entry : ZODIAC_DATES.entrySet()) {
+            List<MonthDay> dateRange = entry.getValue();
+            MonthDay startDate = dateRange.get(0);
+            MonthDay endDate = dateRange.get(1);
+
+            if (isWithinRange(birthMonthDay, startDate, endDate)) {
+                return entry.getKey();
+            }
         }
+        return Zodiac.ARIES; // 기본값
     }
 
     /**
-     * 오늘의 별자리 운세
-     * @param zodiac 별자리
-     * @param date 날짜
-     * @return 오늘의 별자리 운세
+     * 날짜 범위 확인
      */
-    private ZodiacFortune calculateTodayZodiacFortune(Zodiac zodiac, LocalDate date) {
-        // 날짜 기반 운세 계산 (간단화된 로직)
-        int dayOfYear = date.getDayOfYear();
-        int zodiacMultiplier = zodiac.ordinal() + 1;
-
-        int loveScore = (dayOfYear * zodiacMultiplier) % 100;
-        int careerScore = (dayOfYear * zodiacMultiplier + 25) % 100;
-        int healthScore = (dayOfYear * zodiacMultiplier + 50) % 100;
-        int moneyScore = (dayOfYear * zodiacMultiplier + 75) % 100;
-
-        return ZodiacFortune.builder()
-                .overall(generateOverallMessage(zodiac, (loveScore + careerScore + healthScore + moneyScore) / 4))
-                .love(generateLoveMessage(zodiac, loveScore))
-                .career(generateCareerMessage(zodiac, careerScore))
-                .health(generateHealthMessage(zodiac, healthScore))
-                .money(generateMoneyMessage(zodiac, moneyScore))
-                .loveScore(loveScore)
-                .careerScore(careerScore)
-                .healthScore(healthScore)
-                .moneyScore(moneyScore)
-                .build();
-    }
-
-    /**
-     * 별자리별 메시지 생성 메서드들
-     * @param zodiac 별자리
-     * @param score 점수
-     * @return 메시지
-     */
-    private String generateOverallMessage(Zodiac zodiac, int score) {
-        if (score >= 80) {
-            return zodiac.getKoreanName() + " 님의 오늘은 매우 밝고 활기찬 하루가 될 것입니다!";
-        } else if (score >= 60) {
-            return zodiac.getKoreanName() + " 님의 오늘은 평온하고 안정적인 하루입니다.";
+    private boolean isWithinRange(MonthDay target, MonthDay start, MonthDay end) {
+        if (start.compareTo(end) <= 0) {
+            return target.compareTo(start) >= 0 && target.compareTo(end) <= 0;
         } else {
-            return zodiac.getKoreanName() + " 님은 오늘 조금 더 신중하게 행동하는 것이 좋겠습니다.";
+            return target.compareTo(start) >= 0 || target.compareTo(end) <= 0;
         }
     }
 
     /**
-     * 별자리별 애정운 메시지 생성
-     * @param zodiac 별자리
-     * @param score 점수
-     * @return 메시지
+     * 일일 운세 계산
      */
-    private String generateLoveMessage(Zodiac zodiac, int score) {
-        // 별자리별 애정운 메시지 생성
-        return "애정 운세 메시지";
-    }
+    private ZodiacDailyFortune calculateDetailedDailyFortune(Zodiac zodiac, LocalDate targetDate) {
+        Random random = new Random(targetDate.toEpochDay() + zodiac.ordinal());
 
-    /**
-     * 별자리별 직업운 메시지 생성
-     * @param zodiac 별자리
-     * @param score 점수
-     * @return 메시지
-     */
-    private String generateCareerMessage(Zodiac zodiac, int score) {
-        if (score >= 80) return zodiac.getKoreanName() + " 님의 직업운이 매우 좋습니다.";
-        if (score >= 60) return zodiac.getKoreanName() + " 님의 직업운이 평안합니다.";
-        return zodiac.getKoreanName() + " 님의 직업에 주의가 필요합니다.";
-    }
+        // 기본 점수 생성
+        int loveScore = generateScore(zodiac, "love", random);
+        int careerScore = generateScore(zodiac, "career", random);
+        int healthScore = generateScore(zodiac, "health", random);
+        int moneyScore = generateScore(zodiac, "money", random);
 
-    /**
-     * 별자리별 건강운 메시지 생성
-     * @param zodiac 별자리
-     * @param score 점수
-     * @return 메시지
-     */
-    private String generateHealthMessage(Zodiac zodiac, int score) {
-        if (score >= 80) return zodiac.getKoreanName() + " 님의 건강운이 매우 좋습니다.";
-        if (score >= 60) return zodiac.getKoreanName() + " 님의 건강운이 평안합니다.";
-        return zodiac.getKoreanName() + " 님의 건강에 주의가 필요합니다.";
-    }
+        // 상세 메시지 생성
+        String loveMessage = generateDetailedMessage(zodiac, "love", loveScore);
+        String careerMessage = generateDetailedMessage(zodiac, "career", careerScore);
+        String healthMessage = generateDetailedMessage(zodiac, "health", healthScore);
+        String moneyMessage = generateDetailedMessage(zodiac, "money", moneyScore);
 
-    /**
-     * 별자리별 재물운 메시지 생성
-     * @param zodiac 별자리
-     * @param score 점수
-     * @return 메시지
-     */
-    private String generateMoneyMessage(Zodiac zodiac, int score) {
-        if (score >= 80) return zodiac.getKoreanName() + " 님의 재물운이 매우 좋습니다.";
-        if (score >= 60) return zodiac.getKoreanName() + " 님의 재물운이 평안합니다.";
-        return zodiac.getKoreanName() + " 님의 재물에 주의가 필요합니다.";
-    }
+        // 종합 메시지
+        Map<String, String> fortuneTexts = ZODIAC_FORTUNES.get(zodiac);
+        String overall = (fortuneTexts != null) ?
+                fortuneTexts.getOrDefault("overall", zodiac.getKoreanName() + "님의 하루입니다.") :
+                zodiac.getKoreanName() + "님의 하루입니다.";
 
-    /**
-     * 주간 운세 계산
-     * @param zodiac 별자리
-     * @param date 날짜
-     * @return 주간 운세
-     */
-    private ZodiacFortune calculateWeeklyZodiacFortune(Zodiac zodiac, LocalDate date) {
-        // 주간 운세 계산 (간단화된 로직)
-        int weekOfYear = date.get(java.time.temporal.WeekFields.ISO.weekOfYear());
-        int zodiacMultiplier = zodiac.ordinal() + 1;
-        
-        int loveScore = (weekOfYear * zodiacMultiplier) % 100;
-        int careerScore = (weekOfYear * zodiacMultiplier + 15) % 100;
-        int healthScore = (weekOfYear * zodiacMultiplier + 30) % 100;
-        int moneyScore = (weekOfYear * zodiacMultiplier + 45) % 100;
-
-        return ZodiacFortune.builder()
-                .overall(generateOverallMessage(zodiac, (loveScore + careerScore + healthScore + moneyScore) / 4))
-                .love(generateLoveMessage(zodiac, loveScore))
-                .career(generateCareerMessage(zodiac, careerScore))
-                .health(generateHealthMessage(zodiac, healthScore))
-                .money(generateMoneyMessage(zodiac, moneyScore))
+        return ZodiacDailyFortune.builder()
+                .overallMessage(overall)
                 .loveScore(loveScore)
+                .loveMessage(loveMessage)
                 .careerScore(careerScore)
+                .careerMessage(careerMessage)
                 .healthScore(healthScore)
+                .healthMessage(healthMessage)
                 .moneyScore(moneyScore)
+                .moneyMessage(moneyMessage)
                 .build();
     }
 
     /**
-     * 월간 운세 계산
-     * @param zodiac 별자리
-     * @param date 날짜
-     * @return 월간 운세
+     * 점수 생성
      */
-    private ZodiacFortune calculateMonthlyZodiacFortune(Zodiac zodiac, LocalDate date) {
-        // 월간 운세 계산 (간단화된 로직)
-        int month = date.getMonthValue();
-        int zodiacMultiplier = zodiac.ordinal() + 1;
-        
-        int loveScore = (month * zodiacMultiplier * 3) % 100;
-        int careerScore = (month * zodiacMultiplier * 3 + 20) % 100;
-        int healthScore = (month * zodiacMultiplier * 3 + 40) % 100;
-        int moneyScore = (month * zodiacMultiplier * 3 + 60) % 100;
+    private int generateScore(Zodiac zodiac, String category, Random random) {
+        int base = 50 + zodiac.ordinal() * 3; // 별자리별 기본 점수
+        int variation = random.nextInt(41) - 20; // -20 ~ +20 변동
+        return Math.max(0, Math.min(100, base + variation));
+    }
 
-        return ZodiacFortune.builder()
-                .overall(generateOverallMessage(zodiac, (loveScore + careerScore + healthScore + moneyScore) / 4))
-                .love(generateLoveMessage(zodiac, loveScore))
-                .career(generateCareerMessage(zodiac, careerScore))
-                .health(generateHealthMessage(zodiac, healthScore))
-                .money(generateMoneyMessage(zodiac, moneyScore))
-                .loveScore(loveScore)
-                .careerScore(careerScore)
-                .healthScore(healthScore)
-                .moneyScore(moneyScore)
+    /**
+     * 상세 메시지 생성
+     */
+    private String generateDetailedMessage(Zodiac zodiac, String category, int score) {
+        String zodiacName = zodiac.getKoreanName();
+
+        if (score >= 80) {
+            return switch (category) {
+                case "love" -> zodiacName + "의 연애운이 최고조입니다! 좋은 만남이나 깊어지는 관계를 기대하세요.";
+                case "career" -> "직장에서 인정받고 승진 기회가 올 수 있습니다.";
+                case "health" -> "건강 상태가 매우 좋습니다. 활력이 넘치는 하루입니다.";
+                case "money" -> "금전운이 상승세입니다. 투자나 부업에 좋은 기회가 있을 수 있습니다.";
+                default -> "모든 면에서 좋은 하루입니다.";
+            };
+        } else if (score >= 60) {
+            return switch (category) {
+                case "love" -> "연애운이 안정적입니다. 기존 관계가 더욱 돈독해질 수 있습니다.";
+                case "career" -> "업무가 순조롭게 진행됩니다. 꾸준한 노력이 결실을 맺을 것입니다.";
+                case "health" -> "건강 상태가 양호합니다. 규칙적인 생활을 유지하세요.";
+                case "money" -> "재정 상태가 안정적입니다. 계획적인 소비를 권합니다.";
+                default -> "전반적으로 무난한 하루입니다.";
+            };
+        } else {
+            return switch (category) {
+                case "love" -> "연애운이 다소 주춤합니다. 상대방을 이해하려는 노력이 필요합니다.";
+                case "career" -> "업무에서 어려움이 있을 수 있습니다. 신중하게 행동하세요.";
+                case "health" -> "건강에 신경쓰세요. 충분한 휴식과 영양 섭취가 필요합니다.";
+                case "money" -> "금전 관리에 주의가 필요합니다. 불필요한 지출을 피하세요.";
+                default -> "조심스러운 하루입니다.";
+            };
+        }
+    }
+
+    /**
+     * 월별 운세 계산
+     */
+    private ZodiacMonthlyFortune calculateMonthlyFortune(Zodiac zodiac, LocalDate targetDate) {
+        int month = targetDate.getMonthValue();
+        Random random = new Random(zodiac.ordinal() + month);
+
+        int overallScore = 40 + random.nextInt(40); // 40-80점
+        String theme = generateMonthlyTheme(zodiac, month);
+        String detailedMessage = generateMonthlyMessage(zodiac, month, overallScore);
+        String caution = generateCaution(overallScore);
+        String opportunity = generateOpportunity(overallScore);
+
+        return ZodiacMonthlyFortune.builder()
+                .month(month)
+                .overallScore(overallScore)
+                .theme(theme)
+                .detailedMessage(detailedMessage)
+                .caution(caution)
+                .opportunity(opportunity)
                 .build();
     }
 
     /**
-     * 별자리별 궁합 리스트
-     * @param zodiac 별자리
-     * @return 궁합 리스트
+     * 행운의 숫자 생성
      */
-    private List<Zodiac> getCompatibleZodiacs(Zodiac zodiac) {
-        // 별자리별 궁합 리스트
-        Map<Zodiac, List<Zodiac>> compatibilityMap = Map.of(
-                Zodiac.ARIES, Arrays.asList(Zodiac.LEO, Zodiac.SAGITTARIUS, Zodiac.GEMINI),
-                Zodiac.TAURUS, Arrays.asList(Zodiac.VIRGO, Zodiac.CAPRICORN, Zodiac.CANCER)
-        );
+    private List<Integer> generateLuckyNumbers(LocalDate birthDate) {
+        Random random = new Random(birthDate.toEpochDay());
+        Set<Integer> numbers = new HashSet<>();
 
-        return compatibilityMap.getOrDefault(zodiac, Arrays.asList());
+        while (numbers.size() < 3) {
+            numbers.add(random.nextInt(99) + 1);
+        }
+
+        return new ArrayList<>(numbers);
     }
 
-    /**
-     * 별자리와 날짜 기반 행운의 숫자
-     * @param zodiac 별자리
-     * @param date 날짜
-     * @return 행운의 숫자
-     */
-    private List<Integer> getLuckyNumbers(Zodiac zodiac, LocalDate date) {
-        // 별자리와 날짜 기반 행운의 숫자
-        int base = zodiac.ordinal() + 1;
-        int dayFactor = date.getDayOfMonth();
+    // 정적 초기화 메서드들
+    private static void initializeZodiacDates() {
+        ZODIAC_DATES.put(Zodiac.ARIES, Arrays.asList(MonthDay.of(3, 21), MonthDay.of(4, 19)));
+        ZODIAC_DATES.put(Zodiac.TAURUS, Arrays.asList(MonthDay.of(4, 20), MonthDay.of(5, 20)));
+        ZODIAC_DATES.put(Zodiac.GEMINI, Arrays.asList(MonthDay.of(5, 21), MonthDay.of(6, 20)));
+        ZODIAC_DATES.put(Zodiac.CANCER, Arrays.asList(MonthDay.of(6, 21), MonthDay.of(7, 22)));
+        ZODIAC_DATES.put(Zodiac.LEO, Arrays.asList(MonthDay.of(7, 23), MonthDay.of(8, 22)));
+        ZODIAC_DATES.put(Zodiac.VIRGO, Arrays.asList(MonthDay.of(8, 23), MonthDay.of(9, 22)));
+        ZODIAC_DATES.put(Zodiac.LIBRA, Arrays.asList(MonthDay.of(9, 23), MonthDay.of(10, 22)));
+        ZODIAC_DATES.put(Zodiac.SCORPIO, Arrays.asList(MonthDay.of(10, 23), MonthDay.of(11, 21)));
+        ZODIAC_DATES.put(Zodiac.SAGITTARIUS, Arrays.asList(MonthDay.of(11, 22), MonthDay.of(12, 21)));
+        ZODIAC_DATES.put(Zodiac.CAPRICORN, Arrays.asList(MonthDay.of(12, 22), MonthDay.of(1, 19)));
+        ZODIAC_DATES.put(Zodiac.AQUARIUS, Arrays.asList(MonthDay.of(1, 20), MonthDay.of(2, 18)));
+        ZODIAC_DATES.put(Zodiac.PISCES, Arrays.asList(MonthDay.of(2, 19), MonthDay.of(3, 20)));
+    }
 
-        return Arrays.asList(
-                (base * dayFactor) % 50 + 1,
-                (base * dayFactor + 7) % 50 + 1,
-                (base * dayFactor + 14) % 50 + 1
+    private static void initializeZodiacFortunes() {
+        Map<String, String> ariesFortunes = Map.of(
+                "overall", "에너지가 넘치는 양자리님, 오늘은 새로운 도전의 기회가 찾아올 것입니다.",
+                "love", "적극적인 어프로치가 좋은 결과를 가져올 것입니다.",
+                "career", "리더십을 발휘할 수 있는 기회가 생깁니다.",
+                "health", "활동적인 운동이 건강에 도움이 됩니다."
         );
+        ZODIAC_FORTUNES.put(Zodiac.ARIES, ariesFortunes);
+
+        Map<String, String> taurusFortunes = Map.of(
+                "overall", "안정적인 황소자리님, 꾸준함이 빛을 발하는 하루입니다.",
+                "love", "진실한 마음이 상대방에게 전해질 것입니다.",
+                "career", "차근차근 진행하는 일이 좋은 성과를 가져올 것입니다.",
+                "health", "규칙적인 생활이 건강의 비결입니다."
+        );
+        ZODIAC_FORTUNES.put(Zodiac.TAURUS, taurusFortunes);
+
+        // 나머지 별자리들도 유사하게 초기화
+        for (Zodiac zodiac : Zodiac.values()) {
+            if (!ZODIAC_FORTUNES.containsKey(zodiac)) {
+                Map<String, String> defaultFortunes = Map.of(
+                        "overall", zodiac.getKoreanName() + "님의 특별한 하루입니다.",
+                        "love", "사랑에 있어서 긍정적인 변화가 있을 것입니다.",
+                        "career", "업무에서 좋은 성과를 기대할 수 있습니다.",
+                        "health", "건강 관리에 신경쓰는 것이 좋겠습니다."
+                );
+                ZODIAC_FORTUNES.put(zodiac, defaultFortunes);
+            }
+        }
+    }
+
+    private static void initializeZodiacCompatibility() {
+        ZODIAC_COMPATIBILITY.put(Zodiac.ARIES, Arrays.asList(Zodiac.LEO, Zodiac.SAGITTARIUS, Zodiac.GEMINI));
+        ZODIAC_COMPATIBILITY.put(Zodiac.TAURUS, Arrays.asList(Zodiac.VIRGO, Zodiac.CAPRICORN, Zodiac.CANCER));
+        ZODIAC_COMPATIBILITY.put(Zodiac.GEMINI, Arrays.asList(Zodiac.LIBRA, Zodiac.AQUARIUS, Zodiac.ARIES));
+        ZODIAC_COMPATIBILITY.put(Zodiac.CANCER, Arrays.asList(Zodiac.SCORPIO, Zodiac.PISCES, Zodiac.TAURUS));
+        ZODIAC_COMPATIBILITY.put(Zodiac.LEO, Arrays.asList(Zodiac.ARIES, Zodiac.SAGITTARIUS, Zodiac.LIBRA));
+        ZODIAC_COMPATIBILITY.put(Zodiac.VIRGO, Arrays.asList(Zodiac.TAURUS, Zodiac.CAPRICORN, Zodiac.SCORPIO));
+        ZODIAC_COMPATIBILITY.put(Zodiac.LIBRA, Arrays.asList(Zodiac.GEMINI, Zodiac.AQUARIUS, Zodiac.LEO));
+        ZODIAC_COMPATIBILITY.put(Zodiac.SCORPIO, Arrays.asList(Zodiac.CANCER, Zodiac.PISCES, Zodiac.VIRGO));
+        ZODIAC_COMPATIBILITY.put(Zodiac.SAGITTARIUS, Arrays.asList(Zodiac.ARIES, Zodiac.LEO, Zodiac.AQUARIUS));
+        ZODIAC_COMPATIBILITY.put(Zodiac.CAPRICORN, Arrays.asList(Zodiac.TAURUS, Zodiac.VIRGO, Zodiac.PISCES));
+        ZODIAC_COMPATIBILITY.put(Zodiac.AQUARIUS, Arrays.asList(Zodiac.GEMINI, Zodiac.LIBRA, Zodiac.SAGITTARIUS));
+        ZODIAC_COMPATIBILITY.put(Zodiac.PISCES, Arrays.asList(Zodiac.CANCER, Zodiac.SCORPIO, Zodiac.CAPRICORN));
+    }
+
+    private static void initializeZodiacPersonalities() {
+        ZODIAC_PERSONALITIES.put(Zodiac.ARIES, "열정적이고 진취적인 성격으로 새로운 도전을 좋아합니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.TAURUS, "안정적이고 신뢰할 수 있는 성격으로 꾸준함이 장점입니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.GEMINI, "호기심이 많고 다재다능한 성격으로 적응력이 뛰어납니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.CANCER, "감성적이고 배려심이 깊은 성격으로 가족을 소중히 여깁니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.LEO, "자신감 있고 관대한 성격으로 타고난 리더십을 지녔습니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.VIRGO, "완벽주의적이고 세심한 성격으로 분석력이 뛰어납니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.LIBRA, "조화를 중시하고 우아한 성격으로 균형감각이 뛰어납니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.SCORPIO, "강인하고 신비로운 성격으로 깊은 통찰력을 지녔습니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.SAGITTARIUS, "자유롭고 낙천적인 성격으로 모험을 즐깁니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.CAPRICORN, "책임감이 강하고 현실적인 성격으로 목표 달성에 집중합니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.AQUARIUS, "독창적이고 인도주의적인 성격으로 혁신을 추구합니다.");
+        ZODIAC_PERSONALITIES.put(Zodiac.PISCES, "상상력이 풍부하고 직감적인 성격으로 예술적 감각이 뛰어납니다.");
+    }
+
+    private static void initializeZodiacLuckyColors() {
+        ZODIAC_LUCKY_COLORS.put(Zodiac.ARIES, "빨간색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.TAURUS, "녹색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.GEMINI, "노란색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.CANCER, "은색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.LEO, "금색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.VIRGO, "갈색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.LIBRA, "분홍색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.SCORPIO, "검은색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.SAGITTARIUS, "보라색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.CAPRICORN, "회색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.AQUARIUS, "파란색");
+        ZODIAC_LUCKY_COLORS.put(Zodiac.PISCES, "바다색");
+    }
+
+    private static void initializeZodiacLuckyStones() {
+        ZODIAC_LUCKY_STONES.put(Zodiac.ARIES, "다이아몬드");
+        ZODIAC_LUCKY_STONES.put(Zodiac.TAURUS, "에메랄드");
+        ZODIAC_LUCKY_STONES.put(Zodiac.GEMINI, "펄");
+        ZODIAC_LUCKY_STONES.put(Zodiac.CANCER, "루비");
+        ZODIAC_LUCKY_STONES.put(Zodiac.LEO, "페리도트");
+        ZODIAC_LUCKY_STONES.put(Zodiac.VIRGO, "사파이어");
+        ZODIAC_LUCKY_STONES.put(Zodiac.LIBRA, "오팔");
+        ZODIAC_LUCKY_STONES.put(Zodiac.SCORPIO, "토파즈");
+        ZODIAC_LUCKY_STONES.put(Zodiac.SAGITTARIUS, "터키석");
+        ZODIAC_LUCKY_STONES.put(Zodiac.CAPRICORN, "가넷");
+        ZODIAC_LUCKY_STONES.put(Zodiac.AQUARIUS, "자수정");
+        ZODIAC_LUCKY_STONES.put(Zodiac.PISCES, "아쿠아마린");
+    }
+
+    // 헬퍼 메서드들
+    private String generateMonthlyTheme(Zodiac zodiac, int month) {
+        return switch (month) {
+            case 1, 2, 12 -> "새로운 시작과 계획의 시기";
+            case 3, 4, 5 -> "성장과 발전의 시기";
+            case 6, 7, 8 -> "활동과 성취의 시기";
+            case 9, 10, 11 -> "수확과 정리의 시기";
+            default -> "변화와 도전의 시기";
+        };
+    }
+
+    private String generateMonthlyMessage(Zodiac zodiac, int month, int score) {
+        String zodiacName = zodiac.getKoreanName();
+        if (score >= 70) {
+            return month + "월은 " + zodiacName + "님에게 특별히 좋은 달입니다. 많은 기회가 찾아올 것입니다.";
+        } else if (score >= 50) {
+            return month + "월은 " + zodiacName + "님에게 안정적인 달입니다. 꾸준한 노력이 빛을 발할 것입니다.";
+        } else {
+            return month + "월은 " + zodiacName + "님에게 조심스러운 달입니다. 신중한 판단이 필요합니다.";
+        }
+    }
+
+    private String generateCaution(int score) {
+        if (score < 50) {
+            return "급한 결정은 피하고, 충분히 생각한 후 행동하세요.";
+        } else if (score < 70) {
+            return "큰 변화보다는 현재 상황을 안정화하는 것이 좋겠습니다.";
+        } else {
+            return "특별한 주의사항은 없지만, 겸손한 마음가짐을 유지하세요.";
+        }
+    }
+
+    private String generateOpportunity(int score) {
+        if (score >= 70) {
+            return "새로운 프로젝트나 인맥 확장에 좋은 기회가 있을 것입니다.";
+        } else if (score >= 50) {
+            return "기존 관계나 업무에서 발전할 수 있는 기회를 찾아보세요.";
+        } else {
+            return "작은 변화부터 시작하여 점진적으로 개선해 나가세요.";
+        }
     }
 }

@@ -1,42 +1,76 @@
 package com.fortune.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDateTime;
+
+
 
 /**
- * 공통 API 응답 형식
- * 성공 응답 (성공 시 데이터 반환)
- * 실패 응답 (실패 시 메시지 반환)
+ *  API 응답 래퍼 DTO
+ *  * <p>API 응답을 일관된 형식으로 감싸는 DTO입니다.</p>
+ *  * <h3>주요 필드</h3>
+ *  * <ul>
+ *      <li><strong>success</strong>: 요청 성공 여부</li>
+ *      <li><strong>data</strong>: 응답 데이터 (제네릭 타입)</li>
+ *      <li><strong>message</strong>: 응답 메시지</li>
+ *      <li><strong>errorCode</strong>: 오류 발생 시 오류 코드</li>
+ *      <li><strong>timestamp</strong>: 응답 생성 시간</li>
+ *      </ul>
  */
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Schema(description = "API 응답 래퍼")
 public class ApiResponse<T> {
-    private boolean success;   // 성공 여부
-    private String message;    // 메시지
-    private T data;            // 데이터
-    private String timestamp;  // 타임스탬프
 
-    /*
-     * 성공 응답 (성공 시 데이터 반환)
-     * 성공 메시지
-     * 데이터
-     * 타임스탬프
+    @Schema(description = "성공 여부")
+    private boolean success;
+
+    @Schema(description = "응답 데이터")
+    private T data;
+
+    @Schema(description = "메시지")
+    private String message;
+
+    @Schema(description = "오류 코드")
+    private String errorCode;
+
+    @Schema(description = "타임스탬프")
+    private String timestamp;
+
+    /**
+     * 성공 응답 생성
+     *
+     * @param data 응답 데이터
+     * @return ApiResponse 객체
      */
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "성공", data, LocalDateTime.now().toString());
+        return ApiResponse.<T>builder()
+                .success(true)
+                .data(data)
+                .message("성공")
+                .timestamp(java.time.LocalDateTime.now().toString())
+                .build();
     }
 
-    /*
-     * 실패 응답 (실패 시 메시지 반환)
-     * 실패 메시지
-     * 데이터
-     * 타임스탬프
+    /**
+     * 오류 응답 생성
+     *
+     * @param message 오류 메시지
+     * @param errorCode 오류 코드
+     * @return ApiResponse 객체
      */
-    public static <T> ApiResponse<T> error(String message) {
-        return new ApiResponse<>(false, message, null, LocalDateTime.now().toString());
+    public static <T> ApiResponse<T> error(String message, String errorCode) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .errorCode(errorCode)
+                .timestamp(java.time.LocalDateTime.now().toString())
+                .build();
     }
 }

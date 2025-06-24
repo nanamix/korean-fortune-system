@@ -1,5 +1,5 @@
 -- 테스트용 토정비결 데이터 (최소한의 데이터만)
-MERGE INTO tojeong_gwa (gwa_number, gwa_name, gwa_symbol, summary, detailed_fortune, overall_score) VALUES
+INSERT INTO tojeong_gwa (gwa_number, gwa_name, gwa_symbol, summary, detailed_fortune, overall_score) VALUES
 (0, '건위천', '☰☰', '하늘이 도우니 크게 길하다', '테스트용 상세 운세 - 하늘의 도움을 받아 모든 일이 순조롭게 풀릴 것입니다.', 95),
 (1, '곤위지', '☷☷', '땅의 덕으로 차근차근 발전한다', '테스트용 상세 운세 - 꾸준함과 인내심이 빛을 발하는 해입니다.', 88),
 (2, '수뢰둔', '☵☳', '어려움 속에서도 희망이 보인다', '테스트용 상세 운세 - 초반에는 어려움이 있지만 꾸준히 노력하면 좋은 결과가 있을 것입니다.', 75),

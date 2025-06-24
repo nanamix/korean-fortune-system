@@ -1,105 +1,86 @@
 package com.fortune.exception;
 
-import com.fortune.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import com.fortune.dto.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 
-import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.Map;
-
-/*
- * 예외 처리 클래스
- * 입력값 검증 오류
- * 날짜 형식 오류
- * 파라미터 타입 오류
- * 운세 계산 오류
- * 기타 예외
- */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     /**
-     * 입력값 검증 오류
-     * 메시지
-     * 원인
-     * 메시지
-     * @param ex 입력값 검증 오류
-     * @return 입력값 검증 오류
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-        // 입력값 검증 오류 메시지 생성
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("입력값 검증 오류: " + errors.toString()));
-    }
-
-    /**
-     * 날짜 형식 오류
-     * 메시지
-     * 원인
-     * 메시지
-     * @param ex 날짜 형식 오류
-     * @return 날짜 형식 오류
-     */
-    @ExceptionHandler(DateTimeParseException.class)
-    public ResponseEntity<ApiResponse<String>> handleDateTimeParseException(DateTimeParseException ex) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("날짜 형식이 올바르지 않습니다. YYYY-MM-DD 형식으로 입력해주세요."));
-    }
-
-    /**
-     * 파라미터 타입 오류
-     * 메시지
-     * 원인
-     * 메시지
-     * @param ex 파라미터 타입 오류
-     * @return 파라미터 타입 오류
-     */
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<String>> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("파라미터 타입이 올바르지 않습니다: " + ex.getName()));
-    }
-
-    /**
-     * 운세 계산 오류
-     * 메시지
-     * 원인
-     * 메시지
-     * @param ex 운세 계산 오류
-     * @return 운세 계산 오류
+     * 운세 계산 예외 처리
+     * <p>운세 계산 중 발생하는 예외를 처리합니다.</p>
+     * <p>이 예외는 운세 계산 로직에서 발생할 수 있는 다양한 오류를 포괄합니다.</p>
+     * <p>예를 들어, 잘못된 입력값이나 외부 API 호출 실패 등으로 인해 발생할 수 있습니다.</p>
+     * <p>이 핸들러는 운세 계산 예외를 잡아 적절한 HTTP 응답을 반환합니다.</p>
+     * <p>운세 계산 예외가 발생하면, 클라이언트에게 오류 메시지와 함께 400 Bad Request 상태 코드를 반환합니다.</p>
+     * <p>이렇게 함으로써, 클라이언트는 운세 계산 중 발생한 문제를 이해하고 적절한 조치를 취할 수 있습니다.</p>
+     * @param e 운세 계산 예외 <p>운세 계산 중 발생한 예외 객체입니다.</p>
+     * @return ResponseEntity<ApiResponse<Void>> <p>운세 계산 예외에 대한 응답을 포함하는 ResponseEntity 객체입니다.</p>
      */
     @ExceptionHandler(FortuneCalculationException.class)
-    public ResponseEntity<ApiResponse<String>> handleFortuneCalculationException(FortuneCalculationException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("운세 계산 중 오류가 발생했습니다: " + ex.getMessage()));
+    public ResponseEntity<com.fortune.dto.ApiResponse<Void>> handleFortuneCalculationException(
+            FortuneCalculationException e) {
+        log.error("운세 계산 오류: {}", e.getMessage(), e);
+        return ResponseEntity.badRequest()
+                .body(com.fortune.dto.ApiResponse.error("운세 계산 중 오류가 발생했습니다: " + e.getMessage(), "운세 계산 오류"));
     }
 
     /**
-     * 기타 예외
-     * 메시지
-     * 원인
-     * 메시지
-     * @param ex 기타 예외
-     * @return 기타 예외
+     * 입력 검증 예외 처리
+     * <p>클라이언트가 보낸 입력값이 유효하지 않을 때 발생하는 예외를 처리합니다.</p>
+     * <p>예를 들어, 필수 필드가 누락되었거나 형식이 잘못된 경우에 발생합니다.</p>
+     * <p>이 핸들러는 입력 검증 예외를 잡아 적절한 HTTP 응답을 반환합니다.</p>
+     * <p>입력 검증 예외가 발생하면, 클라이언트에게 오류 메시지와 함께 400 Bad Request 상태 코드를 반환합니다.</p>
+     * <p>이렇게 함으로써, 클라이언트는 잘못된 입력값을 수정하고 다시 요청할 수 있습니다.</p>
+     * @param e 입력 검증 예외 <p>입력값이 유효하지 않을 때 발생하는 예외 객체입니다.</p> <p>이 예외는 주로 @Valid 어노테이션을 사용한 입력 검증에서 발생합니다.</p>
+     * @return ResponseEntity<ApiResponse<Void>> <p>입력 검증 예외에 대한 응답을 포함하는 ResponseEntity 객체입니다.</p>
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
+            MethodArgumentNotValidException e) {
+
+        String errorMessage = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .findFirst()
+                .orElse("입력값이 올바르지 않습니다.");
+
+        log.warn("입력 검증 실패: {}", errorMessage);
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(errorMessage, "입력 검증 오류"));
+    }
+
+    /**
+     * 일반 예외 처리
+     * <p>예상치 못한 오류가 발생했을 때 처리하는 핸들러입니다.</p>
+     * <p>이 핸들러는 모든 종류의 예외를 포괄적으로 처리합니다.</p>
+     * <p>예를 들어, 데이터베이스 연결 실패나 외부 API 호출 실패 등 다양한 오류가 발생할 수 있습니다.</p>
+     * <p>이 핸들러는 예외를 잡아 적절한 HTTP 응답을 반환합니다.</p>
+     * <p>예상치 못한 오류가 발생하면, 클라이언트에게 시스템 오류 메시지와 함께 500 Internal Server Error 상태 코드를 반환합니다.</p>
+     * <p>이렇게 함으로써, 클라이언트는 시스템에서 문제가 발생했음을 인지하고, 나중에 다시 시도할 수 있습니다.</p>
+     * @param e 예상치 못한 예외 <p>예상치 못한 오류가 발생했을 때의 예외 객체입니다.</p><p>이 예외는 일반적인 Exception 클래스를 상속받아 모든 종류의 예외를 처리합니다.</p> <p>예를 들어, NullPointerException, SQLException 등 다양한 예외가 포함될 수 있습니다.</p>
+     * @return ResponseEntity<ApiResponse<Void>> <p>예상치 못한 오류에 대한 응답을 포함하는 ResponseEntity 객체입니다.</p>
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {
+    public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception e) {
+        log.error("예상치 못한 오류: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요."));
+                .body(ApiResponse.error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "시스템 오류"));
+    }
+
+    /**
+     * 잘못된 날짜 예외 처리
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgumentException(
+            IllegalArgumentException e) {
+        log.warn("잘못된 인수: {}", e.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error("입력된 값이 올바르지 않습니다: " + e.getMessage(), "잘못된 인수"));
     }
 }

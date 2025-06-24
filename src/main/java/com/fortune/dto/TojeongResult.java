@@ -1,34 +1,55 @@
 package com.fortune.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
+import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
+
 
 /**
- * 토정과 결과 DTO
- * 대상 년도
- * 괘 번호 (0-63)
- * 괘명
- * 괘 기호
- * 한줄 요약
- * 상세 운세
- * 월별 운세
+ * 토정비결 결과 DTO
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(description = "토정비결 결과")
 public class TojeongResult {
-    private Integer targetYear;                    // 대상 년도
-    private Integer gwaNumber;                     // 괘 번호 (0-63)
-    private String gwaName;                        // 괘명
-    private String gwaSymbol;                      // 괘 기호
-    private String summary;                        // 한줄 요약
-    private String detailedFortune;                // 상세 운세
-    private Map<Integer, String> monthlyFortune;   // 월별 운세
-    private Map<String, String> seasonalFortune;   // 계절별 운세
-    private Integer overallScore;                  // 종합 점수 (0-100)
-    private String advice;                         // 연간 종합 조언
-    private List<Integer> luckyMonths;             // 길한 달들
-    private List<Integer> cautionMonths;           // 주의할 달들
+
+    @Schema(description = "대상 연도")
+    private int targetYear;
+
+    @Schema(description = "괘 번호")
+    private int gwaNumber;
+
+    @Schema(description = "괘 이름")
+    private String gwaName;
+
+    @Schema(description = "괘 상징")
+    private String gwaSymbol;
+
+    @Schema(description = "운세 요약")
+    private String summary;
+
+    @Schema(description = "상세 운세")
+    private String detailedFortune;
+
+    @Schema(description = "종합 점수")
+    private int overallScore;
+
+    @Schema(description = "조언")
+    private String advice;
+
+    @Schema(description = "길한 달")
+    private String luckyMonths;
+
+    @Schema(description = "주의할 달")
+    private String cautionMonths;
+
+    @Schema(description = "월별 운세")
+    private List<MonthlyFortune> monthlyFortune;
 }

@@ -2,262 +2,358 @@ package com.fortune.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.fortune.dto.*;
-import com.fortune.enums.*;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Arrays;
+import com.fortune.dto.SajuResult;
+import com.fortune.dto.DailyFortuneResult;
+import com.fortune.dto.FortuneByCategory;
+import com.fortune.dto.SinsalInfo;
+import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
+import java.util.*;
+
+/**
+ * 일일 운세 계산 서비스
+ *
+ * <p>사주를 기반으로 특정 날짜의 일일 운세를 계산하는 서비스입니다.</p>
+ *
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
+ */
+@Slf4j
 @Service
 public class DailyFortuneService {
 
     @Autowired
-    private GanjiCalculatorService ganjiCalculator;
+    private GanjiCalculatorService ganjiCalculatorService;
 
     @Autowired
     private SinsalService sinsalService;
 
-    /**
-     * 일일 운세 계산
-     */
-    public DailyFortuneResult calculateDailyFortune(SajuResult saju, LocalDate targetDate) {
-        // 1. 해당 날짜의 일주 계산
-        String dayPillar = ganjiCalculator.calculateDayPillar(targetDate);
+    // 오행 색상 매핑
+    private static final Map<String, List<String>> WUXING_COLORS = new HashMap<>();
 
-        // 2. 길신/흉신 계산
-        List<SinsalInfo> sinsals = sinsalService.calculateDailySinsals(targetDate, saju);
+    // 길방위 매핑 (일간별)
+    private static final Map<String, String> LUCKY_DIRECTIONS = new HashMap<>();
 
-        // 3. 오행 상생상극 분석
-        WuxingAnalysis wuxingAnalysis = analyzeWuxingRelation(saju, dayPillar);
+    // 일간별 기본 운세 점수
+    private static final Map<String, Integer> BASE_FORTUNE_SCORES = new HashMap<>();
 
-        // 4. 종합 점수 계산
-        int totalScore = calculateTotalScore(sinsals, wuxingAnalysis);
-
-        // 5. 분야별 운세 계산
-        FortuneByCategory categoryFortune = calculateCategoryFortune(saju, targetDate, totalScore);
-
-        return DailyFortuneResult.builder()
-                .date(targetDate)
-                .dayPillar(dayPillar)
-                .sinsals(sinsals)
-                .wuxingAnalysis(wuxingAnalysis)
-                .totalScore(totalScore)
-                .categoryFortune(categoryFortune)
-                .advice(generateAdvice(totalScore, sinsals))
-                .luckyDirection(calculateLuckyDirection(dayPillar))
-                .luckyColors(calculateLuckyColors(saju.getDayMaster()))
-                .build();
+    static {
+        initializeWuxingColors();
+        initializeLuckyDirections();
+        initializeBaseFortuneScores();
     }
 
     /**
-     * 오행 상생상극 분석
+     * 일일 운세 계산 메인 메서드
      */
-    private WuxingAnalysis analyzeWuxingRelation(SajuResult saju, String dayPillar) {
-        String dayMaster = saju.getDayMaster();
-        String targetDayStem = dayPillar.substring(0, 1);
+    public DailyFortuneResult calculateDailyFortune(SajuResult saju, LocalDate targetDate) {
+        log.info("🔮 일일 운세 계산 시작: {} - {}", saju.getDayMaster(), targetDate);
 
-        WuxingElement dayMasterElement = getWuxingElement(dayMaster);
-        WuxingElement targetDayElement = getWuxingElement(targetDayStem);
+        try {
+            // 1. 대상 날짜의 일주 계산
+            String dayPillar = ganjiCalculatorService.calculateDayPillar(targetDate);
 
-        WuxingRelation relation = getWuxingRelation(dayMasterElement, targetDayElement);
+            // 2. 길신/흉신 계산
+            List<SinsalInfo> sinsals = sinsalService.calculateDailySinsals(targetDate, saju);
 
-        return WuxingAnalysis.builder()
-                .dayMasterElement(dayMasterElement)
-                .targetDayElement(targetDayElement)
-                .relation(relation)
-                .relationScore(getRelationScore(relation))
-                .description(getRelationDescription(relation))
-                .build();
+            // 3. 종합 점수 계산
+            int totalScore = calculateTotalScore(saju, dayPillar, sinsals);
+
+            // 4. 분야별 운세 계산
+            FortuneByCategory categoryFortune = calculateCategoryFortune(saju, dayPillar, totalScore);
+
+            // 5. 조언 생성
+            String advice = generateAdvice(saju, totalScore, sinsals);
+
+            // 6. 길방위 설정
+            String luckyDirection = LUCKY_DIRECTIONS.getOrDefault(saju.getDayMaster(), "동쪽");
+
+            // 7. 길한 색깔 설정
+            List<String> luckyColors = WUXING_COLORS.getOrDefault(saju.getDayMaster(),
+                    Arrays.asList("흰색", "검은색"));
+
+            // 8. 주의사항 생성
+            String caution = generateCaution(sinsals, totalScore);
+
+            // 9. 결과 생성
+            DailyFortuneResult result = DailyFortuneResult.builder()
+                    .date(targetDate)
+                    .dayPillar(dayPillar)
+                    .totalScore(totalScore)
+                    .categoryFortune(categoryFortune)
+                    .sinsals(sinsals)
+                    .advice(advice)
+                    .luckyDirection(luckyDirection)
+                    .luckyColors(luckyColors)
+                    .caution(caution)
+                    .build();
+
+            log.info("✅ 일일 운세 계산 완료: 종합점수 {}", totalScore);
+            return result;
+
+        } catch (Exception e) {
+            log.error("❌ 일일 운세 계산 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("일일 운세 계산 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
 
     /**
      * 종합 점수 계산
      */
-    private int calculateTotalScore(List<SinsalInfo> sinsals, WuxingAnalysis wuxing) {
-        int baseScore = 50; // 기본 점수
+    private int calculateTotalScore(SajuResult saju, String dayPillar, List<SinsalInfo> sinsals) {
+        // 1. 기본 점수 (일간 기반)
+        int baseScore = BASE_FORTUNE_SCORES.getOrDefault(saju.getDayMaster(), 60);
 
-        // 신살 영향
-        int sinsalScore = sinsals.stream()
-                .mapToInt(SinsalInfo::getImpact)
-                .sum();
+        // 2. 일주 상성 점수
+        int pillarScore = calculatePillarCompatibility(saju.getDayPillar(), dayPillar);
 
-        // 오행 영향
-        int wuxingScore = wuxing.getRelationScore();
+        // 3. 신살 점수
+        int sinsalScore = calculateSinsalScore(sinsals);
 
-        int totalScore = baseScore + (sinsalScore / 10) + (wuxingScore / 5);
+        // 4. 오행 균형 점수
+        int balanceScore = saju.getWuxingAnalysis() != null ?
+                saju.getWuxingAnalysis().getBalance() / 10 : 5;
 
-        // 0-100 범위로 제한
+        // 5. 종합 계산
+        int totalScore = baseScore + pillarScore + sinsalScore + balanceScore;
+
+        // 6. 0-100 범위로 조정
         return Math.max(0, Math.min(100, totalScore));
+    }
+
+    /**
+     * 일주 상성 점수 계산
+     */
+    private int calculatePillarCompatibility(String birthDayPillar, String targetDayPillar) {
+        if (birthDayPillar.equals(targetDayPillar)) {
+            return 20; // 같은 일주는 매우 좋음
+        }
+
+        String birthStem = birthDayPillar.substring(0, 1);
+        String targetStem = targetDayPillar.substring(0, 1);
+        String birthBranch = birthDayPillar.substring(1, 2);
+        String targetBranch = targetDayPillar.substring(1, 2);
+
+        int compatibility = 0;
+
+        // 천간 상성 체크
+        if (isCompatibleStems(birthStem, targetStem)) {
+            compatibility += 10;
+        }
+
+        // 지지 상성 체크
+        if (isCompatibleBranches(birthBranch, targetBranch)) {
+            compatibility += 10;
+        }
+
+        return compatibility;
+    }
+
+    /**
+     * 천간 상성 체크
+     */
+    private boolean isCompatibleStems(String stem1, String stem2) {
+        // 간단한 상성 로직 (실제로는 더 복잡)
+        Map<String, List<String>> compatibleStems = Map.of(
+                "갑", Arrays.asList("기", "을"),
+                "을", Arrays.asList("경", "갑"),
+                "병", Arrays.asList("신", "정"),
+                "정", Arrays.asList("임", "병"),
+                "무", Arrays.asList("계", "기"),
+                "기", Arrays.asList("갑", "무"),
+                "경", Arrays.asList("을", "신"),
+                "신", Arrays.asList("병", "경"),
+                "임", Arrays.asList("정", "계"),
+                "계", Arrays.asList("무", "임")
+        );
+
+        return compatibleStems.getOrDefault(stem1, Collections.emptyList()).contains(stem2);
+    }
+
+    /**
+     * 지지 상성 체크
+     */
+    private boolean isCompatibleBranches(String branch1, String branch2) {
+        // 삼합, 육합 등의 상성 체크
+        Map<String, List<String>> compatibleBranches = Map.ofEntries(
+                Map.entry("자", Arrays.asList("축", "진", "신")),
+                Map.entry("축", Arrays.asList("자", "사", "유")),
+                Map.entry("인", Arrays.asList("해", "오", "술")),
+                Map.entry("묘", Arrays.asList("술", "미", "해")),
+                Map.entry("진", Arrays.asList("유", "자", "신")),
+                Map.entry("사", Arrays.asList("신", "축", "유")),
+                Map.entry("오", Arrays.asList("미", "인", "술")),
+                Map.entry("미", Arrays.asList("오", "묘", "해")),
+                Map.entry("신", Arrays.asList("사", "자", "진")),
+                Map.entry("유", Arrays.asList("진", "축", "사")),
+                Map.entry("술", Arrays.asList("묘", "인", "오")),
+                Map.entry("해", Arrays.asList("인", "미", "묘"))
+        );
+
+        return compatibleBranches.getOrDefault(branch1, Collections.emptyList()).contains(branch2);
+    }
+
+    /**
+     * 신살 점수 계산
+     */
+    private int calculateSinsalScore(List<SinsalInfo> sinsals) {
+        int score = 0;
+        for (SinsalInfo sinsal : sinsals) {
+            if (sinsal.isLucky()) {
+                score += sinsal.getInfluence();
+            } else {
+                score -= sinsal.getInfluence();
+            }
+        }
+        return score;
     }
 
     /**
      * 분야별 운세 계산
      */
-    private FortuneByCategory calculateCategoryFortune(SajuResult saju, LocalDate date, int baseScore) {
+    private FortuneByCategory calculateCategoryFortune(SajuResult saju, String dayPillar, int totalScore) {
+        Random random = new Random(dayPillar.hashCode() + saju.getDayMaster().hashCode());
+
+        // 기본 점수에 변동 추가
+        int baseVariation = 15;
+
+        int loveScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        int careerScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        int healthScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        int wealthScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+
         return FortuneByCategory.builder()
-                .overall(FortuneCategory.builder()
-                        .score(baseScore)
-                        .description(getOverallDescription(baseScore))
-                        .build())
-                .love(FortuneCategory.builder()
-                        .score(calculateLoveFortune(saju, date, baseScore))
-                        .description(getLoveDescription(calculateLoveFortune(saju, date, baseScore)))
-                        .build())
-                .money(FortuneCategory.builder()
-                        .score(calculateMoneyFortune(saju, date, baseScore))
-                        .description(getMoneyDescription(calculateMoneyFortune(saju, date, baseScore)))
-                        .build())
-                .health(FortuneCategory.builder()
-                        .score(calculateHealthFortune(saju, date, baseScore))
-                        .description(getHealthDescription(calculateHealthFortune(saju, date, baseScore)))
-                        .build())
-                .work(FortuneCategory.builder()
-                        .score(calculateWorkFortune(saju, date, baseScore))
-                        .description(getWorkDescription(calculateWorkFortune(saju, date, baseScore)))
-                        .build())
+                .loveScore(loveScore)
+                .loveMessage(generateCategoryMessage("연애", loveScore))
+                .careerScore(careerScore)
+                .careerMessage(generateCategoryMessage("직장", careerScore))
+                .healthScore(healthScore)
+                .healthMessage(generateCategoryMessage("건강", healthScore))
+                .wealthScore(wealthScore)
+                .wealthMessage(generateCategoryMessage("재물", wealthScore))
                 .build();
     }
 
-    // 길방위 계산
-    private String calculateLuckyDirection(String dayPillar) {
-        String dayStem = dayPillar.substring(0, 1);
-        Map<String, String> directionMap = Map.of(
-                "갑", "동쪽", "을", "동남쪽", "병", "남쪽", "정", "남서쪽",
-                "무", "중앙", "기", "중앙", "경", "서쪽", "신", "서북쪽",
-                "임", "북쪽", "계", "북동쪽"
-        );
-        return directionMap.getOrDefault(dayStem, "중앙");
-    }
-
-    // 길한 색깔 계산
-    private List<String> calculateLuckyColors(String dayMaster) {
-        WuxingElement element = getWuxingElement(dayMaster);
-        Map<WuxingElement, List<String>> colorMap = Map.of(
-                WuxingElement.WOOD, Arrays.asList("녹색", "청색", "검정색"),
-                WuxingElement.FIRE, Arrays.asList("빨간색", "주황색", "녹색"),
-                WuxingElement.EARTH, Arrays.asList("노란색", "갈색", "빨간색"),
-                WuxingElement.METAL, Arrays.asList("흰색", "금색", "노란색"),
-                WuxingElement.WATER, Arrays.asList("검정색", "파란색", "흰색")
-        );
-        return colorMap.getOrDefault(element, Arrays.asList("흰색"));
-    }
-
-    // 보조 메서드들
-    private WuxingElement getWuxingElement(String stem) {
-        Map<String, WuxingElement> elementMap = Map.of(
-                "갑", WuxingElement.WOOD, "을", WuxingElement.WOOD,
-                "병", WuxingElement.FIRE, "정", WuxingElement.FIRE,
-                "무", WuxingElement.EARTH, "기", WuxingElement.EARTH,
-                "경", WuxingElement.METAL, "신", WuxingElement.METAL,
-                "임", WuxingElement.WATER, "계", WuxingElement.WATER
-        );
-        return elementMap.get(stem);
-    }
-
-    private String generateAdvice(int score, List<SinsalInfo> sinsals) {
+    /**
+     * 분야별 메시지 생성
+     */
+    private String generateCategoryMessage(String category, int score) {
         if (score >= 80) {
-            return "매우 길한 날입니다! 중요한 일을 시작하거나 결정하기 좋은 시기입니다.";
+            return category + "운이 매우 좋습니다. 적극적으로 행동하세요!";
         } else if (score >= 60) {
-            return "평안한 하루가 될 것입니다. 꾸준히 노력하시면 좋은 결과가 있을 것입니다.";
+            return category + "운이 좋은 편입니다. 기회를 놓치지 마세요.";
         } else if (score >= 40) {
-            return "보통의 하루입니다. 신중하게 행동하시면 무난하게 지낼 수 있습니다.";
+            return category + "운이 보통입니다. 꾸준히 노력하세요.";
         } else {
-            return "조심스러운 하루입니다. 중요한 결정은 미루고 안전에 유의하세요.";
+            return category + "운이 다소 저조합니다. 신중하게 행동하세요.";
         }
     }
 
-    // 누락된 메서드들 추가
-    private WuxingRelation getWuxingRelation(WuxingElement dayMaster, WuxingElement targetDay) {
-        // 간단한 오행 관계 판단
-        if (dayMaster == targetDay) return WuxingRelation.SAME;
-        if ((dayMaster == WuxingElement.WOOD && targetDay == WuxingElement.FIRE) ||
-            (dayMaster == WuxingElement.FIRE && targetDay == WuxingElement.EARTH) ||
-            (dayMaster == WuxingElement.EARTH && targetDay == WuxingElement.METAL) ||
-            (dayMaster == WuxingElement.METAL && targetDay == WuxingElement.WATER) ||
-            (dayMaster == WuxingElement.WATER && targetDay == WuxingElement.WOOD)) {
-            return WuxingRelation.SUPPORT;
+    /**
+     * 조언 생성
+     */
+    private String generateAdvice(SajuResult saju, int totalScore, List<SinsalInfo> sinsals) {
+        StringBuilder advice = new StringBuilder();
+
+        if (totalScore >= 80) {
+            advice.append("오늘은 매우 좋은 날입니다! ");
+        } else if (totalScore >= 60) {
+            advice.append("오늘은 좋은 하루가 될 것입니다. ");
+        } else if (totalScore >= 40) {
+            advice.append("오늘은 평범한 하루입니다. ");
+        } else {
+            advice.append("오늘은 조심스러운 하루입니다. ");
         }
-        if ((dayMaster == WuxingElement.WOOD && targetDay == WuxingElement.METAL) ||
-            (dayMaster == WuxingElement.METAL && targetDay == WuxingElement.FIRE) ||
-            (dayMaster == WuxingElement.FIRE && targetDay == WuxingElement.WATER) ||
-            (dayMaster == WuxingElement.WATER && targetDay == WuxingElement.EARTH) ||
-            (dayMaster == WuxingElement.EARTH && targetDay == WuxingElement.WOOD)) {
-            return WuxingRelation.CONFLICT;
+
+        // 일간별 특성 추가
+        advice.append(getDayMasterAdvice(saju.getDayMaster()));
+
+        // 길신이 있으면 추가 조언
+        long luckyCount = sinsals.stream().filter(SinsalInfo::isLucky).count();
+        if (luckyCount > 0) {
+            advice.append(" 길신의 도움을 받아 좋은 결과를 얻을 수 있습니다.");
         }
-        return WuxingRelation.WEAK;
+
+        return advice.toString();
     }
 
-    private int getRelationScore(WuxingRelation relation) {
-        switch (relation) {
-            case SUPPORT: return 20;
-            case SAME: return 15;
-            case WEAK: return 0;
-            case CONFLICT: return -10;
-            case DRAIN: return -5;
-            default: return 0;
+    /**
+     * 일간별 조언
+     */
+    private String getDayMasterAdvice(String dayMaster) {
+        return switch (dayMaster) {
+            case "갑" -> "정직하고 진실한 마음으로 행동하면 좋은 결과가 있을 것입니다.";
+            case "을" -> "섬세함과 배려로 주변 사람들과 좋은 관계를 유지하세요.";
+            case "병" -> "밝고 활기찬 에너지로 주변을 이끌어 나가세요.";
+            case "정" -> "따뜻한 마음과 정성으로 일을 처리하면 성공할 수 있습니다.";
+            case "무" -> "든든하고 신뢰할 수 있는 모습으로 주변의 지지를 받으세요.";
+            case "기" -> "실용적이고 현실적인 접근으로 문제를 해결하세요.";
+            case "경" -> "원칙과 규칙을 지키며 공정하게 행동하세요.";
+            case "신" -> "예리한 판단력과 세련된 감각을 발휘하세요.";
+            case "임" -> "깊은 사고와 넓은 포용력으로 상황을 이끌어 나가세요.";
+            case "계" -> "순수한 마음과 지혜로운 판단을 하세요.";
+            default -> "균형 잡힌 마음으로 하루를 보내세요.";
+        };
+    }
+
+    /**
+     * 주의사항 생성
+     */
+    private String generateCaution(List<SinsalInfo> sinsals, int totalScore) {
+        long unluckyCount = sinsals.stream().filter(sinsal -> !sinsal.isLucky()).count();
+
+        if (unluckyCount >= 3) {
+            return "흉신이 많아 특별히 조심해야 하는 날입니다. 중요한 결정은 미루는 것이 좋겠습니다.";
+        } else if (unluckyCount >= 1) {
+            return "일부 흉신이 있으니 신중하게 행동하세요.";
+        } else if (totalScore < 40) {
+            return "운세가 다소 저조하니 무리하지 마시고 휴식을 취하세요.";
+        } else {
+            return "특별한 주의사항은 없습니다. 평상시처럼 행동하세요.";
         }
     }
 
-    private String getRelationDescription(WuxingRelation relation) {
-        switch (relation) {
-            case SUPPORT: return "상생 관계로 매우 길합니다.";
-            case SAME: return "동일한 기운으로 안정적입니다.";
-            case WEAK: return "중성적인 관계입니다.";
-            case CONFLICT: return "상극 관계로 주의가 필요합니다.";
-            case DRAIN: return "설기 관계로 조심해야 합니다.";
-            default: return "관계를 알 수 없습니다.";
-        }
+    /**
+     * 정적 초기화 메서드들
+     */
+    private static void initializeWuxingColors() {
+        WUXING_COLORS.put("갑", Arrays.asList("녹색", "청색", "남색"));
+        WUXING_COLORS.put("을", Arrays.asList("연두색", "초록색", "청록색"));
+        WUXING_COLORS.put("병", Arrays.asList("빨간색", "주황색", "분홍색"));
+        WUXING_COLORS.put("정", Arrays.asList("자주색", "보라색", "연분홍색"));
+        WUXING_COLORS.put("무", Arrays.asList("노란색", "갈색", "황토색"));
+        WUXING_COLORS.put("기", Arrays.asList("베이지색", "아이보리", "크림색"));
+        WUXING_COLORS.put("경", Arrays.asList("흰색", "은색", "회색"));
+        WUXING_COLORS.put("신", Arrays.asList("금색", "백금색", "진주색"));
+        WUXING_COLORS.put("임", Arrays.asList("검은색", "짙은 파랑", "남색"));
+        WUXING_COLORS.put("계", Arrays.asList("물색", "하늘색", "연파랑"));
     }
 
-    private String getOverallDescription(int score) {
-        if (score >= 80) return "매우 길한 날입니다.";
-        if (score >= 60) return "평안한 하루입니다.";
-        if (score >= 40) return "보통의 하루입니다.";
-        return "조심스러운 하루입니다.";
+    private static void initializeLuckyDirections() {
+        LUCKY_DIRECTIONS.put("갑", "동쪽");
+        LUCKY_DIRECTIONS.put("을", "동남쪽");
+        LUCKY_DIRECTIONS.put("병", "남쪽");
+        LUCKY_DIRECTIONS.put("정", "남서쪽");
+        LUCKY_DIRECTIONS.put("무", "중앙");
+        LUCKY_DIRECTIONS.put("기", "중앙");
+        LUCKY_DIRECTIONS.put("경", "서쪽");
+        LUCKY_DIRECTIONS.put("신", "서북쪽");
+        LUCKY_DIRECTIONS.put("임", "북쪽");
+        LUCKY_DIRECTIONS.put("계", "북동쪽");
     }
 
-    private int calculateLoveFortune(SajuResult saju, LocalDate date, int baseScore) {
-        return Math.max(0, Math.min(100, baseScore + (date.getDayOfMonth() % 20)));
-    }
-
-    private String getLoveDescription(int score) {
-        if (score >= 80) return "애정운이 매우 좋습니다.";
-        if (score >= 60) return "애정운이 평안합니다.";
-        if (score >= 40) return "애정운이 보통입니다.";
-        return "애정운에 주의가 필요합니다.";
-    }
-
-    private int calculateMoneyFortune(SajuResult saju, LocalDate date, int baseScore) {
-        return Math.max(0, Math.min(100, baseScore + (date.getMonthValue() % 15)));
-    }
-
-    private String getMoneyDescription(int score) {
-        if (score >= 80) return "재물운이 매우 좋습니다.";
-        if (score >= 60) return "재물운이 평안합니다.";
-        if (score >= 40) return "재물운이 보통입니다.";
-        return "재물운에 주의가 필요합니다.";
-    }
-
-    private int calculateHealthFortune(SajuResult saju, LocalDate date, int baseScore) {
-        return Math.max(0, Math.min(100, baseScore + (date.getYear() % 10)));
-    }
-
-    private String getHealthDescription(int score) {
-        if (score >= 80) return "건강운이 매우 좋습니다.";
-        if (score >= 60) return "건강운이 평안합니다.";
-        if (score >= 40) return "건강운이 보통입니다.";
-        return "건강에 주의가 필요합니다.";
-    }
-
-    private int calculateWorkFortune(SajuResult saju, LocalDate date, int baseScore) {
-        return Math.max(0, Math.min(100, baseScore + (saju.getDayMaster().hashCode() % 20)));
-    }
-
-    private String getWorkDescription(int score) {
-        if (score >= 80) return "직업운이 매우 좋습니다.";
-        if (score >= 60) return "직업운이 평안합니다.";
-        if (score >= 40) return "직업운이 보통입니다.";
-        return "직업에 주의가 필요합니다.";
+    private static void initializeBaseFortuneScores() {
+        BASE_FORTUNE_SCORES.put("갑", 65);
+        BASE_FORTUNE_SCORES.put("을", 60);
+        BASE_FORTUNE_SCORES.put("병", 70);
+        BASE_FORTUNE_SCORES.put("정", 65);
+        BASE_FORTUNE_SCORES.put("무", 60);
+        BASE_FORTUNE_SCORES.put("기", 55);
+        BASE_FORTUNE_SCORES.put("경", 65);
+        BASE_FORTUNE_SCORES.put("신", 70);
+        BASE_FORTUNE_SCORES.put("임", 60);
+        BASE_FORTUNE_SCORES.put("계", 55);
     }
 }

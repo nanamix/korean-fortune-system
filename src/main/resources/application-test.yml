@@ -1,25 +1,37 @@
+# ==============================================
+# 테스트 환경 설정 (application-test.yml)
+# ==============================================
 spring:
+  config:
+    activate:
+      on-profile: test
+
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb
     username: sa
     password:
+
   jpa:
     hibernate:
       ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+
   sql:
     init:
-      mode: always
-      data-locations: classpath:data-test.sql
-  show-sql: false
-  properties:
-    hibernate:
-      format_sql: true
-h2:
-  console:
-    enabled: false
+      mode: never
+
+app:
+  fortune:
+    ai:
+      enabled: false # 테스트에서는 AI 비활성화
+    cache:
+      enabled: false # 테스트에서는 캐시 비활성화
+    security:
+      enabled: false
+
 logging:
   level:
-    org.springframework.security: DEBUG
-    com.fortune: DEBUG
+    com.fortune: WARN
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.springframework.ai: ERROR

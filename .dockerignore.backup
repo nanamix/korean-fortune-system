@@ -1,0 +1,59 @@
+# 개발 환경 파일들
+.env
+.env.local
+.env.*.local
+
+# IDE 관련
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+logs/
+
+# 임시 파일
+tmp/
+temp/
+
+# Git 관련
+.git/
+.gitignore
+
+# Docker 관련
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 빌드 결과물 (JAR 파일은 제외)
+build/
+!build/libs/*.jar
+target/
+
+# Gradle 캐시 (wrapper는 포함)
+.gradle/
+!gradle/wrapper/
+
+# 테스트 결과
+test-results/
+.allure/
+
+# 문서
+docs/
+README.md
+*.md
+
+# CI/CD 관련
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# 기타 설정 파일들
+*.properties.local
+application-local.yml

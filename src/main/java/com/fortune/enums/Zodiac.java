@@ -1,32 +1,41 @@
 package com.fortune.enums;
 
 /**
- * 별자리
- * 한글 이름
- * 요소
+ * 별자리 Enum
+ * 각 별자리를 한글 이름으로 표현합니다.
+ * @author 하진영
+ * @version 1.0.0
+ */
+/**
+ * 별자리 열거형
  */
 public enum Zodiac {
-    ARIES("양자리", "불"),
-    TAURUS("황소자리", "땅"),
-    GEMINI("쌍둥이자리", "공기"),
-    CANCER("게자리", "물"),
-    LEO("사자자리", "불"),
-    VIRGO("처녀자리", "땅"),
-    LIBRA("천칭자리", "공기"),
-    SCORPIO("전갈자리", "물"),
-    SAGITTARIUS("사수자리", "불"),
-    CAPRICORN("염소자리", "땅"),
-    AQUARIUS("물병자리", "공기"),
-    PISCES("물고기자리", "물");
+    ARIES("양자리", "Aries"),
+    TAURUS("황소자리", "Taurus"),
+    GEMINI("쌍둥이자리", "Gemini"),
+    CANCER("게자리", "Cancer"),
+    LEO("사자자리", "Leo"),
+    VIRGO("처녀자리", "Virgo"),
+    LIBRA("천칭자리", "Libra"),
+    SCORPIO("전갈자리", "Scorpio"),
+    SAGITTARIUS("사수자리", "Sagittarius"),
+    CAPRICORN("염소자리", "Capricorn"),
+    AQUARIUS("물병자리", "Aquarius"),
+    PISCES("물고기자리", "Pisces");
 
-    private final String koreanName; // 한글 이름
-    private final String element; // 요소
+    private final String koreanName;
+    private final String englishName;
 
-    Zodiac(String koreanName, String element) {
-        this.koreanName = koreanName; // 한글 이름
-        this.element = element;
+    Zodiac(String koreanName, String englishName) {
+        this.koreanName = koreanName;
+        this.englishName = englishName;
     }
 
-    public String getKoreanName() { return koreanName; } // 한글 이름 반환
-    public String getElement() { return element; } // 요소 반환
+    public String getKoreanName() {
+        return koreanName;
+    }
+
+    public String getEnglishName() {
+        return englishName;
+    }
 }

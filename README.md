@@ -1,287 +1,348 @@
-# 🏗️ 스프링 부트 만세력 시스템 소스 구조
+# 🔮 한국형 만세력 운세 시스템 v2.5
 
-## 📁 프로젝트 디렉토리 구조
+[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/projects/jdk/17/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status](https://img.shields.io/badge/Build-Passing-success.svg)](https://github.com/korean-fortune-system)
 
-```
-korean-fortune-system/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/
-│   │   │       └── fortune/
-│   │   │           ├── KoreanFortuneApplication.java          # 메인 애플리케이션
-│   │   │           ├── config/                               # 설정 클래스들
-│   │   │           │   ├── CacheConfig.java                  # 캐시 설정
-│   │   │           │   ├── SecurityConfig.java               # 보안 설정
-│   │   │           │   └── AsyncConfig.java                  # 비동기 처리 설정
-│   │   │           ├── controller/                           # REST 컨트롤러
-│   │   │           │   ├── FortuneController.java            # 운세 API 컨트롤러
-│   │   │           │   └── SystemController.java             # 시스템 상태 컨트롤러
-│   │   │           ├── service/                              # 비즈니스 로직
-│   │   │           │   ├── GanjiCalculatorService.java       # 간지 계산 핵심 엔진
-│   │   │           │   ├── LunarCalendarService.java         # 음력 변환 서비스
-│   │   │           │   ├── SinsalService.java                # 길신/흉신 계산
-│   │   │           │   ├── DailyFortuneService.java          # 일일 운세 계산
-│   │   │           │   ├── TojeongBigyeolService.java        # 토정비결 서비스
-│   │   │           │   ├── GanjiCalendarService.java         # 간지달력 서비스
-│   │   │           │   └── ZodiacFortuneService.java         # 별자리 운세 서비스
-│   │   │           ├── entity/                               # JPA 엔티티
-│   │   │           │   ├── User.java                         # 사용자 엔티티
-│   │   │           │   └── SajuData.java                     # 사주 데이터 엔티티
-│   │   │           ├── dto/                                  # 데이터 전송 객체
-│   │   │           │   ├── SajuRequest.java                  # 사주 계산 요청 DTO
-│   │   │           │   ├── SajuResult.java                   # 사주 계산 결과 DTO
-│   │   │           │   ├── DailyFortuneResult.java           # 일일 운세 결과 DTO
-│   │   │           │   ├── FortuneByCategory.java            # 분야별 운세 DTO
-│   │   │           │   ├── FortuneCategory.java              # 운세 카테고리 DTO
-│   │   │           │   ├── SinsalInfo.java                   # 신살 정보 DTO
-│   │   │           │   ├── WuxingAnalysis.java               # 오행 분석 DTO
-│   │   │           │   ├── TojeongRequest.java               # 토정비결 요청 DTO
-│   │   │           │   ├── TojeongResult.java                # 토정비결 결과 DTO
-│   │   │           │   ├── GanjiCalendarDay.java             # 간지달력 일별 DTO
-│   │   │           │   ├── ZodiacRequest.java                # 별자리 요청 DTO
-│   │   │           │   ├── ZodiacFortuneResult.java          # 별자리 운세 결과 DTO
-│   │   │           │   ├── ZodiacFortune.java                # 별자리 운세 DTO
-│   │   │           │   ├── LunarDate.java                    # 음력 날짜 DTO
-│   │   │           │   └── ApiResponse.java                  # 공통 API 응답 DTO
-│   │   │           ├── enums/                                # 열거형 클래스들
-│   │   │           │   ├── Zodiac.java                       # 별자리 열거형
-│   │   │           │   ├── WuxingElement.java                # 오행 원소 열거형
-│   │   │           │   └── WuxingRelation.java               # 오행 관계 열거형
-│   │   │           ├── exception/                            # 예외 처리
-│   │   │           │   ├── GlobalExceptionHandler.java      # 전역 예외 처리기
-│   │   │           │   └── FortuneCalculationException.java  # 커스텀 예외
-│   │   │           ├── validation/                           # 입력 검증
-│   │   │           │   ├── ValidBirthDate.java               # 생년월일 검증 어노테이션
-│   │   │           │   └── BirthDateValidator.java           # 생년월일 검증 로직
-│   │   │           └── health/                               # 헬스체크
-│   │   │               └── FortuneHealthIndicator.java       # 커스텀 헬스 인디케이터
-│   │   └── resources/
-│   │       ├── application.yml                               # 메인 설정 파일
-│   │       ├── application-dev.yml                           # 개발 환경 설정
-│   │       ├── application-prod.yml                          # 운영 환경 설정
-│   │       ├── application-test.yml                          # 테스트 환경 설정
-│   │       └── data.sql                                      # 초기 데이터 스크립트
-│   └── test/
-│       └── java/
-│           └── com/
-│               └── fortune/
-│                   ├── service/                              # 서비스 테스트
-│                   │   ├── GanjiCalculatorServiceTest.java   # 간지 계산 테스트
-│                   │   ├── DailyFortuneServiceTest.java      # 일일 운세 테스트
-│                   │   └── LunarCalendarServiceTest.java     # 음력 변환 테스트
-│                   └── controller/                           # 컨트롤러 테스트
-│                       └── FortuneControllerTest.java        # API 테스트
-├── database/
-│   ├── schema.sql                                           # 데이터베이스 스키마
-│   ├── data.sql                                             # 기본 데이터
-│   └── init.sql                                             # 초기화 스크립트
-├── docker/
-│   ├── Dockerfile                                           # Docker 이미지 빌드
-│   └── docker-compose.yml                                   # Docker Compose 설정
-├── docs/
-│   ├── API.md                                               # API 문서
-│   └── DEPLOYMENT.md                                        # 배포 가이드
-├── pom.xml                                                  # Maven 의존성 설정
-└── README.md                                                # 프로젝트 설명서
-```
+전통 사주팔자와 토정비결, 별자리 운세를 제공하는 종합 운세 서비스입니다.
 
----
+## ✨ 주요 기능
 
-## 📋 주요 클래스별 역할 및 기능
+### 🎯 핵심 운세 서비스
+- **📊 사주팔자 계산**: 전통 사주학 기반 정확한 사주팔자 계산
+- **📅 일일 운세**: 오늘/내일/특정 날짜의 상세 운세 분석
+- **📜 토정비결**: 64괘 기반 연간 운세 해석
+- **⭐ 별자리 운세**: 서양 점성술 기반 12성좌 운세
+- **📆 간지달력**: 월별 간지달력과 길일/흉일 안내
 
-### 🎯 **Core Services (핵심 서비스)**
+### 🤖 AI 기능 (선택적)
+- **🎯 AI 사주 해석**: OpenAI를 활용한 개인화된 사주 분석
+- **💬 자연어 질문 답변**: "올해 연애운은 어떤가요?" 같은 자연어 질문 지원
+- **📈 상세 운세 조언**: AI가 생성하는 맞춤형 조언
 
-#### 1. **GanjiCalculatorService.java**
-- **역할**: 간지 계산의 핵심 엔진
-- **주요 기능**:
-    - 년주/월주/일주/시주 계산
-    - 태양시 보정 (경도 차이 + 서머타임)
-    - 음력/양력 구분 처리
-    - 완전한 사주팔자 생성
+### 🔧 기술적 특징
+- **☁️ 클라우드 네이티브**: Docker 및 Kubernetes 지원
+- **📚 캐시 시스템**: Redis/Caffeine 기반 고성능 캐싱
+- **📖 API 문서화**: Swagger/OpenAPI 3.0 완전 지원
+- **🔒 보안**: JWT 인증 및 OAuth2 연동
+- **📊 모니터링**: Actuator + Prometheus 메트릭
 
-```java
-// 주요 메서드
-public SajuResult calculateCompleteSaju(int year, int month, int day, 
-                                       int hour, int minute, String gender, String calendarType)
-public String calculateYearPillar(int year)
-public String calculateDayPillar(LocalDate date)
-private LocalDateTime adjustToSolarTime(LocalDate date, int hour, int minute)
-```
+## 🚀 빠른 시작
 
-#### 2. **LunarCalendarService.java**
-- **역할**: 음력-양력 변환
-- **주요 기능**:
-    - 음력을 양력으로 변환
-    - 양력을 음력으로 역변환
-    - 윤달 처리
+### 📋 사전 요구사항
+- Java 17 이상
+- Docker & Docker Compose (선택적)
+- MySQL 8.0 (운영환경, 개발시 H2 자동 사용)
 
-```java
-// 주요 메서드
-public LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay)
-public LunarDate convertSolarToLunar(LocalDate solarDate)
-```
-
-#### 3. **SinsalService.java**
-- **역할**: 길신/흉신 계산 및 해석
-- **주요 기능**:
-    - 천덕, 월덕, 천희 등 길신 계산
-    - 월살, 일살, 흑도 등 흉신 계산
-    - 신살별 상세 해석 제공
-
-```java
-// 주요 메서드
-public List<SinsalInfo> calculateDailySinsals(LocalDate date, SajuResult saju)
-private boolean isCheondeok(LocalDate date, String dayStem)
-private boolean isWoldeok(LocalDate date, String dayStem)
-```
-
-#### 4. **DailyFortuneService.java**
-- **역할**: 일일 운세 종합 계산
-- **주요 기능**:
-    - 오행 상생상극 분석
-    - 분야별 운세 (종합/애정/재물/건강/직업)
-    - 길방위/길한색깔 계산
-    - 종합 점수 및 조언 생성
-
-```java
-// 주요 메서드
-public DailyFortuneResult calculateDailyFortune(SajuResult saju, LocalDate targetDate)
-private WuxingAnalysis analyzeWuxingRelation(SajuResult saju, String dayPillar)
-private FortuneByCategory calculateCategoryFortune(SajuResult saju, LocalDate date, int baseScore)
-```
-
-### 🎨 **Specialized Services (전문 서비스)**
-
-#### 5. **TojeongBigyeolService.java**
-- **역할**: 토정비결 64괘 운세
-- **주요 기능**:
-    - 64괘 선택 알고리즘
-    - 연간 운세 및 월별 세부 분석
-    - 괘별 해석 및 조언
-
-#### 6. **GanjiCalendarService.java**
-- **역할**: 간지달력 생성
-- **주요 기능**:
-    - 월별 간지달력 생성
-    - 절기 표시
-    - 길일/흉일 판단
-
-#### 7. **ZodiacFortuneService.java**
-- **역할**: 서양 별자리 운세
-- **주요 기능**:
-    - 생일로부터 별자리 결정
-    - 일일/주간/월간 별자리 운세
-    - 별자리 궁합 분석
-
-### 🌐 **API Layer (컨트롤러)**
-
-#### 8. **FortuneController.java**
-- **역할**: REST API 엔드포인트 제공
-- **주요 엔드포인트**:
-    - `POST /api/fortune/saju/calculate` - 사주 계산
-    - `POST /api/fortune/daily/today` - 오늘 운세
-    - `POST /api/fortune/daily/tomorrow` - 내일 운세
-    - `POST /api/fortune/daily/{date}` - 지정일 운세
-    - `POST /api/fortune/tojeong` - 토정비결
-    - `GET /api/fortune/calendar/ganji/{year}/{month}` - 간지달력
-    - `POST /api/fortune/zodiac` - 별자리 운세
-
-### 💾 **Data Layer (엔티티 & DTO)**
-
-#### 9. **Entity Classes**
-```java
-// User.java - 사용자 정보
-- 생년월일시분, 성별, 양력/음력 구분
-
-// SajuData.java - 계산된 사주 데이터
-- 년주/월주/일주/시주, 일간, 보정시간
-```
-
-#### 10. **DTO Classes**
-```java
-// SajuRequest.java - 사주 계산 요청
-- 완전한 입력 검증 (생년월일시분, 성별, 달력구분)
-
-// SajuResult.java - 사주 계산 결과
-- 사주팔자, 태양시 보정, 음력정보 포함
-
-// DailyFortuneResult.java - 일일 운세 결과
-- 종합점수, 분야별 운세, 신살정보, 길방위/색깔
-```
-
-### 🔧 **Configuration & Utilities**
-
-#### 11. **Config Classes**
-```java
-// CacheConfig.java - 캐시 설정
-// SecurityConfig.java - 보안 설정 (CORS, 인증)
-// AsyncConfig.java - 비동기 처리 설정
-```
-
-#### 12. **Exception Handling**
-```java
-// GlobalExceptionHandler.java - 전역 예외 처리
-// FortuneCalculationException.java - 커스텀 예외
-```
-
-#### 13. **Validation**
-```java
-// ValidBirthDate.java - 생년월일 검증 어노테이션
-// BirthDateValidator.java - 검증 로직 구현
-```
-
----
-
-## 🧪 **테스트 데이터 기준**
-
-**모든 테스트는 다음 데이터를 기준으로 작성됨:**
-- **생년월일**: 1981년 3월 20일
-- **생시**: 01시 59분 (축시)
-- **성별**: 남성 (M)
-- **달력**: 양력 (SOLAR)
-
-**계산 결과:**
-- **년주**: 신유 (1981년)
-- **월주**: 신묘 (3월)
-- **일주**: 을미 (3월 20일)
-- **시주**: 정축 (01:59 → 태양시 보정 후 01:27 → 축시)
-- **일간**: 을목 (부드럽고 유연한 성격)
-
----
-
-## 🚀 **빌드 및 실행**
+### 🏃‍♂️ 로컬 실행
 
 ```bash
-# 프로젝트 빌드
-mvn clean package
+# 1. 저장소 클론
+git clone https://github.com/your-org/korean-fortune-system.git
+cd korean-fortune-system
 
-# 개발 환경 실행
-mvn spring-boot:run
+# 2. 개발 환경으로 실행
+./gradlew runDev
 
-# Docker 실행
-docker-compose up -d
-
-# 테스트 실행
-mvn test
+# 3. AI 기능과 함께 실행 (OpenAI API 키 필요)
+export OPENAI_API_KEY=your-api-key
+./gradlew runWithAI
 ```
 
----
+애플리케이션이 실행되면:
+- 🌐 **API 서버**: http://localhost:8080
+- 📖 **API 문서**: http://localhost:8080/swagger-ui.html
+- 🔍 **헬스체크**: http://localhost:8080/actuator/health
 
-## 📱 **API 사용 예시**
+### 🐳 Docker로 실행
 
 ```bash
-# 사주팔자 계산
+# 개발 환경
+docker-compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d
+
+# 운영 환경
+docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+```
+
+## 📚 API 사용법
+
+### 🔮 사주팔자 계산
+
+```bash
 curl -X POST http://localhost:8080/api/fortune/saju/calculate \
   -H "Content-Type: application/json" \
   -d '{
-    "birthYear": 1981, "birthMonth": 3, "birthDay": 20,
-    "birthHour": 1, "birthMinute": 59,
-    "gender": "M", "calendarType": "SOLAR"
+    "birthYear": 1990,
+    "birthMonth": 5,
+    "birthDay": 15,
+    "birthHour": 14,
+    "birthMinute": 30,
+    "gender": "M",
+    "calendarType": "SOLAR"
   }'
+```
 
-# 오늘의 운세
+### 📅 오늘의 운세
+
+```bash
 curl -X POST http://localhost:8080/api/fortune/daily/today \
   -H "Content-Type: application/json" \
-  -d '{ 동일한 생일 정보 }'
+  -d '{
+    "birthYear": 1990,
+    "birthMonth": 5,
+    "birthDay": 15,
+    "birthHour": 14,
+    "birthMinute": 30,
+    "gender": "M",
+    "calendarType": "SOLAR"
+  }'
 ```
+
+### 📜 토정비결
+
+```bash
+curl -X POST http://localhost:8080/api/fortune/tojeong \
+  -H "Content-Type: application/json" \
+  -d '{
+    "birthYear": 1990,
+    "birthMonth": 5,
+    "birthDay": 15,
+    "targetYear": 2025
+  }'
+```
+
+### ⭐ 별자리 운세
+
+```bash
+curl -X POST http://localhost:8080/api/fortune/zodiac \
+  -H "Content-Type: application/json" \
+  -d '{
+    "birthDate": "1990-05-15",
+    "targetDate": "2025-06-24"
+  }'
+```
+
+### 📆 간지달력 조회
+
+```bash
+curl http://localhost:8080/api/fortune/calendar/ganji/2025/6
+```
+
+## 🏗️ 프로젝트 구조
+
+```
+src/
+├── main/
+│   ├── java/com/fortune/
+│   │   ├── controller/         # REST API 컨트롤러
+│   │   ├── service/           # 비즈니스 로직 서비스
+│   │   ├── dto/               # 데이터 전송 객체
+│   │   ├── config/            # 설정 클래스
+│   │   ├── enums/             # 열거형 정의
+│   │   └── security/          # 보안 관련 클래스
+│   └── resources/
+│       ├── application.yml    # 기본 설정
+│       ├── application-dev.yml # 개발 환경 설정
+│       ├── application-prod.yml # 운영 환경 설정
+│       └── application-ai.yml  # AI 기능 설정
+├── test/                      # 테스트 코드
+├── docker/                    # Docker 설정 파일
+└── docs/                      # 문서
+```
+
+## 🔧 설정 및 환경변수
+
+### 🔑 필수 환경변수
+
+```bash
+# 데이터베이스 (운영환경)
+DB_USERNAME=fortune_user
+DB_PASSWORD=fortune_secure_2025!
+
+# AI 기능 (선택적)
+OPENAI_API_KEY=your-openai-api-key
+AI_ENABLED=true
+
+# Redis (운영환경)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=your-redis-password
+```
+
+### 📝 프로파일별 설정
+
+- **`dev`**: 개발 환경 (H2 DB, 상세 로깅)
+- **`test`**: 테스트 환경 (인메모리 DB, AI 비활성화)
+- **`prod`**: 운영 환경 (MySQL, Redis, 성능 최적화)
+- **`ai`**: AI 기능 활성화
+- **`docker`**: Docker 환경용 설정
+
+## 🧪 테스트
+
+```bash
+# 단위 테스트 실행
+./gradlew test
+
+# 통합 테스트 실행
+./gradlew integrationTest
+
+# 모든 테스트 실행
+./gradlew ciTest
+
+# 테스트 커버리지 확인
+./gradlew jacocoTestReport
+```
+
+### 📊 테스트 구조
+- **단위 테스트**: 각 서비스와 컴포넌트의 독립적 테스트
+- **통합 테스트**: 전체 애플리케이션 컨텍스트 테스트
+- **성능 테스트**: API 응답 시간 및 동시성 테스트
+- **보안 테스트**: 인증/인가 및 보안 헤더 테스트
+
+## 🚀 배포
+
+### 🐳 Docker 배포
+
+```bash
+# 1. 이미지 빌드
+./gradlew dockerBuildProd
+
+# 2. 운영 환경 배포
+docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+
+# 3. 상태 확인
+docker-compose ps
+curl http://localhost:8080/actuator/health
+```
+
+### ☁️ 클라우드 배포
+
+#### Kubernetes
+```bash
+# 네임스페이스 생성
+kubectl create namespace korean-fortune
+
+# 시크릿 생성 (환경변수)
+kubectl create secret generic fortune-secrets \
+  --from-literal=db-password=your-password \
+  --from-literal=openai-api-key=your-key \
+  -n korean-fortune
+
+# 애플리케이션 배포
+kubectl apply -f k8s/ -n korean-fortune
+```
+
+#### AWS ECS/Fargate
+```bash
+# ECR에 이미지 푸시
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin your-account.dkr.ecr.ap-northeast-2.amazonaws.com
+docker tag korean-fortune:latest your-account.dkr.ecr.ap-northeast-2.amazonaws.com/korean-fortune:latest
+docker push your-account.dkr.ecr.ap-northeast-2.amazonaws.com/korean-fortune:latest
+
+# ECS 서비스 업데이트
+aws ecs update-service --cluster korean-fortune --service fortune-service --force-new-deployment
+```
+
+## 📊 모니터링
+
+### 🔍 헬스체크 엔드포인트
+- **기본 상태**: `/actuator/health`
+- **상세 상태**: `/actuator/health/detailed`
+- **애플리케이션 정보**: `/actuator/info`
+- **메트릭**: `/actuator/metrics`
+- **Prometheus**: `/actuator/prometheus`
+
+### 📈 주요 메트릭
+- **응답 시간**: API 호출 시간 분포
+- **처리량**: 초당 요청 수 (RPS)
+- **에러율**: HTTP 4xx/5xx 응답 비율
+- **JVM 메트릭**: 메모리, GC, 스레드 상태
+- **비즈니스 메트릭**: 사주 계산 횟수, 인기 기능 등
+
+## 🤝 기여하기
+
+### 📝 개발 워크플로우
+
+1. **이슈 생성**: 버그 리포트나 기능 요청
+2. **브랜치 생성**: `feature/새기능` 또는 `bugfix/버그수정`
+3. **개발 및 테스트**: 코드 작성 및 테스트 추가
+4. **코드 리뷰**: Pull Request 생성
+5. **병합**: 리뷰 완료 후 main 브랜치 병합
+
+### 🎨 코딩 스타일
+- **Java**: Google Java Style Guide 준수
+- **커밋 메시지**: Conventional Commits 규칙 사용
+- **브랜치 명명**: `feature/기능명`, `bugfix/버그명` 형식
+- **테스트**: 새로운 기능에는 반드시 테스트 추가
+
+### 🔧 로컬 개발 설정
+
+```bash
+# 개발 환경 설정
+cp .env.example .env
+# .env 파일을 편집하여 필요한 환경변수 설정
+
+# 개발 서버 실행
+./gradlew runDev
+
+# 테스트 실행
+./gradlew test
+
+# 코드 스타일 검사
+./gradlew checkFormat
+```
+
+## 📞 지원 및 문의
+
+### 🆘 문제 해결
+- **문서**: [Wiki](https://github.com/korean-fortune-system/wiki) 참조
+- **FAQ**: [자주 묻는 질문](https://github.com/korean-fortune-system/wiki/FAQ)
+- **이슈 트래커**: [GitHub Issues](https://github.com/korean-fortune-system/issues)
+
+### 📧 연락처
+- **메인테이너**: 하진영 (admin@jyha.net)
+- **개발팀**: 하진영 (admin@jyha.net)
+- **보안 이슈**: 하진영 (admin@jyha.net)
+
+## 📄 라이선스
+
+이 프로젝트는 [Apache License 2.0](LICENSE) 하에 배포됩니다.
+
+```
+Copyright 2025 Korean Fortune System Team
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+## 🙏 감사의 말
+
+이 프로젝트는 다음 기술들을 기반으로 만들어졌습니다:
+
+- **Spring Framework**: 강력한 Java 애플리케이션 프레임워크
+- **OpenAI**: AI 기반 운세 해석 서비스
+- **Docker**: 컨테이너화 및 배포 지원
+- **Swagger**: API 문서화 도구
+- **한국 전통 사주학**: 수천년 전통의 지혜
+
+---
+
+<div align="center">
+
+**🔮 ✨ 모든 분들의 행운을 빕니다! ✨ 🔮**
+
+[⭐ Star](https://github.com/korean-fortune-system) |
+[🐛 Report Bug](https://github.com/korean-fortune-system/issues) |
+[💡 Request Feature](https://github.com/korean-fortune-system/issues)
+
+</div>

@@ -1,41 +1,225 @@
-# docker-compose.yml
-version: '3.8'
+# 🔮 한국형 만세력 운세 시스템 - Docker Compose 설정
+# 전체 시스템을 컨테이너로 구성하여 개발/운영 환경을 통일합니다.
 
-services:
-  korean-fortune-app:
-    build:
-        context: ..
-        dockerfile: docker/Dockerfile
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/korean_fortune
-      - SPRING_DATASOURCE_USERNAME=fortune_user
-      - SPRING_DATASOURCE_PASSWORD=fortune_password
-    depends_on:
-      - mysql
-    networks:
-      - fortune-network
-
-  mysql:
-    image: mysql:8.0
-    environment:
-      - MYSQL_ROOT_PASSWORD=root_password
-      - MYSQL_DATABASE=korean_fortune
-      - MYSQL_USER=fortune_user
-      - MYSQL_PASSWORD=fortune_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - fortune-network
-
-volumes:
-  mysql_data:
-
+# 🌐 네트워크 정의
 networks:
   fortune-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# 💾 볼륨 정의
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  logs:
+    driver: local
+
+# 🔧 서비스 정의
+services:
+  # 🗄️ MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0.35
+    container_name: korean-fortune-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_fortune_2025!}
+      MYSQL_DATABASE: korean_fortune
+      MYSQL_USER: fortune_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-fortune_secure_2025!}
+      TZ: Asia/Seoul
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - fortune-network
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone=+09:00
+      --sql_mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # 🔴 Redis 캐시
+  redis:
+    image: redis:7-alpine
+    container_name: korean-fortune-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - fortune-network
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # 🔮 메인 애플리케이션
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: korean-fortune-app
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USERNAME: fortune_user
+      DB_PASSWORD: ${MYSQL_PASSWORD:-fortune_secure_2025!}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_ENABLED: ${AI_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TZ: Asia/Seoul
+    ports:
+      - "8080:8080"
+    volumes:
+      - logs:/app/logs
+    networks:
+      - fortune-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # 🌐 Nginx 리버스 프록시
+  nginx:
+    image: nginx:alpine
+    container_name: korean-fortune-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - logs:/var/log/nginx
+    networks:
+      - fortune-network
+    depends_on:
+      - app
+
+  # 📊 모니터링 스택
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: korean-fortune-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - fortune-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: korean-fortune-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - fortune-network
+    depends_on:
+      - prometheus
+
+  # 🔍 로그 분석 스택 (ELK)
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: korean-fortune-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      xpack.security.enabled: false
+      xpack.security.enrollment.enabled: false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - fortune-network
+
+  # Logstash
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: korean-fortune-logstash
+    restart: unless-stopped
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/config:/usr/share/logstash/config:ro
+      - logs:/var/log/app:ro
+    networks:
+      - fortune-network
+    depends_on:
+      - elasticsearch
+
+  # Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: korean-fortune-kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    networks:
+      - fortune-network
+    depends_on:
+      - elasticsearch
+
+  # 🤖 AI 서비스 (Ollama - 선택적)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: korean-fortune-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama:/root/.ollama
+    networks:
+      - fortune-network
+    profiles:
+      - ai  # docker-compose --profile ai up 으로 실행시에만 시작
