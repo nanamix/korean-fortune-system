@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.fortune'
-version = '2.0.0'
+version = '2.5.0'
 
 java {
     toolchain {
@@ -287,7 +287,7 @@ println """
   ./gradlew ciBuild              - CI 전체 빌드
 
 ⚠️  의존성 문제 해결:
-  - Spring AI 버전을 1.0.0-M4로 다운그레이드
+  - Spring AI 버전을 1.0.0 으로 (스프링부트 3.5.3)
   - Netty 버전 충돌 해결
   - Redis 의존성 제거 (필요시 별도 추가)
   - AI 기능은 선택적으로 활성화
