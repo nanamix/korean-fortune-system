@@ -8,6 +8,15 @@ import com.fortune.dto.SajuRequest;
 import com.fortune.dto.SajuResult;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * 간지 계산 서비스 테스트
+ *
+ * <p>사주팔자의 핵심인 간지(干支) 계산을 담당하는 서비스 클래스의 단위 테스트입니다.</p>
+ *
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
+ */
 class GanjiCalculatorServiceTest {
 
     private GanjiCalculatorService ganjiCalculatorService;
@@ -17,6 +26,16 @@ class GanjiCalculatorServiceTest {
         ganjiCalculatorService = new GanjiCalculatorService();
     }
 
+    /**
+     * 사주팔자 계산 테스트
+     * <p>기본적인 사주팔자 계산을 수행하고 결과를 검증합니다.</p>
+     * <p>이 테스트는 1981년 3월 20일에 태어난 사람의 사주팔자를 계산합니다.</p>
+     * <p>결과는 연주, 월주, 일주, 시주, 일간 등을 포함합니다.</p>
+     * <p>사주팔자는 한국 전통의 운세 시스템으로, 개인의 생년월일을 기반으로 운세를 예측합니다.</p>
+     * <p>이 테스트는 사주팔자 서비스의 기본적인 기능을 검증하며, 입력값에 대한 일관성을 확인합니다.</p>
+     * @param void
+     * @return void
+     */
     @Test
     @DisplayName("사주팔자 계산 - 기본 테스트")
     void testCalculateSaju() {
@@ -47,6 +66,10 @@ class GanjiCalculatorServiceTest {
         System.out.println("일간: " + result.getDayMaster());
     }
 
+    /**
+     * 사주팔자 계산 일관성 테스트
+     * <p>같은 입력에 대해 여러 번 계산했을 때 결과가 일관되어야 함을 검증합니다.</p>
+     */
     @Test
     @DisplayName("다양한 생년월일 테스트")
     void testVariousBirthDates() {

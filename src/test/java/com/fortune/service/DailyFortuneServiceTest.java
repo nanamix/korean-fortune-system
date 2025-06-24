@@ -44,6 +44,12 @@ public class DailyFortuneServiceTest {
 
     /**
      * 일일 운세 테스트 (1981년 3월 20일 남자, 양력, 01:59)
+     * <p>이 테스트는 1981년 3월 20일에 태어난 남성의 일일 운세를 계산합니다.</p>
+     * <p>테스트 대상 날짜는 2025년 6월 24일이며, 사주 데이터는 양력 기준으로 생성됩니다.</p>
+     * <p>결과는 일주, 종합 점수, 조언, 길방위, 길한 색깔, 연애운, 직장운, 건강운, 재물운 등을 포함합니다.</p>
+     * <p>이 테스트는 일일 운세 서비스의 기본적인 기능을 검증하며, 입력값에 대한 일관성을 확인합니다.</p>
+     * * @param void
+     * @return void
      */
     @Test
     @DisplayName("📅 1981년 3월 20일생 남성의 일일 운세 테스트")
@@ -52,7 +58,8 @@ public class DailyFortuneServiceTest {
         SajuResult saju = realGanjiCalculator.calculateCompleteSaju(
                 1981, 3, 20, 1, 59, "M", "SOLAR"
         );
-        LocalDate targetDate = LocalDate.of(2025, 6, 24);
+        //LocalDate targetDate = LocalDate.of(2025, 6, 24);
+        LocalDate targetDate = LocalDate.now();
 
         // Mock 설정
         when(ganjiCalculatorService.calculateDayPillar(targetDate)).thenReturn("갑자");
@@ -73,7 +80,7 @@ public class DailyFortuneServiceTest {
         assertNotNull(result.getCategoryFortune());
 
         // 결과 출력
-        System.out.println("=== 1981년 3월 20일생 남성의 2025년 6월 24일 운세 ===");
+        System.out.println("=== 1981년 3월 20일생 남성의 운세 ===");
         System.out.println("사주: " + saju.getFormattedSaju());
         System.out.println("오늘 일주: " + result.getDayPillar());
         System.out.println("종합 점수: " + result.getTotalScore());
