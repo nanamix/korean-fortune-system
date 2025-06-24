@@ -1,7 +1,7 @@
 # 🔮 한국형 만세력 운세 시스템 v2.5
 
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/projects/jdk/17/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.java.net/projects/jdk/17/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/Build-Passing-success.svg)](https://github.com/korean-fortune-system)
 
@@ -31,9 +31,10 @@
 ## 🚀 빠른 시작
 
 ### 📋 사전 요구사항
-- Java 17 이상
+- Java 21 이상
 - Docker & Docker Compose (선택적)
 - MySQL 8.0 (운영환경, 개발시 H2 자동 사용)
+- OPEN-AI 및 Ollama (Optional)
 
 ### 🏃‍♂️ 로컬 실행
 
@@ -302,8 +303,6 @@ cp .env.example .env
 
 ### 📧 연락처
 - **메인테이너**: 하진영 (admin@jyha.net)
-- **개발팀**: 하진영 (admin@jyha.net)
-- **보안 이슈**: 하진영 (admin@jyha.net)
 
 ## 📄 라이선스
 
