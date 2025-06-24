@@ -7,7 +7,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -42,14 +41,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Tag("integration")
 class FortuneIntegrationTest {
 
+    // MockMvc 설정 (MockMvc는 Spring MVC 테스트를 위한 유틸리티 클래스)
     @Autowired
     private MockMvc mockMvc;
 
+    // Jackson ObjectMapper 설정 (JSON 변환을 위한 객체 매퍼)
     @Autowired
     private ObjectMapper objectMapper;
 
     /**
      * 🔄 전체 운세 계산 플로우 테스트
+     * <p>이 테스트는 운세 시스템의 전체 플로우를 검증합니다.</p>
+     * <p>시스템 상태 확인 → 사주팔자 계산 → 오늘의 운세 → 특정 날짜 운세 → 토정비결 → 별자리 운세 → 간지달력 조회</p>
+     * <p>각 단계에서 예상되는 결과를 검증합니다.</p>
+     * <p>이 테스트는 실제 사용 시나리오를 기반으로 하여, 시스템의 통합 동작을 검증합니다.</p>
+     * <p>각 단계에서의 응답 상태 코드와 JSON 구조를 검증합니다.</p>
+     * <p>이 테스트는 시스템의 전체적인 동작을 검증하며, 각 기능이 올바르게 작동하는지 확인합니다.</p>
+     * @throws Exception 예외 발생 시 테스트 실패
+     * @return void
      */
     @Test
     @DisplayName("🔄 전체 운세 서비스 플로우 테스트")
@@ -62,11 +71,11 @@ class FortuneIntegrationTest {
 
         // 2. 사주팔자 계산
         SajuRequest sajuRequest = SajuRequest.builder()
-                .birthYear(1990)
-                .birthMonth(5)
-                .birthDay(15)
-                .birthHour(14)
-                .birthMinute(30)
+                .birthYear(1981)
+                .birthMonth(3)
+                .birthDay(20)
+                .birthHour(1)
+                .birthMinute(59)
                 .gender("M")
                 .calendarType("SOLAR")
                 .build();
@@ -106,9 +115,9 @@ class FortuneIntegrationTest {
 
         // 5. 토정비결
         TojeongRequest tojeongRequest = TojeongRequest.builder()
-                .birthYear(1990)
-                .birthMonth(5)
-                .birthDay(15)
+                .birthYear(1981)
+                .birthMonth(3)
+                .birthDay(20)
                 .targetYear(2025)
                 .build();
 
@@ -120,11 +129,17 @@ class FortuneIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.gwaNumber").exists())
                 .andExpect(jsonPath("$.data.gwaName").exists())
+                .andExpect(jsonPath("$.data.gwaSymbol").exists())
+                .andExpect(jsonPath("$.data.detailedFortune").exists())
+                .andExpect(jsonPath("$.data.advice").exists())
+                .andExpect(jsonPath("$.data.luckyMonths").exists())
+                .andExpect(jsonPath("$.data.cautionMonths").exists())
+                .andExpect(jsonPath("$.data.monthlyFortune").isArray())
                 .andExpect(jsonPath("$.data.overallScore").exists());
 
         // 6. 별자리 운세
         ZodiacRequest zodiacRequest = ZodiacRequest.builder()
-                .birthDate(LocalDate.of(1990, 5, 15))
+                .birthDate(LocalDate.of(1981, 3, 20))
                 .targetDate(LocalDate.now())
                 .build();
 
@@ -150,17 +165,23 @@ class FortuneIntegrationTest {
 
     /**
      * 📈 성능 테스트
+     * <p>이 테스트는 API의 성능을 검증합니다.</p>
+     * <p>사주 계산 API의 응답 시간을 측정하고, 연속 요청에 대한 평균 응답 시간을 검증합니다.</p>
+     * <p>성능 기준은 2000ms 이내로 설정하며, 연속 요청의 평균 응답 시간은 1500ms 이내로 설정합니다.</p>
+     * <p>이 테스트는 API의 성능을 검증하여, 실제 사용 환경에서의 응답 속도를 보장합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return        void
      */
     @Test
     @DisplayName("📈 API 성능 테스트")
     @Tag("performance")
     void testApiPerformance() throws Exception {
         SajuRequest request = SajuRequest.builder()
-                .birthYear(1990)
-                .birthMonth(5)
-                .birthDay(15)
-                .birthHour(14)
-                .birthMinute(30)
+                .birthYear(1981)
+                .birthMonth(3)
+                .birthDay(20)
+                .birthHour(1)
+                .birthMinute(59)
                 .gender("M")
                 .calendarType("SOLAR")
                 .build();
@@ -200,6 +221,12 @@ class FortuneIntegrationTest {
 
     /**
      * 🔒 보안 테스트
+     * <p>이 테스트는 API의 보안 설정을 검증합니다.</p>
+     * <p>CORS 설정, 보안 헤더, 인증 및 권한 부여를 검증합니다.</p>
+     * <p>API가 CORS 요청을 올바르게 처리하는지, 보안 헤더가 설정되어 있는지, 인증이 필요한 엔드포인트에 대한 접근이 제한되는지를 검증합니다.</p>
+     * <p>이 테스트는 API의 보안 설정을 검증하여, 외부 공격으로부터 시스템을 보호합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return               void
      */
     @Test
     @DisplayName("🔒 보안 설정 테스트")
@@ -222,6 +249,12 @@ class FortuneIntegrationTest {
 
     /**
      * 🧪 데이터 유효성 검사 테스트
+     * <p>이 테스트는 입력 데이터의 유효성을 검증합니다.</p>
+     * <p>잘못된 입력 데이터에 대해 적절한 오류 응답을 반환하는지 검증합니다.</p>
+     * <p>사주 요청, 토정비결 요청, 간지달력 요청에 대해 유효하지 않은 데이터를 전송하고, API가 적절한 오류 메시지를 반환하는지 확인합니다.</p>
+     * <p>이 테스트는 API의 입력 데이터 유효성 검사를 검증하여, 잘못된 데이터로 인한 오류를 방지합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return               void
      */
     @Test
     @DisplayName("🧪 입력 데이터 유효성 검사 테스트")
@@ -269,6 +302,12 @@ class FortuneIntegrationTest {
 
     /**
      * 🔄 동시성 테스트
+     * <p>이 테스트는 API의 동시성 처리를 검증합니다.</p>
+     * <p>동시 요청이 들어올 때 API가 올바르게 처리되는지 검증합니다.</p>
+     * <p>여러 스레드에서 동시에 사주 계산 요청을 보내고, 모든 요청이 성공적으로 처리되는지 확인합니다.</p>
+     * <p>이 테스트는 API의 동시성 처리를 검증하여, 다수의 사용자가 동시에 요청을 보낼 때 시스템이 안정적으로 작동하는지 확인합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return               void
      */
     @Test
     @DisplayName("🔄 동시성 테스트")
@@ -316,6 +355,12 @@ class FortuneIntegrationTest {
 
     /**
      * 📊 다양한 사주 데이터 테스트
+     * <p>이 테스트는 다양한 사주 데이터를 사용하여 API의 정확성을 검증합니다.</p>
+     * <p>여러 생년월일, 시간, 성별, 달력 타입을 조합하여 사주 계산 API를 호출하고, 응답이 올바른지 검증합니다.</p>
+     * <p>각 조합에 대해 사주팔자, 일간, 월주, 시주 등의 필드가 올바르게 계산되는지 확인합니다.</p>
+     * <p>이 테스트는 다양한 입력 데이터에 대한 API의 정확성을 검증하여, 실제 사용 시나리오에서의 동작을 보장합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return               void
      */
     @Test
     @DisplayName("📊 다양한 사주 데이터 정확성 테스트")
@@ -361,6 +406,13 @@ class FortuneIntegrationTest {
 
     /**
      * 🌐 API 문서 접근성 테스트
+     * <p>이 테스트는 API 문서에 접근할 수 있는지 검증합니다.</p>
+     * <p>Swagger UI와 API 문서 JSON에 접근하여, 문서가 올바르게 생성되었는지 확인합니다.</p>
+     * <p>이 테스트는 API 문서가 올바르게 설정되어 있는지, Swagger UI가 정상적으로 작동하는지를 검증합니다.</p>
+     * <p>API 문서 접근성 테스트는 API 문서가 올바르게 설정되어 있는지, Swagger UI가 정상적으로 작동하는지를 검증합니다.</p>
+     * <p>이 테스트는 API 문서가 올바르게 설정되어 있는지, Swagger UI가 정상적으로 작동하는지를 검증합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return               void
      */
     @Test
     @DisplayName("🌐 API 문서 접근성 테스트")
@@ -413,6 +465,14 @@ class FortuneIntegrationTest {
 
     /**
      * 🎯 실제 사용 시나리오 테스트
+     * <p>이 테스트는 실제 사용 시나리오를 기반으로 운세 앱의 전체 플로우를 검증합니다.</p>
+     * <p>새로운 사용자가 운세 앱을 사용하는 과정에서의 각 단계를 검증합니다.</p>
+     * <p>앱 상태 확인 → 사주 입력 및 계산 → 오늘 운세 확인 → 이번 달 간지달력 확인 → 별자리 운세 확인 → 올해 토정비결 확인</p>
+     * <p>각 단계에서 예상되는 결과를 검증합니다.</p>
+     * <p>이 테스트는 실제 사용 시나리오를 기반으로 하여, 시스템의 통합 동작을 검증합니다.</p>
+     * <p>각 단계에서의 응답 상태 코드와 JSON 구조를 검증합니다.</p>
+     * @param request 사주 요청 데이터
+     * @return               void
      */
     @Test
     @DisplayName("🎯 실제 사용 시나리오 통합 테스트")
@@ -457,7 +517,7 @@ class FortuneIntegrationTest {
 
         // 6. 별자리 운세도 확인
         ZodiacRequest zodiacRequest = ZodiacRequest.builder()
-                .birthDate(LocalDate.of(1987, 8, 24))
+                .birthDate(LocalDate.of(1981, 3, 20))
                 .targetDate(LocalDate.now())
                 .build();
 
