@@ -388,7 +388,7 @@ class FortuneIntegrationTest {
         // 잘못된 JSON 형식
         mockMvc.perform(post("/api/fortune/saju/calculate")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{invalid json}"))
+                        .content("{\"invalid\" \"json\"}"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
@@ -426,12 +426,12 @@ class FortuneIntegrationTest {
 
         // 2. 사주 입력 및 계산
         SajuRequest sajuRequest = SajuRequest.builder()
-                .birthYear(1987)
-                .birthMonth(8)
-                .birthDay(24)
-                .birthHour(9)
-                .birthMinute(15)
-                .gender("F")
+                .birthYear(1981)
+                .birthMonth(3)
+                .birthDay(20)
+                .birthHour(1)
+                .birthMinute(59)
+                .gender("M")
                 .calendarType("SOLAR")
                 .build();
 
@@ -469,9 +469,9 @@ class FortuneIntegrationTest {
 
         // 7. 올해 토정비결 확인
         TojeongRequest tojeongRequest = TojeongRequest.builder()
-                .birthYear(1987)
-                .birthMonth(8)
-                .birthDay(24)
+                .birthYear(1981)
+                .birthMonth(3)
+                .birthDay(20)
                 .targetYear(now.getYear())
                 .build();
 
