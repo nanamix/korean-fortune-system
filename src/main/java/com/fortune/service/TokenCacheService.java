@@ -23,7 +23,7 @@ class TokenCacheService {
     /**
      * 토큰 블랙리스트 추가
      */
-    @CachePut(value = "blacklist", key = "#token", cacheManager = "tokenCacheManager")
+    @CachePut(value = "blacklist", key = "#token")
     public boolean addToBlacklist(String token) {
         log.info("🚫 토큰 블랙리스트 추가");
         return true;
@@ -32,7 +32,7 @@ class TokenCacheService {
     /**
      * 토큰 블랙리스트 확인
      */
-    @Cacheable(value = "blacklist", key = "#token", cacheManager = "tokenCacheManager")
+    @Cacheable(value = "blacklist", key = "#token")
     public boolean isTokenBlacklisted(String token) {
         log.info("🔍 토큰 블랙리스트 확인");
         // 실제로는 데이터베이스에서 확인
@@ -42,7 +42,7 @@ class TokenCacheService {
     /**
      * 블랙리스트 캐시 제거
      */
-    @CacheEvict(value = "blacklist", allEntries = true, cacheManager = "tokenCacheManager")
+    @CacheEvict(value = "blacklist", allEntries = true)
     public void clearBlacklist() {
         log.info("🧹 토큰 블랙리스트 캐시 제거");
     }

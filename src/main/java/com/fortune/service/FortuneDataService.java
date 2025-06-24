@@ -20,8 +20,7 @@ class FortuneDataService {
     /**
      * 일일 운세 조회 (24시간 캐시)
      */
-    @Cacheable(value = "daily-fortune", key = "#date + '_' + #zodiacSign", 
-               cacheManager = "fortuneCacheManager")
+    @Cacheable(value = "daily-fortune", key = "#date + '_' + #zodiacSign")
     public String getDailyFortune(String date, String zodiacSign) {
         log.info("🔮 일일 운세 생성: {} - {}", date, zodiacSign);
         
@@ -32,8 +31,7 @@ class FortuneDataService {
     /**
      * 운세 데이터 강제 갱신
      */
-    @CachePut(value = "daily-fortune", key = "#date + '_' + #zodiacSign",
-              cacheManager = "fortuneCacheManager")
+    @CachePut(value = "daily-fortune", key = "#date + '_' + #zodiacSign")
     public String refreshDailyFortune(String date, String zodiacSign) {
         log.info("🔄 일일 운세 강제 갱신: {} - {}", date, zodiacSign);
         return generateFortuneData(date, zodiacSign);
@@ -42,8 +40,7 @@ class FortuneDataService {
     /**
      * 모든 운세 캐시 제거 (자정에 실행)
      */
-    @CacheEvict(value = {"daily-fortune", "fortune-data"}, allEntries = true,
-                cacheManager = "fortuneCacheManager")
+    @CacheEvict(value = {"daily-fortune", "fortune-data"}, allEntries = true)
     public void clearFortuneCache() {
         log.info("🌅 일일 운세 캐시 초기화");
     }

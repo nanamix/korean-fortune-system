@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 /**
- * 🚀 캐시를 사용하는 사용자 서비스 예시
+ * 🚀 캐시를 사용하는 사용자 서비스
  */
 @Slf4j
 @Service
