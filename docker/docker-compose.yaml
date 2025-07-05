@@ -76,7 +76,7 @@ services:
   # 🔮 메인 애플리케이션
   app:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
       target: runtime
     container_name: korean-fortune-app

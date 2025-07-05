@@ -1,5 +1,4 @@
 package com.fortune.config;
-
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +6,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.concurrent.TimeUnit;
-
 /**
  * 🗄️ 캐시 설정 클래스
  *
@@ -22,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableCaching
 public class CacheConfig {
-
     /**
      * 캐시 관리자 설정
      * 
@@ -32,7 +29,6 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         // 캐시 관리자 생성
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-
         // 캐시 설정
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(1000)

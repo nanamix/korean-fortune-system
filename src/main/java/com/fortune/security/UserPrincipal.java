@@ -1,16 +1,13 @@
 package com.fortune.security;
-
 import com.fortune.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 /**
  * 🔐 사용자 인증 주체 클래스
  * 
@@ -23,7 +20,6 @@ import java.util.Map;
  * @since 2025-06-24
  */
 public class UserPrincipal implements OAuth2User, UserDetails {
-    
     private Long id;
     private String email;
     private String password;
@@ -34,7 +30,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private boolean accountNonExpired;
     private boolean accountNonLocked;
     private boolean credentialsNonExpired;
-
     /**
      * 🏗️ 생성자
      * 
@@ -62,7 +57,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.accountNonLocked = accountNonLocked;
         this.credentialsNonExpired = credentialsNonExpired;
     }
-
     /**
      * 🔧 사용자 엔티티로부터 UserPrincipal 생성
      * 
@@ -73,7 +67,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         List<GrantedAuthority> authorities = Collections.singletonList(
             new SimpleGrantedAuthority("ROLE_USER")
         );
-
         return new UserPrincipal(
             user.getId(),
             user.getEmail(),
@@ -86,7 +79,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
             true  // credentialsNonExpired
         );
     }
-
     /**
      * 🔧 OAuth2 사용자 정보로부터 UserPrincipal 생성
      * 
@@ -99,9 +91,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         userPrincipal.setAttributes(attributes);
         return userPrincipal;
     }
-
     // ========== UserDetails 인터페이스 구현 ==========
-
     /**
      * 사용자 비밀번호 조회
      * 
@@ -111,7 +101,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public String getPassword() {
         return password;
     }
-
     /**
      * 사용자 이메일 조회
      * 
@@ -121,7 +110,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public String getUsername() {
         return email;
     }
-
     /**
      * 사용자 계정 만료 여부 조회
      * 
@@ -131,7 +119,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public boolean isAccountNonExpired() {
         return accountNonExpired;
     }
-
     /**
      * 사용자 계정 잠금 여부 조회
      * 
@@ -141,7 +128,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public boolean isAccountNonLocked() {
         return accountNonLocked;
     }
-
     /**
      * 사용자 자격증명 만료 여부 조회
      * 
@@ -151,7 +137,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public boolean isCredentialsNonExpired() {
         return credentialsNonExpired;
     }
-
     /**
      * 사용자 활성화 여부 조회
      * 
@@ -161,7 +146,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public boolean isEnabled() {
         return enabled;
     }
-
     /**
      * 사용자 권한 조회
      * 
@@ -171,9 +155,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
-
     // ========== OAuth2User 인터페이스 구현 ==========
-
     /**
      * 사용자 정보 조회
      * 
@@ -183,7 +165,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public Map<String, Object> getAttributes() {
         return attributes;
     }
-
     /**
      * 사용자 이름 조회
      * 
@@ -193,9 +174,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public String getName() {
         return String.valueOf(id);
     }
-
     // ========== Getter/Setter ==========
-
     /**
      * 사용자 ID 조회
      * 
@@ -204,7 +183,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public Long getId() {
         return id;
     }
-
     /**
      * 사용자 이메일 조회
      * 
@@ -213,7 +191,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public String getEmail() {
         return email;
     }
-
     /**
      * 사용자 이름 조회
      * 
@@ -222,7 +199,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public String getDisplayName() {
         return name;
     }
-
     /**
      * 사용자 정보 설정
      * 
@@ -231,9 +207,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
-
     // ========== Object 메서드 오버라이드 ==========
-
     /**
      * 사용자 정보 비교
      * 
@@ -247,7 +221,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         UserPrincipal that = (UserPrincipal) o;
         return id.equals(that.id);
     }
-
     /**
      * 사용자 정보 해시 코드
      * 
@@ -257,7 +230,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public int hashCode() {
         return id.hashCode();
     }
-
     /**
      * 사용자 정보 문자열 표현
      * 

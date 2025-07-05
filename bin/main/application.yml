@@ -71,6 +71,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.springframework.ai: WARN  # AI 로그 최소화
+    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: WARN  # 정적 리소스 로그 최소화
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -90,10 +91,17 @@ management:
     env:
       enabled: true
 
-# API 문서 설정
+# API 문서 설정 (Spring Boot 3.5.3 호환)
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: false  # 호환성 문제로 임시 비활성화
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none
+    enabled: false  # 호환성 문제로 임시 비활성화
+  packages-to-scan: com.fortune.controller
+  paths-to-match: /api/**
+  # Spring Boot 3.5.3과 호환성 문제로 임시 비활성화

@@ -1,14 +1,11 @@
 package com.fortune.service;
-
 import com.fortune.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
-
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
-
 /**
  * 간지달력 서비스
  *
@@ -32,7 +29,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class GanjiCalendarService {
-
     /**
      * 간지 계산 서비스
      * - Autowired 어노테이션을 사용하여 간지 계산 서비스를 주입합니다.
@@ -40,31 +36,26 @@ public class GanjiCalendarService {
      */
     @Autowired
     private GanjiCalculatorService ganjiCalculatorService;
-
     /**
      * 24절기 데이터 (월별 -> 일별 매핑)
      * - 24절기 데이터를 월별 -> 일별 매핑하여 저장합니다.
      */
     private static final Map<Integer, Map<Integer, String>> SOLAR_TERMS = new HashMap<>();
-
     /**
      * 천간별 오행 매핑
      * - 천간별 오행 매핑을 저장합니다.
      */
     private static final Map<String, String> HEAVENLY_STEM_WUXING = new HashMap<>();
-
     /**
      * 길방위 매핑 (천간별)
      * - 길방위 매핑을 저장합니다.
      */
     private static final Map<String, String> LUCKY_DIRECTIONS = new HashMap<>();
-
     /**
      * 길한 색깔 매핑 (천간별)
      * - 길한 색깔 매핑을 저장합니다.
      */
     private static final Map<String, List<String>> LUCKY_COLORS = new HashMap<>();
-
     /**
      * 정적 초기화 메서드들
      * - 24절기 데이터, 천간별 오행 매핑, 길방위 매핑, 길한 색깔 매핑을 초기화합니다.
@@ -75,7 +66,6 @@ public class GanjiCalendarService {
         initializeLuckyDirections();
         initializeLuckyColors();
     }
-
     /**
      * 월별 간지달력 생성
      * - 주어진 년도와 월에 대한 간지달력을 생성합니다.
@@ -87,28 +77,22 @@ public class GanjiCalendarService {
      * @return 간지달력 응답 객체
      */
     public GanjiCalendarResponse generateMonthlyCalendar(int year, int month) {
-
         /* 간지달력 생성 시작 */
         log.info("📆 간지달력 생성 시작: {}년 {}월", year, month);
-
         /* 간지달력 생성 시작 */
         try {
             YearMonth yearMonth = YearMonth.of(year, month);
             LocalDate firstDay = yearMonth.atDay(1);
             LocalDate lastDay = yearMonth.atEndOfMonth();
-
             /* 각 날짜별 정보 생성 */
             List<GanjiCalendarDay> days = new ArrayList<>();
-
             /* 길일/흉일 분류 */
             List<Integer> luckyDays = new ArrayList<>();
             List<Integer> cautionDays = new ArrayList<>();
-
             /* 각 날짜별 정보 생성 */
             for (LocalDate date = firstDay; !date.isAfter(lastDay); date = date.plusDays(1)) {
                 GanjiCalendarDay day = createGanjiCalendarDay(date);
                 days.add(day);
-
                 /* 길일/흉일 분류 */
                 if (day.isLuckyDay() || day.getFortuneScore() >= 80) {
                     luckyDays.add(date.getDayOfMonth());
@@ -116,7 +100,6 @@ public class GanjiCalendarService {
                     cautionDays.add(date.getDayOfMonth());
                 }
             }
-
             /* 간지달력 응답 객체 생성 */
             GanjiCalendarResponse result = GanjiCalendarResponse.builder()
                     .year(year)
@@ -130,16 +113,13 @@ public class GanjiCalendarService {
                     .cautionDays(cautionDays)
                     .totalDays(days.size())
                     .build();
-
             log.info("✅ 간지달력 생성 완료: {}일", days.size());
             return result;
-
         } catch (Exception e) {
             log.error("❌ 간지달력 생성 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("간지달력 생성 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
-
     /**
      * 간지달력 일별 데이터 생성
      *
@@ -154,23 +134,17 @@ public class GanjiCalendarService {
             /* 1. 일주 계산 */
             String dayPillar = ganjiCalculatorService.calculateDayPillar(date);
             String dayStem = dayPillar.substring(0, 1);
-
             /* 2. 운세 점수 계산 */
             int fortuneScore = calculateDayFortuneScore(date, dayPillar);
-
             /* 3. 길일 여부 판단 */
             boolean isLuckyDay = isLuckyDay(date, fortuneScore);
-
             /* 4. 길방위 및 길한 색깔 */
             String luckyDirection = LUCKY_DIRECTIONS.getOrDefault(dayStem, "동쪽");
             List<String> luckyColors = LUCKY_COLORS.getOrDefault(dayStem, Arrays.asList("흰색"));
-
             /* 5. 24절기 확인 */
             String solarTerm = getSolarTermForDate(date);
-
             /* 6. 간단한 조언 생성 */
             String briefAdvice = generateBriefAdvice(fortuneScore, isLuckyDay);
-
             return GanjiCalendarDay.builder()
                     .date(date)
                     .dayPillar(dayPillar)
@@ -181,7 +155,6 @@ public class GanjiCalendarService {
                     .solarTerm(solarTerm)
                     .briefAdvice(briefAdvice)
                     .build();
-
         } catch (Exception e) {
             log.warn("⚠️ 일별 데이터 생성 중 오류: {} - {}", date, e.getMessage());
             /* 기본값 반환 */
@@ -197,7 +170,6 @@ public class GanjiCalendarService {
                     .build();
         }
     }
-
     /**
      * 일별 운세 점수 계산
      *
@@ -208,10 +180,8 @@ public class GanjiCalendarService {
     private int calculateDayFortuneScore(LocalDate date, String dayPillar) {
         /* 날짜별 랜덤 시드 생성 */
         Random random = new Random(date.toEpochDay());
-
         /* 기본 점수 (30-80점) */
         int baseScore = 30 + random.nextInt(51);
-
         /* 날짜별 보정 */
         int dayOfMonth = date.getDayOfMonth();
         /* 초하루, 보름 */
@@ -220,7 +190,6 @@ public class GanjiCalendarService {
         } else if (dayOfMonth % 7 == 0) { /* 7의 배수일 */
             baseScore -= 10;
         }
-
         /* 요일별 보정 
          * 주말 보너스
          * 금요일 보너스
@@ -233,7 +202,6 @@ public class GanjiCalendarService {
             case MONDAY -> baseScore -= 5; /* 월요일 페널티 */
             default -> {} /* 다른 요일은 기본 점수 유지 */
         }
-
         /* 월별 보정 */
         int month = date.getMonthValue();
         /* 봄 */
@@ -242,7 +210,6 @@ public class GanjiCalendarService {
         } else if (month == 9 || month == 10 || month == 11) { /* 가을 */
             baseScore += 3;
         }
-
         /* 일주별 보정 */
         String dayStem = dayPillar.substring(0, 1);
         /* 목의 기운 */
@@ -257,10 +224,8 @@ public class GanjiCalendarService {
             case "경", "신" -> baseScore += 4; // 금의 기운
             case "임", "계" -> baseScore += 2; // 수의 기운
         }
-
         return Math.max(0, Math.min(100, baseScore));
     }
-
     /**
      * 길일 여부 판단
      *
@@ -273,27 +238,22 @@ public class GanjiCalendarService {
         if (fortuneScore >= 75) {
             return true;
         }
-
         /* 2. 특별한 날짜 기준 */
         int dayOfMonth = date.getDayOfMonth();
         if (dayOfMonth == 1 || dayOfMonth == 8 || dayOfMonth == 15 || dayOfMonth == 22) {
             return true;
         }
-
         /* 3. 24절기 기준 */
         String solarTerm = getSolarTermForDate(date);
         if (!solarTerm.isEmpty()) {
             return true;
         }
-
         /* 4. 요일 기준 */
         if (date.getDayOfWeek().getValue() == 6) { /* 토요일 */
             return true;
         }
-
         return false;
     }
-
     /**
      * 24절기 조회 (특정 날짜)
      *
@@ -309,7 +269,6 @@ public class GanjiCalendarService {
         }
         return ""; 
     }
-
     /**
      * 월별 24절기 목록 조회
      *
@@ -332,7 +291,6 @@ public class GanjiCalendarService {
         }
         return new ArrayList<>();
     }
-
     /**
      * 월별 테마 생성
      *
@@ -358,7 +316,6 @@ public class GanjiCalendarService {
             default -> "특별한 의미가 있는 달";
         };
     }
-
     /**
      * 월별 조언 생성
      *
@@ -384,7 +341,6 @@ public class GanjiCalendarService {
             default -> "매일을 소중히 여기며 최선을 다하세요.";
         };
     }
-
     /**
      * 간단한 조언 생성
      *
@@ -406,9 +362,7 @@ public class GanjiCalendarService {
             return "특별히 주의가 필요한 날입니다.";
         }
     }
-
     // ==================== 정적 초기화 메서드들 ====================
-
     /**
      * 24절기 정보 초기화
      * 24절기 정보를 초기화합니다.
@@ -424,74 +378,62 @@ public class GanjiCalendarService {
         january.put(5, "소한");
         january.put(20, "대한");
         SOLAR_TERMS.put(1, january);
-
         /* 2월 */
         Map<Integer, String> february = new HashMap<>();
         february.put(4, "입춘");
         february.put(19, "우수");
         SOLAR_TERMS.put(2, february);
-
         /* 3월 */
         Map<Integer, String> march = new HashMap<>();
         march.put(6, "경칩");
         march.put(21, "춘분");
         SOLAR_TERMS.put(3, march);
-
         /* 4월 */
         Map<Integer, String> april = new HashMap<>();
         april.put(5, "청명");
         april.put(20, "곡우");
         SOLAR_TERMS.put(4, april);
-
         /* 5월 */
         Map<Integer, String> may = new HashMap<>();
         may.put(6, "입하");
         may.put(21, "소만");
         SOLAR_TERMS.put(5, may);
-
         /* 6월 */
         Map<Integer, String> june = new HashMap<>();
         june.put(6, "망종");
         june.put(21, "하지");
         SOLAR_TERMS.put(6, june);
-
         /* 7월 */
         Map<Integer, String> july = new HashMap<>();
         july.put(7, "소서");
         july.put(23, "대서");
         SOLAR_TERMS.put(7, july);
-
         /* 8월 */
         Map<Integer, String> august = new HashMap<>();
         august.put(8, "입추");
         august.put(23, "처서");
         SOLAR_TERMS.put(8, august);
-
         /* 9월 */
         Map<Integer, String> september = new HashMap<>();
         september.put(8, "백로");
         september.put(23, "추분");
         SOLAR_TERMS.put(9, september);
-
         /* 10월 */
         Map<Integer, String> october = new HashMap<>();
         october.put(8, "한로");
         october.put(24, "상강");
         SOLAR_TERMS.put(10, october);
-
         /* 11월 */
         Map<Integer, String> november = new HashMap<>();
         november.put(7, "입동");
         november.put(22, "소설");
         SOLAR_TERMS.put(11, november);
-
         /* 12월 */
         Map<Integer, String> december = new HashMap<>();
         december.put(7, "대설");
         december.put(22, "동지");
         SOLAR_TERMS.put(12, december);
     }
-
     /**
      * 천간별 오행 매핑 초기화
      * @param HEAVENLY_STEM_WUXING 천간별 오행 매핑
@@ -509,7 +451,6 @@ public class GanjiCalendarService {
         HEAVENLY_STEM_WUXING.put("임", "수");
         HEAVENLY_STEM_WUXING.put("계", "수");
     }
-
     /**
      * 천간별 길방위 초기화
      * @param LUCKY_DIRECTIONS 길방위 매핑
@@ -527,7 +468,6 @@ public class GanjiCalendarService {
         LUCKY_DIRECTIONS.put("임", "북쪽");
         LUCKY_DIRECTIONS.put("계", "북동쪽");
     }
-
     /**
      * 천간별 길한 색깔 초기화
      * @param LUCKY_COLORS 길한 색깔 매핑
@@ -545,7 +485,6 @@ public class GanjiCalendarService {
         LUCKY_COLORS.put("임", Arrays.asList("검은색", "짙은 파랑"));
         LUCKY_COLORS.put("계", Arrays.asList("하늘색", "연파랑"));
     }
-
     /**
      * 특정 날짜의 간지 정보 조회
      *
@@ -561,14 +500,12 @@ public class GanjiCalendarService {
         String earthlyBranch = dayPillar.substring(1, 2);
         /* 오행 */
         String wuxing = HEAVENLY_STEM_WUXING.getOrDefault(heavenlyStem, "알 수 없음");
-
         /* 음양 판별 (간단한 규칙) */
         String yinYang = switch (heavenlyStem) {
             case "갑", "병", "무", "경", "임" -> "양";
             case "을", "정", "기", "신", "계" -> "음";
             default -> "알 수 없음";
         };
-
         return GanjiInfo.builder()
                 .heavenlyStem(heavenlyStem)
                 .earthlyBranch(earthlyBranch)
@@ -577,7 +514,6 @@ public class GanjiCalendarService {
                 .yinYang(yinYang)
                 .build();
     }
-
     /**
      * 특정 월의 길일 목록 조회
      *
@@ -594,7 +530,6 @@ public class GanjiCalendarService {
         LocalDate firstDay = yearMonth.atDay(1);
         /* 마지막날 */
         LocalDate lastDay = yearMonth.atEndOfMonth();
-
         /* 날짜 반복 */
         for (LocalDate date = firstDay; !date.isAfter(lastDay); date = date.plusDays(1)) {
             /* 운세 점수 계산 */
@@ -605,10 +540,8 @@ public class GanjiCalendarService {
                 luckyDates.add(date);
             }
         }
-
         return luckyDates;
     }
-
     /**
      * 년간 주요 길일 조회
      *
@@ -618,7 +551,6 @@ public class GanjiCalendarService {
     public Map<Integer, List<LocalDate>> getYearlyMajorLuckyDates(int year) {
         /* 년간 주요 길일 목록 생성 */
         Map<Integer, List<LocalDate>> yearlyLuckyDates = new HashMap<>();
-
         /* 월별 길일 목록 조회 */
         for (int month = 1; month <= 12; month++) {
             List<LocalDate> monthlyLuckyDates = getLuckyDatesOfMonth(year, month);
@@ -628,16 +560,13 @@ public class GanjiCalendarService {
                 int score2 = calculateDayFortuneScore(d2, ganjiCalculatorService.calculateDayPillar(d2));
                 return Integer.compare(score2, score1); /* 내림차순 */
             });
-
             /* 상위 3일 선별 */
             List<LocalDate> topLuckyDates = monthlyLuckyDates.stream()
                     .limit(3)
                     .toList(); /* 상위 3일 선별 */
-
             /* 년간 주요 길일 목록 추가 */
             yearlyLuckyDates.put(month, topLuckyDates);
         }
-
         return yearlyLuckyDates;
     }
 }

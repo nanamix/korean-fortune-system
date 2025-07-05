@@ -1,15 +1,11 @@
 // ===== 23. 헬스체크 및 모니터링 =====
-
 package com.fortune.health;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
-
 import javax.sql.DataSource;
 import java.sql.Connection;
-
 /**
  * 운세 서비스 상태 헬스 체크
  * 데이터베이스 연결 상태
@@ -21,7 +17,6 @@ import java.sql.Connection;
  */
 @Component
 public class FortuneHealthIndicator implements HealthIndicator {
-
     /**
      * 데이터베이스 연결 상태
      * 데이터베이스 연결 상태를 확인하는 데 사용됩니다.
@@ -29,7 +24,6 @@ public class FortuneHealthIndicator implements HealthIndicator {
      */
     @Autowired
     private DataSource dataSource;
-
     /**
      * 운세 서비스 상태 확인
      * 
@@ -50,7 +44,6 @@ public class FortuneHealthIndicator implements HealthIndicator {
                     .withDetail("error", e.getMessage())
                     .build();
         } // 운세 서비스 상태
-
         return Health.down().build(); // 운세 서비스 상태
     }
 }

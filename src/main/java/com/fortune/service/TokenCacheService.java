@@ -1,12 +1,10 @@
 package com.fortune.service;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
 /**
  * 🔒 JWT 토큰 캐시 서비스
  * 
@@ -18,7 +16,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 class TokenCacheService {
-
     /**
      * 토큰 블랙리스트 추가
      * SQL: INSERT INTO blacklist (token) VALUES (?);
@@ -30,7 +27,6 @@ class TokenCacheService {
         log.info("🚫 토큰 블랙리스트 추가");
         return true;
     }
-
     /**
      * 토큰 블랙리스트 확인
      * SQL: SELECT * FROM blacklist WHERE token = ?;
@@ -43,7 +39,6 @@ class TokenCacheService {
         // 실제로는 데이터베이스에서 확인
         return false;
     }
-
     /**
      * 블랙리스트 캐시 제거
      * SQL: DELETE FROM blacklist;

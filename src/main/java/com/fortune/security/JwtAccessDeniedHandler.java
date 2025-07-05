@@ -1,5 +1,4 @@
 package com.fortune.security;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -7,10 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
-
 /**
  * 🔒 JWT 접근 거부 핸들러
  * 
@@ -23,7 +20,6 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
-
     /**
      * 권한이 없는 요청에 대한 처리
      * 
@@ -34,16 +30,12 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
-       
         /* 권한이 없는 요청에 대한 로그 출력 */
         log.warn("🔒 접근 권한 없음: {} - {}", request.getRequestURI(), accessDeniedException.getMessage());
-        
         /* 응답 설정 */
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-
         /* 응답 타입 설정 */
         response.setContentType("application/json;charset=UTF-8");
-        
         /* 응답 생성 */
         String jsonResponse = String.format("""
             {
@@ -54,7 +46,6 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
                 "timestamp": "%s"
             }
             """, request.getRequestURI(), LocalDateTime.now());
-        
         /* 응답 쓰기 */
         response.getWriter().write(jsonResponse);
     }

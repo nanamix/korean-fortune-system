@@ -1,5 +1,4 @@
 package com.fortune.exception;
-
 /**
  * 운세 계산 예외
  * 
@@ -8,7 +7,6 @@ package com.fortune.exception;
  * @since 2025-06-24
  */
 public class FortuneCalculationException extends RuntimeException {
-
     /**
      * 운세 계산 예외 생성자
      * 
@@ -17,7 +15,6 @@ public class FortuneCalculationException extends RuntimeException {
     public FortuneCalculationException(String message) {
         super(message);
     }
-
     /**
      * 운세 계산 예외 생성자
      * 

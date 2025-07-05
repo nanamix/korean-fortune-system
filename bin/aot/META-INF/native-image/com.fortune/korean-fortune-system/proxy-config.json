@@ -139,10 +139,5 @@
       "org.springframework.aop.framework.Advised",
       "org.springframework.core.DecoratingProxy"
     ]
-  },
-  {
-    "interfaces": [
-      "org.springframework.web.context.request.NativeWebRequest"
-    ]
   }
 ]

@@ -1,14 +1,8 @@
 package com.fortune.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-
-
-
 /**
  *  API 응답 래퍼 DTO
  *  * <p>API 응답을 일관된 형식으로 감싸는 DTO입니다.</p>
@@ -25,39 +19,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "API 응답 래퍼")
 public class ApiResponse<T> {
-
     /**
      * 성공 여부
      */
-    @Schema(description = "성공 여부")
     private boolean success;
-
     /**
      * 응답 데이터
      */
-    @Schema(description = "응답 데이터")
     private T data;
-
     /**
      * 메시지
      */
-    @Schema(description = "메시지")
     private String message;
-
     /**
      * 오류 코드
      */
-    @Schema(description = "오류 코드")
     private String errorCode;
-
     /**
      * 타임스탬프
      */
-    @Schema(description = "타임스탬프")
     private String timestamp;
-
     /**
      * 성공 응답 생성
      *
@@ -72,7 +54,6 @@ public class ApiResponse<T> {
                 .timestamp(java.time.LocalDateTime.now().toString())
                 .build();
     }
-
     /**
      * 오류 응답 생성
      *

@@ -1,13 +1,10 @@
 package com.fortune.service;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
-
 /**
  * 운세 데이터 서비스
  * 
@@ -19,7 +16,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 class FortuneDataService {
-
     /**
      * 일일 운세 조회 (24시간 캐시)
      * 
@@ -30,11 +26,9 @@ class FortuneDataService {
     @Cacheable(value = "daily-fortune", key = "#date + '_' + #zodiacSign")
     public String getDailyFortune(String date, String zodiacSign) {
         log.info("🔮 일일 운세 생성: {} - {}", date, zodiacSign);
-        
         // 실제로는 복잡한 운세 계산 로직이 들어갈 것
         return generateFortuneData(date, zodiacSign);
     }
-
     /**
      * 운세 데이터 강제 갱신
      * 
@@ -47,7 +41,6 @@ class FortuneDataService {
         log.info("🔄 일일 운세 강제 갱신: {} - {}", date, zodiacSign);
         return generateFortuneData(date, zodiacSign);
     }
-
     /**
      * 모든 운세 캐시 제거 (자정에 실행)
      * 
@@ -59,7 +52,6 @@ class FortuneDataService {
     public void clearFortuneCache() {
         log.info("🌅 일일 운세 캐시 초기화");
     }
-
     /**
      * 운세 데이터 생성
      * 

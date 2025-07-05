@@ -1,5 +1,4 @@
 package com.fortune.config;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,9 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import java.util.List;
-
 /**
  * 🔒 Spring Security 6.x 최신 설정 적용 (Warning 없음)
  *
@@ -27,7 +24,6 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     /**
      * 🔐 보안 활성화 시 설정
      * 
@@ -62,7 +58,6 @@ public class SecurityConfig {
                 )
                 .build();
     }
-
     /**
      * 🚫 보안 비활성화 시 설정 (기본)
      * 
@@ -84,7 +79,6 @@ public class SecurityConfig {
                 )
                 .build();
     }
-
     /**
      * 🌐 CORS 설정
      * 
@@ -94,7 +88,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         // CORS 설정
         CorsConfiguration configuration = new CorsConfiguration();
-
         // 개발 환경을 위한 허용 설정
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
@@ -102,24 +95,20 @@ public class SecurityConfig {
                 "http://127.0.0.1:*",
                 "https://127.0.0.1:*"
         ));
-
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
-
         // 허용 헤더 설정
         configuration.setAllowedHeaders(List.of("*"));
         // 자격 증명 허용
         configuration.setAllowCredentials(true);
         // 최대 나이 설정
         configuration.setMaxAge(3600L);
-
         // CORS 설정 소스 생성
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
     /**
      * 🔑 비밀번호 인코더
      * 
