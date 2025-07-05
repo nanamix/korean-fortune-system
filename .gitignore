@@ -323,3 +323,6 @@ build/
 /docker/docker/elasticsearch/data/snapshot_cache/write.lock
 /docker/docker/elasticsearch/data/node.lock
 /docker/docker/elasticsearch/data/nodes
+
+codeql-pack.yml
+*.class
