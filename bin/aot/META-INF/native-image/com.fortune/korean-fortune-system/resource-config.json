@@ -1,0 +1,215 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\Q\/\\E"
+      },
+      {
+        "pattern": "\\QMETA-INF\\E"
+      },
+      {
+        "pattern": "\\QMETA-INF\/resources\\E"
+      },
+      {
+        "pattern": "\\QMETA-INF\/resources\/\\E.*"
+      },
+      {
+        "pattern": "\\QMETA-INF\/spring.factories\\E"
+      },
+      {
+        "pattern": "\\Qapplication\\E.*\\Q.properties\\E"
+      },
+      {
+        "pattern": "\\Qapplication\\E.*\\Q.xml\\E"
+      },
+      {
+        "pattern": "\\Qapplication\\E.*\\Q.yaml\\E"
+      },
+      {
+        "pattern": "\\Qapplication\\E.*\\Q.yml\\E"
+      },
+      {
+        "pattern": "\\Qbanner.txt\\E"
+      },
+      {
+        "pattern": "\\Qcom\\E"
+      },
+      {
+        "pattern": "\\Qcom\/fortune\\E"
+      },
+      {
+        "pattern": "\\Qcom\/fortune\/KoreanFortuneApplication.class\\E"
+      },
+      {
+        "pattern": "\\Qcom\/fortune\/config\\E"
+      },
+      {
+        "pattern": "\\Qcom\/fortune\/config\/SecurityConfig.class\\E"
+      },
+      {
+        "pattern": "\\Qcom\/knuddels\\E"
+      },
+      {
+        "pattern": "\\Qcom\/knuddels\/jtokkit\\E"
+      },
+      {
+        "pattern": "\\Qcom\/knuddels\/jtokkit\/cl100k_base.tiktoken\\E"
+      },
+      {
+        "pattern": "\\Qdata-\\E.*\\Q.sql\\E"
+      },
+      {
+        "pattern": "\\Qdata.sql\\E"
+      },
+      {
+        "pattern": "\\Qembedding\\E"
+      },
+      {
+        "pattern": "\\Qembedding\/embedding-model-dimensions.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/logging\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/logging\/java\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/logging\/java\/logging-file.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/logging\/java\/logging.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/web\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/web\/server\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/boot\/web\/server\/mime-mappings.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/http\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/http\/codec\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/http\/codec\/CodecConfigurer.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/http\/mime.types\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/mail\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/mail\/javamail\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/mail\/javamail\/mime.types\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\/ott\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\/ott\/jdbc\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\/ott\/jdbc\/one-time-tokens-schema.sql\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\/userdetails\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\/userdetails\/jdbc\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/core\/userdetails\/jdbc\/users.ddl\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/default-ui.css\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/oauth2\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/oauth2\/client\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/oauth2\/client\/oauth2-client-schema-postgres.sql\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/oauth2\/client\/oauth2-client-schema.sql\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/spring-security-webauthn.js\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/user-credentials-schema-postgres.sql\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/user-credentials-schema.sql\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/security\/user-entities-schema.sql\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/web\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/web\/util\\E"
+      },
+      {
+        "pattern": "\\Qorg\/springframework\/web\/util\/HtmlCharacterEntityReferences.properties\\E"
+      },
+      {
+        "pattern": "\\Qschema-\\E.*\\Q.sql\\E"
+      },
+      {
+        "pattern": "\\Qschema.sql\\E"
+      },
+      {
+        "pattern": "\\Qspring.properties\\E"
+      },
+      {
+        "pattern": "\\Qspringdoc.config.properties\\E"
+      },
+      {
+        "pattern": "\\Qstatic\\E"
+      },
+      {
+        "pattern": "\\Qstatic\/\\E.*"
+      },
+      {
+        "pattern": "\\Qtemplates\\E"
+      },
+      {
+        "pattern": "\\Qtemplates\/\\E.*"
+      }
+    ]
+  },
+  "bundles": [
+    {
+      "name": "org.springframework.security.messages"
+    },
+    {
+      "name": "sun.util.resources.LocaleNames"
+    }
+  ]
+}

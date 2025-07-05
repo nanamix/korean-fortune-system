@@ -14,14 +14,26 @@ import java.util.concurrent.TimeUnit;
  * Caffeine을 사용하여 캐시를 설정합니다.
  * - 최대 크기: 1000
  * - 만료 시간: 1시간
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Configuration
 @EnableCaching
 public class CacheConfig {
 
+    /**
+     * 캐시 관리자 설정
+     * 
+     * @return 캐시 관리자
+     */
     @Bean
     public CacheManager cacheManager() {
+        // 캐시 관리자 생성
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+
+        // 캐시 설정
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(1, TimeUnit.HOURS)

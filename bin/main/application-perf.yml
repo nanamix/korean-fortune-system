@@ -1,0 +1,31 @@
+# ==============================================
+# 성능 테스트 환경 설정 (application-perf.yml)
+# ==============================================
+spring:
+  config:
+    activate:
+      on-profile: perf
+
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+
+  jpa:
+    show-sql: false
+
+server:
+  tomcat:
+    max-threads: 500
+    min-spare-threads: 50
+
+app:
+  fortune:
+    cache:
+      enabled: true
+      ttl: 1800 # 30분
+
+logging:
+  level:
+    com.fortune: WARN
+    root: ERROR

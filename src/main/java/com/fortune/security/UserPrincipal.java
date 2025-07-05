@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 🔐 사용자 인증 주체 클래스
@@ -19,9 +18,9 @@ import java.util.stream.Collectors;
  * <p>UserDetails와 OAuth2User 인터페이스를 모두 구현하여 
  * 일반 로그인과 소셜 로그인을 통합 처리합니다.</p>
  * 
- * @author 보안팀
- * @version 2.0.0
- * @since 2025-06-23
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 public class UserPrincipal implements OAuth2User, UserDetails {
     
@@ -103,36 +102,71 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     // ========== UserDetails 인터페이스 구현 ==========
 
+    /**
+     * 사용자 비밀번호 조회
+     * 
+     * @return 사용자 비밀번호
+     */
     @Override
     public String getPassword() {
         return password;
     }
 
+    /**
+     * 사용자 이메일 조회
+     * 
+     * @return 사용자 이메일
+     */
     @Override
     public String getUsername() {
         return email;
     }
 
+    /**
+     * 사용자 계정 만료 여부 조회
+     * 
+     * @return 사용자 계정 만료 여부
+     */
     @Override
     public boolean isAccountNonExpired() {
         return accountNonExpired;
     }
 
+    /**
+     * 사용자 계정 잠금 여부 조회
+     * 
+     * @return 사용자 계정 잠금 여부
+     */
     @Override
     public boolean isAccountNonLocked() {
         return accountNonLocked;
     }
 
+    /**
+     * 사용자 자격증명 만료 여부 조회
+     * 
+     * @return 사용자 자격증명 만료 여부
+     */
     @Override
     public boolean isCredentialsNonExpired() {
         return credentialsNonExpired;
     }
 
+    /**
+     * 사용자 활성화 여부 조회
+     * 
+     * @return 사용자 활성화 여부
+     */
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * 사용자 권한 조회
+     * 
+     * @return 사용자 권한
+     */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
@@ -140,11 +174,21 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     // ========== OAuth2User 인터페이스 구현 ==========
 
+    /**
+     * 사용자 정보 조회
+     * 
+     * @return 사용자 정보
+     */
     @Override
     public Map<String, Object> getAttributes() {
         return attributes;
     }
 
+    /**
+     * 사용자 이름 조회
+     * 
+     * @return 사용자 이름
+     */
     @Override
     public String getName() {
         return String.valueOf(id);
@@ -152,24 +196,50 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     // ========== Getter/Setter ==========
 
+    /**
+     * 사용자 ID 조회
+     * 
+     * @return 사용자 ID
+     */
     public Long getId() {
         return id;
     }
 
+    /**
+     * 사용자 이메일 조회
+     * 
+     * @return 사용자 이메일
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * 사용자 이름 조회
+     * 
+     * @return 사용자 이름
+     */
     public String getDisplayName() {
         return name;
     }
 
+    /**
+     * 사용자 정보 설정
+     * 
+     * @param attributes 사용자 정보
+     */
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
     // ========== Object 메서드 오버라이드 ==========
 
+    /**
+     * 사용자 정보 비교
+     * 
+     * @param o 비교 객체
+     * @return 비교 결과
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -178,11 +248,21 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return id.equals(that.id);
     }
 
+    /**
+     * 사용자 정보 해시 코드
+     * 
+     * @return 사용자 정보 해시 코드
+     */
     @Override
     public int hashCode() {
         return id.hashCode();
     }
 
+    /**
+     * 사용자 정보 문자열 표현
+     * 
+     * @return 사용자 정보 문자열 표현
+     */
     @Override
     public String toString() {
         return "UserPrincipal{" +

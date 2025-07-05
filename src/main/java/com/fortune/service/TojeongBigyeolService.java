@@ -27,38 +27,44 @@ public class TojeongBigyeolService {
      */
     private static final Map<Integer, TojeongGwa> TOJEONG_GWA_MAP = new HashMap<>();
 
+    /**
+     * 정적 초기화 메서드들
+     */
     static {
         initializeAllGwa();
     }
 
     /**
      * 토정비결 계산 메인 메서드
+     * SQL: SELECT * FROM tojeong_gwa;
+     * @param request 토정비결 요청 정보
+     * @return 토정비결 결과
      */
     public TojeongResult calculateTojeong(TojeongRequest request) {
         log.info("📜 토정비결 계산 시작: {}년생 -> {}년 운세",
                 request.getBirthYear(), request.getTargetYear());
 
         try {
-            // 1. 기본 계산
+            /* 1. 기본 계산 */
             int sum = request.getBirthYear() + request.getBirthMonth() +
                     request.getBirthDay() + request.getTargetYear();
 
-            // 2. 토정비결 공식 적용
+            /* 2. 토정비결 공식 적용 */
             int step1 = (sum % 60) + 1;
             int step2 = (step1 * 20) % 100;
             int step3 = (step2 + request.getBirthMonth()) % 64;
             if (step3 == 0) step3 = 64;
 
-            // 3. 해당 괘 조회
+            /* 3. 해당 괘 조회 */
             TojeongGwa gwa = TOJEONG_GWA_MAP.get(step3);
             if (gwa == null) {
                 throw new RuntimeException("토정비결 괘를 찾을 수 없습니다: " + step3);
             }
 
-            // 4. 월별 운세 생성
+            /* 4. 월별 운세 생성 */
             List<MonthlyFortune> monthlyFortune = generateMonthlyFortune(gwa, request.getTargetYear());
 
-            // 5. 결과 생성
+            /* 5. 결과 생성 */
             TojeongResult result = TojeongResult.builder()
                     .targetYear(request.getTargetYear())
                     .gwaNumber(gwa.getNumber())
@@ -84,10 +90,15 @@ public class TojeongBigyeolService {
 
     /**
      * 점수대별 조언 생성
+     * SQL: SELECT * FROM tojeong_gwa;
+     * @param gwa 토정비결 괘
+     * @return 점수대별 조언
      */
     private String generateAdvice(TojeongGwa gwa) {
+        /* 점수대별 조언 생성 */
         String advice = "올해 당신의 운세는 '" + gwa.getName() + "'괘입니다. ";
 
+        /* 점수대별 조언 생성 */
         if (gwa.getScore() >= 90) {
             advice += "매우 좋은 운세입니다. 적극적으로 행동하세요.";
         } else if (gwa.getScore() >= 80) {
@@ -107,19 +118,29 @@ public class TojeongBigyeolService {
 
     /**
      * 월별 상세 운세 생성
+     * SQL: SELECT * FROM tojeong_gwa;
+     * @param gwa 토정비결 괘
+     * @param targetYear 년도
+     * @return 월별 상세 운세 리스트
      */
     private List<MonthlyFortune> generateMonthlyFortune(TojeongGwa gwa, int targetYear) {
+        /* 월별 상세 운세 생성 */
         List<MonthlyFortune> monthlyList = new ArrayList<>();
+        /* 랜덤 객체 생성 */
         Random random = new Random(gwa.getNumber() + targetYear);
 
+        /* 월별 상세 운세 생성 */
         for (int month = 1; month <= 12; month++) {
             int baseScore = gwa.getScore();
-            int variation = random.nextInt(21) - 10; // -10 ~ +10 변동
+            int variation = random.nextInt(21) - 10;
             int monthScore = Math.max(0, Math.min(100, baseScore + variation));
 
+            /* 월별 키워드 생성 */
             List<String> keywords = generateMonthlyKeywords(month, monthScore);
+            /* 월별 메시지 생성 */
             String message = generateMonthlyMessage(month, monthScore);
 
+            /* 월별 상세 운세 생성 */
             MonthlyFortune monthlyFortune = MonthlyFortune.builder()
                     .month(month)
                     .score(monthScore)
@@ -135,7 +156,8 @@ public class TojeongBigyeolService {
 
     /**
      * 월별 키워드 생성
-     * * - 이 메서드는 각 월별 운세에 맞는 키워드를 생성합니다.
+     * SQL: SELECT * FROM tojeong_gwa;
+     * 메서드는 각 월별 운세에 맞는 키워드를 생성합니다.
      * @param month 월 번호 (1-12)
      * @param score 월별 점수 (0-100)
      * @return 월별 키워드 리스트
@@ -143,7 +165,7 @@ public class TojeongBigyeolService {
     private List<String> generateMonthlyKeywords(int month, int score) {
         List<String> keywords = new ArrayList<>();
 
-        // 계절별 기본 키워드
+        /* 계절별 기본 키워드 */
         switch ((month - 1) / 3) {
             case 0 -> keywords.addAll(Arrays.asList("새시작", "희망", "성장")); // 봄
             case 1 -> keywords.addAll(Arrays.asList("활동", "에너지", "도전")); // 여름
@@ -151,7 +173,7 @@ public class TojeongBigyeolService {
             case 3 -> keywords.addAll(Arrays.asList("정리", "휴식", "계획")); // 겨울
         }
 
-        // 점수별 추가 키워드
+        /* 점수별 추가 키워드 */
         if (score >= 80) {
             keywords.addAll(Arrays.asList("행운", "성공", "기회"));
         } else if (score >= 60) {
@@ -167,14 +189,17 @@ public class TojeongBigyeolService {
 
     /**
      * 월별 메시지 생성
-     * * - 이 메서드는 각 월별 운세 메시지를 생성합니다.
+     * SQL: SELECT * FROM tojeong_gwa;
+     * 이 메서드는 각 월별 운세 메시지를 생성합니다.
      * @param month 월 번호 (1-12)
      * @param score 월별 점수 (0-100)
      *@return 월별 운세 메시지
      */
     private String generateMonthlyMessage(int month, int score) {
+        /* 월별 메시지 생성 */
         String monthName = month + "월";
 
+        /* 월별 메시지 생성 */
         if (score >= 80) {
             return monthName + "은 매우 좋은 운세입니다. 새로운 도전을 해보세요.";
         } else if (score >= 60) {
@@ -188,59 +213,68 @@ public class TojeongBigyeolService {
 
     /**
      * 모든 괘 정보 초기화
-     * * - 이 메서드는 토정비결의 모든 괘 정보를 초기화합니다.
+     * SQL: SELECT * FROM tojeong_gwa;
+     * 이 메서드는 토정비결의 모든 괘 정보를 초기화합니다.
      * @param
      * @return void
      */
     private static void initializeAllGwa() {
-        // 1-16번 괘
+        /* 1-16번 괘 */
         TOJEONG_GWA_MAP.put(1, createGwa(1, "건위천", "☰☰", "창조와 리더십의 해",
                 "강건하고 창조적인 기운이 넘치는 해입니다. 새로운 일을 시작하기에 매우 좋은 시기입니다.",
                 85, "1,6,11월", "3,9월"));
 
+        /* 2번 괘 생성 */
         TOJEONG_GWA_MAP.put(2, createGwa(2, "곤위지", "☷☷", "포용과 인내의 해",
                 "인내심을 갖고 기다리는 것이 중요한 해입니다. 서두르지 말고 차근차근 준비하세요.",
                 65, "2,7,12월", "4,10월"));
 
+        /* 3번 괘 생성 */
         TOJEONG_GWA_MAP.put(3, createGwa(3, "수뢰둔", "☵☳", "어려움 속의 성장",
                 "초기에는 어려움이 있지만 점차 상황이 좋아질 것입니다. 포기하지 마세요.",
                 55, "5,8월", "1,6월"));
 
+        /* 4번 괘 생성 */
         TOJEONG_GWA_MAP.put(4, createGwa(4, "산수몽", "☶☵", "학습과 깨달음의 해",
                 "배움과 깨달음을 통해 성장하는 해입니다. 겸손한 마음으로 임하세요.",
                 70, "3,9월", "7,11월"));
 
+        /* 5번 괘 생성 */
         TOJEONG_GWA_MAP.put(5, createGwa(5, "수천수", "☵☰", "기다림의 지혜",
                 "때를 기다리는 지혜가 필요한 해입니다. 급하게 서두르지 마세요.",
                 60, "4,10월", "2,8월"));
 
-        // 6-10번 괘
+        /* 6-10번 괘 */
         TOJEONG_GWA_MAP.put(6, createGwa(6, "천수송", "☰☵", "갈등과 해결",
                 "갈등이 있을 수 있지만 지혜롭게 해결할 수 있는 해입니다.",
                 50, "6,12월", "3,9월"));
 
+        /* 7번 괘 생성 */
         TOJEONG_GWA_MAP.put(7, createGwa(7, "지수사", "☷☵", "조직과 협력",
                 "많은 사람들과 협력하여 큰 일을 이룰 수 있는 해입니다.",
                 75, "1,7월", "4,10월"));
 
+        /* 8번 괘 생성 */
         TOJEONG_GWA_MAP.put(8, createGwa(8, "수지비", "☵☷", "화합과 단결",
                 "주변 사람들과의 화합이 중요한 해입니다. 서로 도우며 나아가세요.",
                 80, "2,8월", "5,11월"));
 
+        /* 9번 괘 생성 */
         TOJEONG_GWA_MAP.put(9, createGwa(9, "풍천소축", "☴☰", "작은 성과의 축적",
                 "작은 것부터 차근차근 쌓아가는 것이 중요한 해입니다.",
                 65, "3,9월", "6,12월"));
 
+        /* 10번 괘 생성 */
         TOJEONG_GWA_MAP.put(10, createGwa(10, "천택리", "☰☱", "예의와 도리",
                 "예의와 도리를 지키며 행동하면 좋은 결과가 있을 것입니다.",
                 70, "4,10월", "1,7월"));
 
-        // 11-20번 괘 (간략화)
+        /* 11-20번 괘 (간략화) */
         for (int i = 11; i <= 20; i++) {
             TOJEONG_GWA_MAP.put(i, createDefaultGwa(i));
         }
 
-        // 21-64번 괘도 유사하게 초기화 (간략화)
+        /* 21-64번 괘도 유사하게 초기화 (간략화) */
         for (int i = 21; i <= 64; i++) {
             TOJEONG_GWA_MAP.put(i, createDefaultGwa(i));
         }
@@ -248,7 +282,8 @@ public class TojeongBigyeolService {
 
     /**
      * 기본 괘 생성
-     * * - 이 메서드는 기본 괘 정보를 생성합니다.
+     * SQL: SELECT * FROM tojeong_gwa;
+     * 이 메서드는 기본 괘 정보를 생성합니다.
      * @param number 괘 번호
      * @return TojeongGwa 객체
      */
@@ -264,7 +299,9 @@ public class TojeongBigyeolService {
                 "화택규", "풍화가인", "택화혁", "화풍정", "뢰산소과", "산지박"
         };
 
+        /* 괘 이름 생성 */
         String name = (number <= gwaNames.length) ? gwaNames[number - 1] : "미정의괘" + number;
+        /* 랜덤 객체 생성 */
         Random random = new Random(number);
 
         return TojeongGwa.builder()
@@ -281,7 +318,8 @@ public class TojeongBigyeolService {
 
     /**
      * 상세 괘 생성
-     * * - 이 메서드는 각 괘의 상세 정보를 생성합니다.
+     * SQL: SELECT * FROM tojeong_gwa;
+     * 이 메서드는 각 괘의 상세 정보를 생성합니다.
      * @param number 괘 번호
      * @param name 괘 이름
      * @param symbol 괘 기호

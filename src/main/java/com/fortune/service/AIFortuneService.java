@@ -68,7 +68,7 @@ public class AIFortuneService {
      * <p>캐시 키는 별자리 이름과 날짜를 조합하여 생성됩니다.</p>
      * <p>이렇게 함으로써, 동일한 별자리와 날짜에 대한 조언을 반복적으로 요청할 때 성능을 향상시킵니다.</p>
      * @param zodiacResult 별자리 운세 결과 객체
-     * @return
+     * @return 별자리 운세 조언
      */
     @Cacheable(value = "ai-zodiac-advice", key = "#zodiacResult.zodiac + '_' + #zodiacResult.targetDate")
     public String generateZodiacAdvice(ZodiacFortuneResult zodiacResult) {
@@ -79,6 +79,8 @@ public class AIFortuneService {
 
     /**
      * 📜 토정비결 AI 해석 (폴백 버전)
+     * @param tojeongResult 토정비결 결과 객체
+     * @return 토정비결 조언
      */
     @Cacheable(value = "ai-tojeong-advice", key = "#tojeongResult.gwaNumber + '_' + #tojeongResult.targetYear")
     public String generateTojeongAdvice(TojeongResult tojeongResult) {
@@ -89,6 +91,9 @@ public class AIFortuneService {
 
     /**
      * ❓ 자연어 운세 질문 답변 (폴백 버전)
+     * @param saju 사주 결과 객체
+     * @param question 질문
+     * @return 자연어 운세 질문 답변
      */
     public String answerFortuneQuestion(SajuResult saju, String question) {
         log.info("🤖 AI 질문 답변 시작 (폴백 모드): {}", question);
@@ -106,6 +111,9 @@ public class AIFortuneService {
 
     /**
      * 🔄 비동기 운세 분석 (폴백 버전)
+     * @param saju 사주 결과 객체
+     * @param analysisType 분석 유형
+     * @return 비동기 운세 분석 결과
      */
     public CompletableFuture<String> analyzeFortuneAsync(SajuResult saju, String analysisType) {
         return CompletableFuture.supplyAsync(() -> {
@@ -118,8 +126,12 @@ public class AIFortuneService {
         });
     }
 
-    // === 폴백 메서드들 ===
-
+    
+    /**
+     * 사주 기본 해석 (AI 폴백 모드)
+     * @param sajuResult 사주 결과 객체
+     * @return 사주 기본 해석
+     */
     private String generateFallbackSajuInterpretation(SajuResult sajuResult) {
         return """
             🔮 사주 기본 해석 (AI 폴백 모드)
@@ -146,6 +158,11 @@ public class AIFortuneService {
         );
     }
 
+    /**
+     * 일일 운세 조언 (AI 폴백 모드)
+     * @param dailyFortune 일일 운세 결과 객체
+     * @return 일일 운세 조언
+     */
     private String generateFallbackDailyAdvice(DailyFortuneResult dailyFortune) {
         int score = dailyFortune.getTotalScore();
         String advice = score >= 70 ? "좋은 하루가 될 것입니다. 적극적으로 행동하세요!" :
@@ -184,6 +201,11 @@ public class AIFortuneService {
         );
     }
 
+    /**
+     * 별자리 운세 조언 (AI 폴백 모드)
+     * @param zodiacResult 별자리 운세 결과 객체
+     * @return 별자리 운세 조언
+     */
     private String generateFallbackZodiacAdvice(ZodiacFortuneResult zodiacResult) {
         return """
             ⭐ %s 운세 (폴백 모드)
@@ -213,6 +235,11 @@ public class AIFortuneService {
         );
     }
 
+    /**
+     * 토정비결 조언 (AI 폴백 모드)
+     * @param tojeongResult 토정비결 결과 객체
+     * @return 토정비결 조언
+     */
     private String generateFallbackTojeongAdvice(TojeongResult tojeongResult) {
         return """
             📜 토정비결 %d번 괘: %s (폴백 모드)
@@ -243,8 +270,11 @@ public class AIFortuneService {
         );
     }
 
-    // === 헬퍼 메서드들 ===
-
+    /**
+     * 일간 특성 조회
+     * @param dayMaster 일간
+     * @return 일간 특성
+     */
     private String getStemCharacteristic(String dayMaster) {
         return switch (dayMaster) {
             case "갑" -> "정직하고 꿋꿋";
@@ -261,6 +291,11 @@ public class AIFortuneService {
         };
     }
 
+    /**
+     * 점수 메시지 조회
+     * @param score 점수
+     * @return 점수 메시지
+     */
     private String getScoreMessage(int score) {
         if (score >= 80) return "매우 좋음";
         else if (score >= 60) return "좋음";

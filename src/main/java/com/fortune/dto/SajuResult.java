@@ -59,6 +59,12 @@ public class SajuResult {
 
     /**
      * 사주팔자를 문자열로 포맷팅
+     * 
+     * <p>사주팔자를 문자열로 포맷팅합니다.</p>
+     * 
+     * <p>예시: "경오 신사 갑자 신미"</p>
+     * 
+     * @return 사주팔자 문자열
      */
     public String getFormattedSaju() {
         return String.format("%s %s %s %s", yearPillar, monthPillar, dayPillar, timePillar);
@@ -66,6 +72,11 @@ public class SajuResult {
 
     /**
      * 내부 클래스: 오행 분석
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
+     * 
      */
     @Data
     @Builder

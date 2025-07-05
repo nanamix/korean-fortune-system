@@ -14,12 +14,25 @@ import java.util.Optional;
 
 /**
  * 🚀 캐시를 사용하는 사용자 서비스
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CachedUserService {
 
+    /**
+     * 사용자 리포지토리
+     * - Autowired 어노테이션을 사용하여 사용자 리포지토리를 주입합니다.
+     * - UserRepository 클래스를 사용하여 사용자 정보를 조회합니다.
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
+     */
     private final UserRepository userRepository;
 
     /**
@@ -37,6 +50,9 @@ public class CachedUserService {
 
     /**
      * 사용자명으로 조회 (캐시 적용)
+     * 
+     * @param username 사용자명
+     * @return 사용자 정보
      */
     @Cacheable(value = "users", key = "#username")
     @Transactional(readOnly = true)
@@ -47,6 +63,9 @@ public class CachedUserService {
 
     /**
      * 사용자 정보 업데이트 (캐시 갱신)
+     * 
+     * @param user 사용자 정보
+     * @return 사용자 정보
      */
     @CachePut(value = "users", key = "#user.id")
     @Transactional
@@ -57,6 +76,9 @@ public class CachedUserService {
 
     /**
      * 사용자 삭제 (캐시 제거)
+     * 
+     * @param userId 사용자 ID
+     * @return 사용자 삭제 및 캐시 제거
      */
     @CacheEvict(value = "users", key = "#userId")
     @Transactional
@@ -67,6 +89,7 @@ public class CachedUserService {
 
     /**
      * 모든 사용자 캐시 제거
+     * @return 모든 사용자 캐시 제거
      */
     @CacheEvict(value = "users", allEntries = true)
     public void clearUserCache() {

@@ -24,21 +24,44 @@ import java.util.*;
 @Service
 public class DailyFortuneService {
 
+    /**
+     * 일주 계산 서비스
+     * - Autowired 어노테이션을 사용하여 일주 계산 서비스를 주입합니다.
+     * - GanjiCalculatorService 클래스를 사용하여 일주 계산을 합니다.
+     */
     @Autowired
     private GanjiCalculatorService ganjiCalculatorService;
 
+    /**
+     * 신살 계산 서비스
+     * - Autowired 어노테이션을 사용하여 신살 계산 서비스를 주입합니다.
+     * - SinsalService 클래스를 사용하여 신살 계산을 합니다.
+     */
     @Autowired
     private SinsalService sinsalService;
 
-    // 오행 색상 매핑
+    /**
+     * 오행 색상 매핑
+     * - 오행 색상 매핑을 정의합니다.
+     */
     private static final Map<String, List<String>> WUXING_COLORS = new HashMap<>();
 
-    // 길방위 매핑 (일간별)
+    /**
+     * 길방위 매핑 (일간별)
+     * - 길방위 매핑을 정의합니다.
+     */
     private static final Map<String, String> LUCKY_DIRECTIONS = new HashMap<>();
 
-    // 일간별 기본 운세 점수
+    /**
+     * 일간별 기본 운세 점수
+     * - 일간별 기본 운세 점수를 정의합니다.
+     */
     private static final Map<String, Integer> BASE_FORTUNE_SCORES = new HashMap<>();
 
+    /**
+     * 초기화 메서드
+     * - 오행 색상 매핑, 길방위 매핑, 일간별 기본 운세 점수를 초기화합니다.
+     */
     static {
         initializeWuxingColors();
         initializeLuckyDirections();
@@ -47,37 +70,41 @@ public class DailyFortuneService {
 
     /**
      * 일일 운세 계산 메인 메서드
+     * 
+     * @param saju 사주 결과 객체
+     * @param targetDate 대상 날짜
+     * @return 일일 운세 결과
      */
     public DailyFortuneResult calculateDailyFortune(SajuResult saju, LocalDate targetDate) {
         log.info("🔮 일일 운세 계산 시작: {} - {}", saju.getDayMaster(), targetDate);
 
         try {
-            // 1. 대상 날짜의 일주 계산
+            /* 1. 대상 날짜의 일주 계산 */
             String dayPillar = ganjiCalculatorService.calculateDayPillar(targetDate);
 
-            // 2. 길신/흉신 계산
+            /* 2. 길신/흉신 계산 */
             List<SinsalInfo> sinsals = sinsalService.calculateDailySinsals(targetDate, saju);
 
-            // 3. 종합 점수 계산
+            /* 3. 종합 점수 계산 */
             int totalScore = calculateTotalScore(saju, dayPillar, sinsals);
 
-            // 4. 분야별 운세 계산
+            /* 4. 분야별 운세 계산 */
             FortuneByCategory categoryFortune = calculateCategoryFortune(saju, dayPillar, totalScore);
 
-            // 5. 조언 생성
+            /* 5. 조언 생성 */
             String advice = generateAdvice(saju, totalScore, sinsals);
 
-            // 6. 길방위 설정
+            /* 6. 길방위 설정 */
             String luckyDirection = LUCKY_DIRECTIONS.getOrDefault(saju.getDayMaster(), "동쪽");
 
-            // 7. 길한 색깔 설정
+            /* 7. 길한 색깔 설정 */
             List<String> luckyColors = WUXING_COLORS.getOrDefault(saju.getDayMaster(),
                     Arrays.asList("흰색", "검은색"));
 
-            // 8. 주의사항 생성
+            /* 8. 주의사항 생성 */
             String caution = generateCaution(sinsals, totalScore);
 
-            // 9. 결과 생성
+            /* 9. 결과 생성 */
             DailyFortuneResult result = DailyFortuneResult.builder()
                     .date(targetDate)
                     .dayPillar(dayPillar)
@@ -101,41 +128,56 @@ public class DailyFortuneService {
 
     /**
      * 종합 점수 계산
+     * 
+     * @param saju 사주 결과 객체
+     * @param dayPillar 일주
+     * @param sinsals 신살 정보 리스트
+     * @return 종합 점수
      */
     private int calculateTotalScore(SajuResult saju, String dayPillar, List<SinsalInfo> sinsals) {
-        // 1. 기본 점수 (일간 기반)
+        /* 1. 기본 점수 (일간 기반) */
         int baseScore = BASE_FORTUNE_SCORES.getOrDefault(saju.getDayMaster(), 60);
 
-        // 2. 일주 상성 점수
+        /* 2. 일주 상성 점수 */
         int pillarScore = calculatePillarCompatibility(saju.getDayPillar(), dayPillar);
 
-        // 3. 신살 점수
+        /* 3. 신살 점수 */
         int sinsalScore = calculateSinsalScore(sinsals);
 
-        // 4. 오행 균형 점수
+        /* 4. 오행 균형 점수 */
         int balanceScore = saju.getWuxingAnalysis() != null ?
                 saju.getWuxingAnalysis().getBalance() / 10 : 5;
 
-        // 5. 종합 계산
+        /* 5. 종합 계산 */
         int totalScore = baseScore + pillarScore + sinsalScore + balanceScore;
 
-        // 6. 0-100 범위로 조정
+        /* 6. 0-100 범위로 조정 */
         return Math.max(0, Math.min(100, totalScore));
     }
 
     /**
      * 일주 상성 점수 계산
+     * 
+     * @param birthDayPillar 출생 일주
+     * @param targetDayPillar 대상 일주
+     * @return 일주 상성 점수
      */
     private int calculatePillarCompatibility(String birthDayPillar, String targetDayPillar) {
+        /* 같은 일주는 매우 좋음 */
         if (birthDayPillar.equals(targetDayPillar)) {
-            return 20; // 같은 일주는 매우 좋음
+            return 20;
         }
 
+        /* 천간 상성 체크 */
         String birthStem = birthDayPillar.substring(0, 1);
+        /* 대상 일주 천간 */
         String targetStem = targetDayPillar.substring(0, 1);
+        /* 출생 일주 지지 */
         String birthBranch = birthDayPillar.substring(1, 2);
+        /* 대상 일주 지지 */
         String targetBranch = targetDayPillar.substring(1, 2);
 
+        /* 일주 상성 점수 */
         int compatibility = 0;
 
         // 천간 상성 체크
@@ -143,7 +185,7 @@ public class DailyFortuneService {
             compatibility += 10;
         }
 
-        // 지지 상성 체크
+        /* 지지 상성 체크 */
         if (isCompatibleBranches(birthBranch, targetBranch)) {
             compatibility += 10;
         }
@@ -153,9 +195,14 @@ public class DailyFortuneService {
 
     /**
      * 천간 상성 체크
+     * 
+     * @param stem1 천간1
+     * @param stem2 천간2
+     * @return 천간 상성 여부
      */
     private boolean isCompatibleStems(String stem1, String stem2) {
         // 간단한 상성 로직 (실제로는 더 복잡)
+        // 천간 상성 매핑
         Map<String, List<String>> compatibleStems = Map.of(
                 "갑", Arrays.asList("기", "을"),
                 "을", Arrays.asList("경", "갑"),
@@ -174,9 +221,14 @@ public class DailyFortuneService {
 
     /**
      * 지지 상성 체크
+     * 
+     * @param branch1 지지1
+     * @param branch2 지지2
+     * @return 지지 상성 여부
      */
     private boolean isCompatibleBranches(String branch1, String branch2) {
-        // 삼합, 육합 등의 상성 체크
+        /* 삼합, 육합 등의 상성 체크 */
+        /* 지지 상성 매핑 */
         Map<String, List<String>> compatibleBranches = Map.ofEntries(
                 Map.entry("자", Arrays.asList("축", "진", "신")),
                 Map.entry("축", Arrays.asList("자", "사", "유")),
@@ -197,9 +249,15 @@ public class DailyFortuneService {
 
     /**
      * 신살 점수 계산
+     * 
+     * @param sinsals 신살 정보 리스트
+     * @return 신살 점수
      */
     private int calculateSinsalScore(List<SinsalInfo> sinsals) {
+        /* 신살 점수 */
         int score = 0;
+
+        /* 신살 점수 계산 */
         for (SinsalInfo sinsal : sinsals) {
             if (sinsal.isLucky()) {
                 score += sinsal.getInfluence();
@@ -212,16 +270,26 @@ public class DailyFortuneService {
 
     /**
      * 분야별 운세 계산
+     * 
+     * @param saju 사주 결과 객체
+     * @param dayPillar 일주
+     * @param totalScore 종합 점수
+     * @return 분야별 운세 결과
      */
     private FortuneByCategory calculateCategoryFortune(SajuResult saju, String dayPillar, int totalScore) {
+        /* 랜덤 시드 설정 */
         Random random = new Random(dayPillar.hashCode() + saju.getDayMaster().hashCode());
 
-        // 기본 점수에 변동 추가
+        /* 기본 점수에 변동 추가 (15점) */
         int baseVariation = 15;
 
+        /* 분야별 운세 점수 계산 */
         int loveScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        /* 직장 운세 점수 계산 */
         int careerScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        /* 건강 운세 점수 계산 */
         int healthScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        /* 재물 운세 점수 계산 */
         int wealthScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
 
         return FortuneByCategory.builder()
@@ -238,8 +306,13 @@ public class DailyFortuneService {
 
     /**
      * 분야별 메시지 생성
+     * 
+     * @param category 분야
+     * @param score 점수
+     * @return 분야별 메시지
      */
     private String generateCategoryMessage(String category, int score) {
+        /* 분야별 메시지 생성 */
         if (score >= 80) {
             return category + "운이 매우 좋습니다. 적극적으로 행동하세요!";
         } else if (score >= 60) {
@@ -253,10 +326,17 @@ public class DailyFortuneService {
 
     /**
      * 조언 생성
+     *  
+     * @param saju 사주 결과 객체
+     * @param totalScore 종합 점수
+     * @param sinsals 신살 정보 리스트
+     * @return 조언
      */
     private String generateAdvice(SajuResult saju, int totalScore, List<SinsalInfo> sinsals) {
+        // 조언 생성
         StringBuilder advice = new StringBuilder();
 
+        // 종합 점수에 따른 조언 추가
         if (totalScore >= 80) {
             advice.append("오늘은 매우 좋은 날입니다! ");
         } else if (totalScore >= 60) {
@@ -281,8 +361,12 @@ public class DailyFortuneService {
 
     /**
      * 일간별 조언
+     * 
+     * @param dayMaster 일간
+     * @return 일간별 조언
      */
     private String getDayMasterAdvice(String dayMaster) {
+        /* 일간별 조언 생성 */
         return switch (dayMaster) {
             case "갑" -> "정직하고 진실한 마음으로 행동하면 좋은 결과가 있을 것입니다.";
             case "을" -> "섬세함과 배려로 주변 사람들과 좋은 관계를 유지하세요.";
@@ -300,10 +384,16 @@ public class DailyFortuneService {
 
     /**
      * 주의사항 생성
+     * 
+     * @param sinsals 신살 정보 리스트
+     * @param totalScore 종합 점수
+     * @return 주의사항
      */
     private String generateCaution(List<SinsalInfo> sinsals, int totalScore) {
+        /* 불운 신살 개수 계산 */
         long unluckyCount = sinsals.stream().filter(sinsal -> !sinsal.isLucky()).count();
 
+        /* 주의사항 생성 */
         if (unluckyCount >= 3) {
             return "흉신이 많아 특별히 조심해야 하는 날입니다. 중요한 결정은 미루는 것이 좋겠습니다.";
         } else if (unluckyCount >= 1) {
@@ -317,6 +407,10 @@ public class DailyFortuneService {
 
     /**
      * 정적 초기화 메서드들
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     private static void initializeWuxingColors() {
         WUXING_COLORS.put("갑", Arrays.asList("녹색", "청색", "남색"));
@@ -331,6 +425,9 @@ public class DailyFortuneService {
         WUXING_COLORS.put("계", Arrays.asList("물색", "하늘색", "연파랑"));
     }
 
+    /**
+     * 길방위 매핑 (일간별)
+     */
     private static void initializeLuckyDirections() {
         LUCKY_DIRECTIONS.put("갑", "동쪽");
         LUCKY_DIRECTIONS.put("을", "동남쪽");
@@ -344,6 +441,9 @@ public class DailyFortuneService {
         LUCKY_DIRECTIONS.put("계", "북동쪽");
     }
 
+    /**
+     * 일간별 기본 운세 점수
+     */
     private static void initializeBaseFortuneScores() {
         BASE_FORTUNE_SCORES.put("갑", 65);
         BASE_FORTUNE_SCORES.put("을", 60);

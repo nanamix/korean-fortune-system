@@ -1,0 +1,19 @@
+# ==============================================
+# 도커 환경 설정 (application-docker.yml)
+# ==============================================
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:mysql://mysql:3306/korean_fortune?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${MYSQL_USER:fortune_user}
+    password: ${MYSQL_PASSWORD:fortune_secure_2025!}
+
+server:
+  port: 8080
+
+logging:
+  file:
+    name: /app/logs/korean-fortune.log

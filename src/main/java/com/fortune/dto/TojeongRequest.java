@@ -6,11 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import java.time.LocalDate;
-import java.util.List;
 
 /**
  * 토정비결 요청 DTO
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Data
 @Builder
