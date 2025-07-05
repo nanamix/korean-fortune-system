@@ -2476,9 +2476,6 @@
     ]
   },
   {
-    "name": "com.fortune.FortuneIntegrationTest"
-  },
-  {
     "name": "com.fortune.health.FortuneHealthIndicator",
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true,
@@ -2499,6 +2496,18 @@
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true,
     "queriedMethods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [ ]
+      }
+    ]
+  },
+  {
+    "name": "com.fortune.KoreanFortuneApplication__ApplicationContextInitializer",
+    "condition": {
+      "typeReachable": "com.fortune.KoreanFortuneApplication"
+    },
+    "methods": [
       {
         "name": "<init>",
         "parameterTypes": [ ]
@@ -4402,12 +4411,6 @@
   {
     "name": "org.hibernate.service.jta.platform.internal.NoJtaPlatform",
     "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.junit.AssumptionViolatedException"
-  },
-  {
-    "name": "org.opentest4j.TestAbortedException"
   },
   {
     "name": "org.postgresql.ds.PGSimpleDataSource",
@@ -6898,10 +6901,6 @@
   },
   {
     "name": "org.springframework.beans.factory.BeanFactoryAware",
-    "queryAllPublicMethods": true
-  },
-  {
-    "name": "org.springframework.beans.factory.BeanFactoryInitializer",
     "queryAllPublicMethods": true
   },
   {
@@ -17629,299 +17628,6 @@
     "queryAllDeclaredMethods": true
   },
   {
-    "name": "org.springframework.boot.test.autoconfigure.actuate.observability.ObservabilityContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.filter.TypeExcludeFiltersContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.OnFailureConditionReportContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.OverrideAutoConfigurationContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.properties.PropertyMappingContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.restdocs.RestDocsTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.client.MockRestServiceServerResetTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcAutoConfiguration",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [ ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcBuilderCustomizer",
-    "queryAllPublicMethods": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcConfiguration",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [
-          "org.springframework.web.context.WebApplicationContext",
-          "org.springframework.boot.autoconfigure.web.servlet.WebMvcProperties"
-        ]
-      },
-      {
-        "name": "mockMvc",
-        "parameterTypes": [
-          "org.springframework.test.web.servlet.MockMvcBuilder"
-        ]
-      },
-      {
-        "name": "mockMvcBuilder",
-        "parameterTypes": [
-          "java.util.List"
-        ]
-      },
-      {
-        "name": "springBootMockMvcBuilderCustomizer",
-        "parameterTypes": [ ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrintOnlyOnFailureTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcSecurityConfiguration",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [ ]
-      },
-      {
-        "name": "securityMockMvcBuilderCustomizer",
-        "parameterTypes": [ ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcSecurityConfiguration$SecurityMockMvcBuilderCustomizer",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcTesterConfiguration",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [ ]
-      },
-      {
-        "name": "mockMvcTester",
-        "parameterTypes": [
-          "org.springframework.test.web.servlet.MockMvc",
-          "org.springframework.beans.factory.ObjectProvider"
-        ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.SpringBootMockMvcBuilderCustomizer",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "fields": [
-      {
-        "name": "addFilters"
-      },
-      {
-        "name": "print"
-      },
-      {
-        "name": "printOnlyOnFailure"
-      }
-    ],
-    "methods": [
-      {
-        "name": "getPrint",
-        "parameterTypes": [ ]
-      },
-      {
-        "name": "isAddFilters",
-        "parameterTypes": [ ]
-      },
-      {
-        "name": "isPrintOnlyOnFailure",
-        "parameterTypes": [ ]
-      },
-      {
-        "name": "setAddFilters",
-        "parameterTypes": [
-          "boolean"
-        ]
-      },
-      {
-        "name": "setPrint",
-        "parameterTypes": [
-          "org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint"
-        ]
-      },
-      {
-        "name": "setPrintOnlyOnFailure",
-        "parameterTypes": [
-          "boolean"
-        ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.WebDriverContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.web.servlet.WebDriverTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.autoconfigure.webservices.client.MockWebServiceServerTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.context.filter.ExcludeFilterApplicationContextInitializer",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.context.filter.ExcludeFilterContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.context.ImportsContextCustomizer$ImportsCleanupPostProcessor",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [
-          "java.lang.String"
-        ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.context.ImportsContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.context.SpringBootContextLoader",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.context.SpringBootTestContextBootstrapper",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.graphql.tester.HttpGraphQlTesterContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.json.DuplicateJsonObjectContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.mock.mockito.MockitoContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.mock.mockito.MockitoPostProcessor",
-    "allDeclaredFields": true,
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [
-          "java.util.Set"
-        ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.mock.mockito.MockitoPostProcessor$SpyPostProcessor",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [
-          "org.springframework.boot.test.mock.mockito.MockitoPostProcessor"
-        ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.mock.mockito.MockitoTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.mock.mockito.ResetMocksTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.web.client.TestRestTemplateContextCustomizer$TestRestTemplateFactory",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [ ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.web.client.TestRestTemplateContextCustomizer$TestRestTemplateRegistrar",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [ ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.boot.test.web.client.TestRestTemplateContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.web.reactive.server.WebTestClientContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.web.reactor.netty.DisableReactorResourceFactoryGlobalResourcesContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.boot.test.web.SpringBootTestRandomPortEnvironmentPostProcessor",
-    "allDeclaredConstructors": true
-  },
-  {
     "name": "org.springframework.boot.validation.beanvalidation.MethodValidationExcludeFilter",
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true,
@@ -20850,7 +20556,6 @@
     "allDeclaredConstructors": true,
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true,
-    "allDeclaredMethods": true,
     "queriedMethods": [
       {
         "name": "<init>",
@@ -20931,7 +20636,6 @@
     "name": "org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy",
     "allDeclaredFields": true,
     "allDeclaredConstructors": true,
-    "allDeclaredMethods": true,
     "queriedMethods": [
       {
         "name": "<init>",
@@ -20979,14 +20683,6 @@
     "allPublicMethods": true
   },
   {
-    "name": "org.springframework.security.test.context.support.ReactorContextTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
     "name": "org.springframework.security.web.access.AccessDeniedHandler",
     "queryAllPublicMethods": true
   },
@@ -21022,151 +20718,11 @@
     "queryAllPublicMethods": true
   },
   {
-    "name": "org.springframework.security.web.context.SecurityContextHolderFilter",
-    "allDeclaredFields": true
-  },
-  {
-    "name": "org.springframework.security.web.context.SecurityContextPersistenceFilter",
-    "allDeclaredFields": true
-  },
-  {
-    "name": "org.springframework.security.web.csrf.CsrfFilter",
-    "allDeclaredFields": true
-  },
-  {
     "name": "org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler$SupplierCsrfToken",
     "allDeclaredMethods": true
   },
   {
-    "name": "org.springframework.security.web.FilterChainProxy",
-    "allDeclaredMethods": true
-  },
-  {
     "name": "org.springframework.security.web.SecurityFilterChain",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true
-  },
-  {
-    "name": "org.springframework.test.context.aot.AotTestAttributes__Generated",
-    "allPublicMethods": true
-  },
-  {
-    "name": "org.springframework.test.context.aot.AotTestContextInitializers__Generated",
-    "allPublicMethods": true
-  },
-  {
-    "name": "org.springframework.test.context.bean.override.BeanOverrideContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.bean.override.BeanOverrideTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.bean.override.mockito.MockitoResetTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate",
-    "allPublicConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.ContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.event.ApplicationEventsTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.event.EventPublishingTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.jdbc.SqlScriptsTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.observation.MicrometerObservationRegistryTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.CommonCachesTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.DefaultBootstrapContext",
-    "allPublicConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.DependencyInjectionTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.DirtiesContextBeforeModesTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.DirtiesContextTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.DynamicPropertiesContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.support.DynamicPropertyRegistrarBeanInitializer",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true,
-    "queriedMethods": [
-      {
-        "name": "<init>",
-        "parameterTypes": [ ]
-      }
-    ]
-  },
-  {
-    "name": "org.springframework.test.context.TestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.transaction.TransactionalTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.web.ServletTestExecutionListener",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.web.socket.MockServerContainerContextCustomizerFactory",
-    "allDeclaredConstructors": true
-  },
-  {
-    "name": "org.springframework.test.context.web.WebAppConfiguration",
-    "allDeclaredMethods": true
-  },
-  {
-    "name": "org.springframework.test.web.servlet.assertj.MockMvcTester",
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true
-  },
-  {
-    "name": "org.springframework.test.web.servlet.MockMvc",
-    "allDeclaredFields": true,
-    "queryAllPublicMethods": true,
-    "queryAllDeclaredMethods": true
-  },
-  {
-    "name": "org.springframework.test.web.servlet.MockMvcBuilder",
-    "queryAllPublicMethods": true
-  },
-  {
-    "name": "org.springframework.test.web.servlet.setup.ConfigurableMockMvcBuilder",
-    "queryAllPublicMethods": true
-  },
-  {
-    "name": "org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder",
-    "allDeclaredFields": true,
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true
   },
@@ -21701,9 +21257,6 @@
     "name": "org.springframework.web.util.UrlPathHelper",
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true
-  },
-  {
-    "name": "org.testng.SkipException"
   },
   {
     "name": "org.yaml.snakeyaml.Yaml",
