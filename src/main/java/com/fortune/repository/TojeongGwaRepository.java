@@ -13,10 +13,34 @@ import java.util.Optional;
  * <p>이 리포지토리는 토정비결 괘 정보를 데이터베이스에서 조회하고 관리하는 역할을 합니다.</p>
  * 
  * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Repository
 public interface TojeongGwaRepository extends JpaRepository<TojeongGwaEntity, Long> {
+   
+    /**
+     * 괘 번호로 괘 정보 조회
+     * SQL: SELECT * FROM tojeong_gwa WHERE gwa_number = :gwaNumber
+     * @param gwaNumber 괘 번호
+     * @return 괘 정보
+     */
     Optional<TojeongGwaEntity> findByGwaNumber(Integer gwaNumber);
+
+    /**
+     * 점수 이상 괘 정보 조회
+     * SQL: SELECT * FROM tojeong_gwa WHERE overall_score >= :score
+     * @param score 점수
+     * @return 점수 이상 괘 정보
+     */
     List<TojeongGwaEntity> findByOverallScoreGreaterThanEqual(Integer score);
+
+    /**
+     * 점수 범위 괘 정보 조회
+     * SQL: SELECT * FROM tojeong_gwa WHERE overall_score BETWEEN :minScore AND :maxScore
+     * @param minScore 최소 점수
+     * @param maxScore 최대 점수
+     * @return 점수 범위 괘 정보
+     */
     List<TojeongGwaEntity> findByOverallScoreBetween(Integer minScore, Integer maxScore);
 }

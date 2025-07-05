@@ -21,15 +21,24 @@ import java.util.*;
 @Service
 public class SinsalService {
 
-    // 천간별 길신 매핑
+    /**
+     * 천간별 길신 매핑
+     */
     private static final Map<String, List<String>> LUCKY_SINSALS = new HashMap<>();
 
-    // 천간별 흉신 매핑
+    /**
+     * 천간별 흉신 매핑
+     */
     private static final Map<String, List<String>> UNLUCKY_SINSALS = new HashMap<>();
 
-    // 신살 설명 매핑
+    /**
+     * 신살 설명 매핑
+     */
     private static final Map<String, String> SINSAL_DESCRIPTIONS = new HashMap<>();
 
+    /**
+     * 정적 초기화 메서드들
+     */
     static {
         initializeLuckySinsals();
         initializeUnluckySinsals();
@@ -38,17 +47,27 @@ public class SinsalService {
 
     /**
      * 일일 신살 계산
+     * SQL: SELECT * FROM sinsals WHERE day_master = ? AND date = ?;
+     * @param targetDate 날짜
+     * @param saju 사주 결과
+     * @return 신살 정보 리스트
      */
     public List<SinsalInfo> calculateDailySinsals(LocalDate targetDate, SajuResult saju) {
+        /* 신살 정보 리스트 생성 */
         List<SinsalInfo> sinsals = new ArrayList<>();
 
+        /* 예외 처리 */
         try {
             String dayMaster = saju.getDayMaster();
 
-            // 1. 일간 기반 길신 계산
+            /* 1. 일간 기반 길신 계산 */
             List<String> luckySinsalNames = LUCKY_SINSALS.getOrDefault(dayMaster, new ArrayList<>());
+
+            /* 길신 계산 */
             for (String sinsalName : luckySinsalNames) {
+                /* 신살 활성화 여부 확인 */
                 if (isActiveSinsal(sinsalName, targetDate, saju)) {
+                    /* 신살 정보 추가 */
                     sinsals.add(new SinsalInfo(
                             sinsalName,
                             SINSAL_DESCRIPTIONS.getOrDefault(sinsalName, sinsalName + " 신살"),
@@ -58,10 +77,14 @@ public class SinsalService {
                 }
             }
 
-            // 2. 일간 기반 흉신 계산
+            /* 2. 일간 기반 흉신 계산 */
             List<String> unluckySinsalNames = UNLUCKY_SINSALS.getOrDefault(dayMaster, new ArrayList<>());
+
+            /* 흉신 계산 */
             for (String sinsalName : unluckySinsalNames) {
+                /* 신살 활성화 여부 확인 */
                 if (isActiveSinsal(sinsalName, targetDate, saju)) {
+                    /* 신살 정보 추가 */
                     sinsals.add(new SinsalInfo(
                             sinsalName,
                             SINSAL_DESCRIPTIONS.getOrDefault(sinsalName, sinsalName + " 신살"),
@@ -71,7 +94,7 @@ public class SinsalService {
                 }
             }
 
-            // 3. 특수 신살 계산 (날짜 기반)
+            /* 3. 특수 신살 계산 (날짜 기반) */
             addDateBasedSinsals(sinsals, targetDate);
 
             log.info("✅ 신살 계산 완료: {} 개 발견", sinsals.size());
@@ -85,21 +108,35 @@ public class SinsalService {
 
     /**
      * 신살 활성화 여부 확인
+     * SQL: SELECT * FROM sinsals WHERE name = ? AND date = ?;
+     * @param sinsalName 신살 이름
+     * @param targetDate 날짜
+     * @param saju 사주 결과
+     * @return 신살 활성화 여부
      */
     private boolean isActiveSinsal(String sinsalName, LocalDate targetDate, SajuResult saju) {
-        // 간단한 활성화 로직 (실제로는 더 복잡한 계산 필요)
+        /* 간단한 활성화 로직 (실제로는 더 복잡한 계산 필요) */
         int dayOfYear = targetDate.getDayOfYear();
+
+        /* 해시 계산 */
         int hash = (sinsalName.hashCode() + saju.getDayMaster().hashCode()) % 100;
 
-        return (dayOfYear + hash) % 3 == 0; // 대략 1/3 확률로 활성화
+        /* 대략 1/3 확률로 활성화 */
+        return (dayOfYear + hash) % 3 == 0;
     }
 
     /**
      * 신살 영향도 계산
+     * SQL: SELECT * FROM sinsals WHERE name = ? AND is_lucky = ?;
+     * @param sinsalName 신살 이름
+     * @param isLucky 길신 여부
+     * @return 신살 영향도
      */
     private int calculateInfluence(String sinsalName, boolean isLucky) {
-        int baseInfluence = sinsalName.length() * 2; // 기본 영향도
+        /* 기본 영향도 */
+        int baseInfluence = sinsalName.length() * 2;
 
+        /* 길신 여부에 따라 영향도 조정 */
         if (isLucky) {
             return Math.min(20, baseInfluence + 5);
         } else {
@@ -109,28 +146,38 @@ public class SinsalService {
 
     /**
      * 날짜 기반 특수 신살 추가
+     * SQL: SELECT * FROM sinsals WHERE date = ?;
+     * @param sinsals 신살 정보 리스트
+     * @param targetDate 날짜
      */
     private void addDateBasedSinsals(List<SinsalInfo> sinsals, LocalDate targetDate) {
+        /* 월의 날짜 */
         int dayOfMonth = targetDate.getDayOfMonth();
 
-        // 특정 날짜에 활성화되는 신살들
+        /* 1일 또는 15일에 활성화되는 신살 */
         if (dayOfMonth == 1 || dayOfMonth == 15) {
             sinsals.add(new SinsalInfo("월건", "월건일로 길한 기운이 있습니다", true, 15));
         }
 
+        /* 7일마다 활성화되는 신살 */
         if (dayOfMonth % 7 == 0) {
             sinsals.add(new SinsalInfo("칠살", "조심스러운 날입니다", false, 10));
         }
 
-        // 요일별 신살
+        /* 요일별 신살 추가 */
         switch (targetDate.getDayOfWeek()) {
             case SUNDAY -> sinsals.add(new SinsalInfo("일요길신", "일요일의 좋은 기운", true, 12));
             case FRIDAY -> sinsals.add(new SinsalInfo("금요복신", "금요일의 복된 기운", true, 10));
+            default -> {} // 다른 요일은 특별한 신살 없음
         }
     }
 
     /**
      * 길신 초기화
+     * SQL: SELECT * FROM sinsals WHERE is_lucky = true;
+     * @param LUCKY_SINSALS 길신 매핑
+     * @param UNLUCKY_SINSALS 흉신 매핑
+     * @param SINSAL_DESCRIPTIONS 신살 설명 매핑
      */
     private static void initializeLuckySinsals() {
         LUCKY_SINSALS.put("갑", Arrays.asList("천을귀인", "월덕합", "복성귀인"));
@@ -147,6 +194,10 @@ public class SinsalService {
 
     /**
      * 흉신 초기화
+     * SQL: SELECT * FROM sinsals WHERE is_lucky = false;
+     * @param LUCKY_SINSALS 길신 매핑
+     * @param UNLUCKY_SINSALS 흉신 매핑
+     * @param SINSAL_DESCRIPTIONS 신살 설명 매핑
      */
     private static void initializeUnluckySinsals() {
         UNLUCKY_SINSALS.put("갑", Arrays.asList("겁살", "망신", "재살"));
@@ -163,6 +214,8 @@ public class SinsalService {
 
     /**
      * 신살 설명 초기화
+     * SQL: SELECT * FROM sinsals WHERE is_lucky = true;
+     * @param SINSAL_DESCRIPTIONS 신살 설명 매핑
      */
     private static void initializeSinsalDescriptions() {
         // 길신 설명

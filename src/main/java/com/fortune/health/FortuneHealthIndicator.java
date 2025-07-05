@@ -14,16 +14,26 @@ import java.sql.Connection;
  * 운세 서비스 상태 헬스 체크
  * 데이터베이스 연결 상태
  * 운세 서비스 상태
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Component
 public class FortuneHealthIndicator implements HealthIndicator {
 
+    /**
+     * 데이터베이스 연결 상태
+     * 데이터베이스 연결 상태를 확인하는 데 사용됩니다.
+     * - Autowired 어노테이션을 사용하여 데이터베이스 연결 상태를 확인합니다.
+     */
     @Autowired
-    private DataSource dataSource; // 데이터베이스 연결 상태
+    private DataSource dataSource;
 
     /**
      * 운세 서비스 상태 확인
-     * @return 상태 정보
+     * 
+     * @return 상태 정보 <p>데이터베이스 연결 상태와 운세 서비스 상태를 확인합니다.</p>
      */
     @Override
     public Health health() {

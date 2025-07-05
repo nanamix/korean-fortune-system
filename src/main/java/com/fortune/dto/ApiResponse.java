@@ -28,18 +28,33 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "API 응답 래퍼")
 public class ApiResponse<T> {
 
+    /**
+     * 성공 여부
+     */
     @Schema(description = "성공 여부")
     private boolean success;
 
+    /**
+     * 응답 데이터
+     */
     @Schema(description = "응답 데이터")
     private T data;
 
+    /**
+     * 메시지
+     */
     @Schema(description = "메시지")
     private String message;
 
+    /**
+     * 오류 코드
+     */
     @Schema(description = "오류 코드")
     private String errorCode;
 
+    /**
+     * 타임스탬프
+     */
     @Schema(description = "타임스탬프")
     private String timestamp;
 

@@ -11,6 +11,10 @@ import java.util.List;
 
 /**
  * 간지달력 일별 정보 DTO
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Data
 @Builder

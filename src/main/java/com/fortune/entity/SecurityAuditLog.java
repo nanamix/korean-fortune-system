@@ -74,7 +74,11 @@ public class SecurityAuditLog {
     @Column(name = "details", columnDefinition = "JSON")
     private String details;
 
-    // 생성 시 기본값 설정
+    /**
+     * 생성 시 기본값 설정
+     * - 이벤트 발생 시각이 없으면 현재 시간으로 설정
+     * - 성공 여부가 없으면 false로 설정
+     */
     @PrePersist
     public void prePersist() {
         if (timestamp == null) {

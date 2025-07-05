@@ -177,7 +177,11 @@ public class User {
     // ========== Enum 정의 ==========
     
     /**
-     * 사용자 역할 열거형
+     * 사용자 역할 Enum
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public enum Role {
         USER("일반 사용자"),
@@ -185,19 +189,36 @@ public class User {
         MODERATOR("모더레이터"),
         PREMIUM("프리미엄 사용자");
 
+        /**
+         * 사용자 역할 설명
+         */
         private final String description;
 
+        /**
+         * 사용자 역할 생성자
+         *
+         * @param description 사용자 역할 설명
+         */
         Role(String description) {
             this.description = description;
         }
 
+        /**
+         * 사용자 역할 설명 반환
+         * 
+         * @return 사용자 역할 설명
+         */
         public String getDescription() {
             return description;
         }
     }
 
     /**
-     * 성별 열거형
+     * 성별 Enum
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public enum Gender {
         M("남성"), 
@@ -215,25 +236,46 @@ public class User {
     }
 
     /**
-     * 달력 타입 열거형
+     * 달력 타입 Enum
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public enum CalendarType {
         SOLAR("양력"), 
         LUNAR("음력");
 
+        /**
+         * 달력 타입 설명
+         */
         private final String description;
 
+        /**
+         * 달력 타입 생성자
+         * 
+         * @param description 달력 타입 설명
+         */
         CalendarType(String description) {
             this.description = description;
         }
 
+        /**
+         * 달력 타입 설명 반환
+         * 
+         * @return 달력 타입 설명
+         */
         public String getDescription() {
             return description;
         }
     }
 
     /**
-     * 인증 제공자 열거형
+     * 인증 제공자 Enum
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public enum AuthProvider {
         LOCAL("로컬"),
@@ -242,19 +284,36 @@ public class User {
         NAVER("네이버"),
         FACEBOOK("페이스북");
 
+        /**
+         * 인증 제공자 설명
+         */
         private final String description;
 
+        /**
+         * 인증 제공자 생성자
+         * 
+         * @param description 인증 제공자 설명
+         */
         AuthProvider(String description) {
             this.description = description;
         }
 
+        /**
+         * 인증 제공자 설명 반환
+         * 
+         * @return 인증 제공자 설명
+         */
         public String getDescription() {
             return description;
         }
     }
 
     /**
-     * 언어 설정 열거형
+     * 언어 설정 Enum
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public enum Language {
         KOREAN("ko", "한국어"),
@@ -265,15 +324,31 @@ public class User {
         private final String code;
         private final String description;
 
+        /**
+         * 언어 생성자
+         * 
+         * @param code 언어 코드
+         * @param description 언어 설명
+         */
         Language(String code, String description) {
             this.code = code;
             this.description = description;
         }
 
+        /**
+         * 언어 코드 반환
+         * 
+         * @return 언어 코드
+         */
         public String getCode() {
             return code;
         }
 
+        /**
+         * 언어 설명 반환
+         * 
+         * @return 언어 설명
+         */
         public String getDescription() {
             return description;
         }
@@ -330,6 +405,10 @@ public class User {
 
     /**
      * 🚨 로그인 실패 횟수 증가
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public void incrementFailedLoginAttempts() {
         this.failedLoginAttempts = (this.failedLoginAttempts == null) ? 1 : this.failedLoginAttempts + 1;
@@ -342,6 +421,10 @@ public class User {
 
     /**
      * ✅ 로그인 성공 처리
+     *  
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public void handleSuccessfulLogin() {
         this.lastLoginAt = LocalDateTime.now();
@@ -352,6 +435,10 @@ public class User {
 
     /**
      * 📧 이메일 인증 완료 처리
+     * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      */
     public void verifyEmail() {
         this.emailVerified = true;
@@ -361,6 +448,9 @@ public class User {
     /**
      * 🔑 비밀번호 변경 처리
      * 
+     * @author 하진영
+     * @version 2.5.0
+     * @since 2025-06-24
      * @param newPassword 새 비밀번호 (암호화된)
      */
     public void changePassword(String newPassword) {
@@ -387,25 +477,40 @@ public class User {
      */
     public void updateOAuth2Info(AuthProvider provider, String providerId, 
                                 String name, String email, String profileImageUrl) {
-        this.authProvider = provider;
-        this.providerId = providerId;
-        this.name = name;
-        this.email = email;
-        this.profileImageUrl = profileImageUrl;
-        this.emailVerified = true; // OAuth2는 이메일 인증 완료로 간주
+        this.authProvider    = provider;
+        this.providerId      = providerId;
+        this.name            = name; 
+        this.email           = email;
+        this.profileImageUrl = profileImageUrl; 
+        this.emailVerified   = true; // OAuth2는 이메일 인증 완료로 간주
         this.emailVerifiedAt = LocalDateTime.now();
     }
 
+    /**
+     * 사용자 역할 조회
+     * 
+     * @return 사용자 역할
+     */
     public Set<Role> getRoles() {
         return roles;
     }
 
+    /**
+     * 사용자 활성화 상태 확인
+     * 
+     * @return 사용자 활성화 상태
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
     // ========== toString, equals, hashCode 최적화 ==========
     
+    /**
+     * 사용자 정보 문자열 표현
+     * 
+     * @return 사용자 정보 문자열
+     */
     @Override
     public String toString() {
         return "User{" +
@@ -419,6 +524,12 @@ public class User {
                 '}';
     }
 
+    /**
+     * 사용자 정보 비교
+     * 
+     * @param o 비교 대상
+     * @return 동일한 사용자인지 여부
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -427,6 +538,11 @@ public class User {
         return id != null && id.equals(user.getId());
     }
 
+    /**
+     * 사용자 정보 해시 코드 생성
+     * 
+     * @return 사용자 정보 해시 코드
+     */
     @Override
     public int hashCode() {
         return getClass().hashCode();

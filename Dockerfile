@@ -6,7 +6,7 @@ FROM eclipse-temurin:21-jdk AS builder
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
-LABEL version="2.0.0"
+LABEL version="2.5.0"
 LABEL description="Korean Traditional Fortune Telling System"
 
 # 작업 디렉토리 설정
@@ -35,7 +35,7 @@ FROM eclipse-temurin:21-jre AS runtime
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
-LABEL version="2.0.0"
+LABEL version="2.5.0"
 LABEL description="Korean Traditional Fortune Telling System - Runtime"
 
 # 보안을 위한 비특권 사용자 생성 (Debian 계열)
@@ -122,7 +122,7 @@ RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM"
 # ==================== 빌드 인수 ====================
 ARG BUILD_DATE
 ARG VCS_REF
-ARG VERSION=2.0.0
+ARG VERSION=2.5.0
 
 # 메타데이터 라벨
 LABEL org.opencontainers.image.created=$BUILD_DATE \

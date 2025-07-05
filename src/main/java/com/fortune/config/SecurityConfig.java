@@ -30,10 +30,15 @@ public class SecurityConfig {
 
     /**
      * 🔐 보안 활성화 시 설정
+     * 
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception
      */
     @Bean
     @ConditionalOnProperty(name = "app.fortune.security.enabled", havingValue = "true")
     public SecurityFilterChain securedFilterChain(HttpSecurity http) throws Exception {
+        // CSRF 비활성화
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -60,10 +65,15 @@ public class SecurityConfig {
 
     /**
      * 🚫 보안 비활성화 시 설정 (기본)
+     * 
+     * @param http HttpSecurity
+     * @return SecurityFilterChain
+     * @throws Exception
      */
     @Bean
     @ConditionalOnProperty(name = "app.fortune.security.enabled", havingValue = "false", matchIfMissing = true)
     public SecurityFilterChain openFilterChain(HttpSecurity http) throws Exception {
+        // CSRF 비활성화
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -77,9 +87,12 @@ public class SecurityConfig {
 
     /**
      * 🌐 CORS 설정
+     * 
+     * @return CorsConfigurationSource
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // CORS 설정
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 개발 환경을 위한 허용 설정
@@ -94,10 +107,14 @@ public class SecurityConfig {
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
+        // 허용 헤더 설정
         configuration.setAllowedHeaders(List.of("*"));
+        // 자격 증명 허용
         configuration.setAllowCredentials(true);
+        // 최대 나이 설정
         configuration.setMaxAge(3600L);
 
+        // CORS 설정 소스 생성
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -105,9 +122,12 @@ public class SecurityConfig {
 
     /**
      * 🔑 비밀번호 인코더
+     * 
+     * @return PasswordEncoder
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // BCryptPasswordEncoder 생성
         return new BCryptPasswordEncoder();
     }
 }

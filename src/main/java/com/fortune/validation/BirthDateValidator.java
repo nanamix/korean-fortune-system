@@ -8,6 +8,10 @@ import com.fortune.dto.SajuRequest;
 
 /**
  * 생년월일 유효성 검사
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Component
 public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, SajuRequest> {
@@ -20,8 +24,10 @@ public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, S
      */
     @Override
     public boolean isValid(SajuRequest request, ConstraintValidatorContext context) {
+        /* 요청 객체가 null인 경우 */
         if (request == null) return false;
 
+        /* 날짜 유효성 검사 */
         try {
             /**
              * 날짜 유효성 검사

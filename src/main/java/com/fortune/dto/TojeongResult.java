@@ -5,13 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
-import java.time.LocalDate;
 import java.util.List;
 
 
 /**
  * 토정비결 결과 DTO
+ * 
+ * @author 하진영
+ * @version 2.5.0
  */
 @Data
 @Builder

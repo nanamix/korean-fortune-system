@@ -55,7 +55,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 @OpenAPIDefinition(
         info = @Info(
                 title = "🔮 한국형 만세력 운세 시스템 API",
-                version = "2.0.0",
+                version = "2.5.0",
                 description = """
             전통 사주팔자와 토정비결, 별자리 운세를 제공하는 종합 운세 서비스입니다.
             
@@ -82,28 +82,52 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 @Server(url = "https://api.korean-fortune.com", description = "운영 서버")
         }
 )
-public class KoreanFortuneApplication {
 
+/**
+ * 한국형 만세력 운세 시스템 메인 애플리케이션
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
+ */
+public class KoreanFortuneApplication {
+    /**
+     * 메인 메서드
+     * 
+     * @param args 인수
+     */
     public static void main(String[] args) {
-        // JVM 최적화 설정
+        /* JVM 최적화 설정 (헤드리스 모드) */
         System.setProperty("java.awt.headless", "true");
+
+        /* 파일 인코딩 설정 (UTF-8) */
         System.setProperty("file.encoding", "UTF-8");
+
+        /* 시간대 설정 (서울) */
         System.setProperty("user.timezone", "Asia/Seoul");
 
-        // Spring Boot 애플리케이션 시작
+        /* Spring Boot 애플리케이션 시작 (KoreanFortuneApplication.class) */
         var app = new SpringApplication(KoreanFortuneApplication.class);
 
-        // 배너 설정
+        // 배너 설정 (콘솔)
         app.setBannerMode(org.springframework.boot.Banner.Mode.CONSOLE);
 
-        // 애플리케이션 실행
+        /* 애플리케이션 실행 */
         var context = app.run(args);
 
-        // 시작 완료 로그
+        /* 시작 완료 로그 */
         var environment = context.getEnvironment();
+
+        /* 포트 설정 (8080) */
         var port = environment.getProperty("server.port", "8080");
+
+        /* 프로필 설정 (환경 변수)
+         * - 프로필 설정 (환경 변수)
+         * ex) dev, prod 
+         */
         var profile = String.join(",", environment.getActiveProfiles());
 
+        /* 배너 출력 */
         System.out.println("""
             
             🔮 한국형 만세력 운세 시스템이 성공적으로 시작되었습니다!

@@ -1,0 +1,30 @@
+# ==============================================
+# AI 활성화 환경 설정 (application-ai.yml)
+# ==============================================
+spring:
+  config:
+    activate:
+      on-profile: ai
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-3.5-turbo  # 안정적인 모델 사용
+          temperature: 0.7
+          max-tokens: 2000
+
+app:
+  fortune:
+    ai:
+      enabled: true
+      provider: openai
+      fallback:
+        enabled: true
+        timeout: 30s
+
+logging:
+  level:
+    org.springframework.ai: INFO
+    com.fortune.service.AIFortuneService: DEBUG
