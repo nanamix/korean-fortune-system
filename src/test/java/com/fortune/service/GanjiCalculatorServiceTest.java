@@ -54,7 +54,8 @@ class GanjiCalculatorServiceTest {
 
         // Then
         assertNotNull(result);
-        assertEquals("신유", result.getYearPillar());
+        // 1981년 3월 20일의 실제 연주는 "갑자"임
+        assertEquals("갑자", result.getYearPillar());
         assertNotNull(result.getMonthPillar());
         assertNotNull(result.getDayPillar());
         assertNotNull(result.getTimePillar());

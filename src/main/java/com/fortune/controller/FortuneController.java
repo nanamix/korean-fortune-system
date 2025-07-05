@@ -198,10 +198,7 @@ public class FortuneController {
                 request.getBirthYear(), request.getTargetYear());
         // 토정비결 계산
         try {
-            // 1. 사주 계산
-            SajuResult saju = ganjiCalculatorService.calculateSaju(request);
-
-            // 2. 토정비결 계산
+            // 1. 토정비결 계산 (사주 계산 없이 직접 계산)
             TojeongResult result = tojeongBigyeolService.calculateTojeong(request);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
         } catch (Exception e) {
@@ -237,10 +234,7 @@ public class FortuneController {
                 request.getBirthDate(), request.getTargetDate());
 
         try {
-            // 1. 사주 계산
-            SajuResult saju = ganjiCalculatorService.calculateSaju(request);
-
-            // 2. 별자리 운세 계산
+            // 1. 별자리 운세 계산 (사주 계산 없이 직접 계산)
             ZodiacFortuneResult result = zodiacFortuneService.calculateZodiacFortune(
                     request.getBirthDate(), request.getTargetDate());
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
