@@ -119,6 +119,11 @@ public class ZodiacFortuneService {
      * @return 별자리
      */
     private Zodiac determineZodiac(LocalDate birthDate) {
+        /* null 체크 */
+        if (birthDate == null) {
+            throw new IllegalArgumentException("생년월일이 null입니다.");
+        }
+        
         /* 생년월일 월일 변환 */
         MonthDay birthMonthDay = MonthDay.from(birthDate);
 
