@@ -1,8 +1,8 @@
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.3'
-    id 'io.spring.dependency-management' version '1.1.7'
     id 'org.graalvm.buildtools.native' version '0.10.1'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.fortune'
@@ -22,11 +22,10 @@ configurations {
 
 repositories {
     mavenCentral()
-    maven { url 'https://repo.spring.io/release' }
 }
 
 ext {
-    set ('springAIVersion', "1.0.0")
+    set ('springAIVersion', "1.0.0-M3")
 }
 
 dependencies {
@@ -40,8 +39,9 @@ dependencies {
     // ✅ 데이터베이스 관련
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'com.h2database:h2'
-    runtimeOnly 'mysql:mysql-connector-java:8.0.33'
-    runtimeOnly 'org.postgresql:postgresql:42.7.3'
+    // MySQL 커넥터는 필요시에만 추가 (버전 명시)
+    // runtimeOnly 'mysql:mysql-connector-j'
+    runtimeOnly 'org.postgresql:postgresql'
 
 //    // ✅ Spring AI 관련 (올바른 버전으로 수정)
 //    // Spring AI BOM 최신 안정 버전
@@ -54,8 +54,8 @@ dependencies {
 //    }
 
 
-    // ✅ Spring AI 관련 (OPENAI API 사용)
-    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+    // ✅ Spring AI 관련 (OPENAI API 사용) - 주석 처리
+    // implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
 
     // ✅ OAuth2 (선택적)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
@@ -91,25 +91,8 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
 
-    // ✅ 모니터링 (운영환경)
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-}
-
-dependencyManagement {
-    imports {
-        // Spring AI BOM을 안정 버전으로 변경
-        mavenBom "org.springframework.ai:spring-ai-bom:${springAIVersion}"
-        mavenBom "org.testcontainers:testcontainers-bom:1.19.8"
-    }
-
-    // Netty 버전 강제 설정으로 충돌 해결
-    dependencies {
-        dependency 'io.netty:netty-common:4.1.111.Final'
-        dependency 'io.netty:netty-handler:4.1.111.Final'
-        dependency 'io.netty:netty-transport:4.1.111.Final'
-        dependency 'io.netty:netty-codec-http:4.1.111.Final'
-        dependency 'io.netty:netty-resolver-dns:4.1.111.Final'
-    }
+    // ✅ 모니터링 (운영환경) - 주석 처리
+    // implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
@@ -287,7 +270,9 @@ println """
   ./gradlew ciBuild              - CI 전체 빌드
 
 ⚠️  의존성 문제 해결:
-  - Spring AI 버전을 1.0.0 으로 (스프링부트 3.5.3)
+  - Spring AI 버전을 1.0.0-M3 으로 (스프링부트 3.5.3)
+  - Spring Release 저장소 제거 (Maven Central만 사용)
+  - Prometheus 버전 고정 (1.12.4)
   - Netty 버전 충돌 해결
   - Redis 의존성 제거 (필요시 별도 추가)
   - AI 기능은 선택적으로 활성화
