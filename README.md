@@ -297,9 +297,7 @@ cp .env.example .env
 ## 📞 지원 및 문의
 
 ### 🆘 문제 해결
-- **문서**: [Wiki](https://github.com/korean-fortune-system/wiki) 참조
-- **FAQ**: [자주 묻는 질문](https://github.com/korean-fortune-system/wiki/FAQ)
-- **이슈 트래커**: [GitHub Issues](https://github.com/korean-fortune-system/issues)
+- **문서**: [Wiki](https://github.com/korean-fortune-system/nananmix/wiki) 참조
 
 ### 📧 연락처
 - **메인테이너**: 하진영 (admin@jyha.net)
