@@ -122,7 +122,7 @@ RUN echo "Building on $BUILDPLATFORM for $TARGETPLATFORM"
 # ==================== 빌드 인수 ====================
 ARG BUILD_DATE
 ARG VCS_REF
-ARG VERSION=2.0.0
+ARG VERSION=2.5.0
 
 # 메타데이터 라벨
 LABEL org.opencontainers.image.created=$BUILD_DATE \
