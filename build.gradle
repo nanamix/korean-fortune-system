@@ -162,6 +162,48 @@ tasks.register('dockerBuildProd', Exec) {
     commandLine 'docker', 'build', '-t', 'korean-fortune:latest', '--target', 'runtime', '.'
 }
 
+// Docker Compose 태스크들
+tasks.register('dockerComposeUp', Exec) {
+    group = 'docker'
+    description = 'Docker Compose로 전체 서비스 시작 (개발 환경)'
+    commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.dev.yaml', 'up', '-d'
+}
+
+tasks.register('dockerComposeUpProd', Exec) {
+    group = 'docker'
+    description = 'Docker Compose로 전체 서비스 시작 (운영 환경)'
+    commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', 'up', '-d'
+}
+
+tasks.register('dockerComposeDown', Exec) {
+    group = 'docker'
+    description = 'Docker Compose로 전체 서비스 중지'
+    commandLine 'docker-compose', '-f', 'docker-compose.yaml', 'down'
+}
+
+tasks.register('dockerComposeDownAll', Exec) {
+    group = 'docker'
+    description = 'Docker Compose로 전체 서비스 중지 및 볼륨 삭제'
+    commandLine 'docker-compose', '-f', 'docker-compose.yaml', 'down', '-v'
+}
+
+tasks.register('dockerComposeLogs', Exec) {
+    group = 'docker'
+    description = 'Docker Compose 로그 확인'
+    commandLine 'docker-compose', '-f', 'docker-compose.yaml', 'logs', '-f'
+}
+
+tasks.register('dockerComposeRestart', Exec) {
+    group = 'docker'
+    description = 'Docker Compose로 전체 서비스 재시작'
+    dependsOn 'dockerComposeDown'
+    doLast {
+        exec {
+            commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', 'up', '-d'
+        }
+    }
+}
+
 // ==================== 빌드 최적화 ====================
 compileJava {
     options.encoding = 'UTF-8'
@@ -242,6 +284,25 @@ tasks.register('ciBuild') {
     dependsOn 'clean', 'ciTest', 'bootJar'
 }
 
+// 통합 배포 태스크
+tasks.register('deployDev') {
+    group = 'deployment'
+    description = '개발 환경 배포 (빌드 + Docker Compose)'
+    dependsOn 'clean', 'test', 'bootJar', 'dockerComposeUp'
+}
+
+tasks.register('deployProd') {
+    group = 'deployment'
+    description = '운영 환경 배포 (빌드 + Docker Compose)'
+    dependsOn 'clean', 'test', 'bootJar', 'dockerComposeUpProd'
+}
+
+tasks.register('fullDeploy') {
+    group = 'deployment'
+    description = '전체 배포 (빌드 + Docker 이미지 빌드 + Docker Compose)'
+    dependsOn 'clean', 'test', 'bootJar', 'dockerBuildProd', 'dockerComposeUpProd'
+}
+
 // ==================== 정리 작업 ====================
 clean {
     delete 'logs'
@@ -267,6 +328,13 @@ println """
   ./gradlew bootJar              - 실행 가능한 JAR 생성
   ./gradlew dockerBuildDev       - 개발용 Docker 이미지 빌드
   ./gradlew dockerBuildProd      - 운영용 Docker 이미지 빌드
+  ./gradlew dockerComposeUp      - Docker Compose 시작 (개발 환경)
+  ./gradlew dockerComposeUpProd  - Docker Compose 시작 (운영 환경)
+  ./gradlew dockerComposeDown    - Docker Compose 중지
+  ./gradlew dockerComposeRestart - Docker Compose 재시작
+  ./gradlew deployDev            - 개발 환경 배포 (빌드 + Docker Compose)
+  ./gradlew deployProd           - 운영 환경 배포 (빌드 + Docker Compose)
+  ./gradlew fullDeploy           - 전체 배포 (빌드 + Docker 이미지 + Docker Compose)
   ./gradlew ciBuild              - CI 전체 빌드
 
 ⚠️  의존성 문제 해결:
