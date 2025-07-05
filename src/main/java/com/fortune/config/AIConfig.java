@@ -1,9 +1,7 @@
 package com.fortune.config;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 /**
  * 🤖 AI 서비스 설정 클래스 (안전한 버전)
  *
@@ -15,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class AIConfig {
-
     /**
      * 🔧 AI 서비스 상태 확인용 Bean
      * <p>AI 서비스가 활성화되었는지 여부에 따라 다른 메시지를 반환합니다.</p>
@@ -35,7 +32,6 @@ public class AIConfig {
     public String aiServiceStatus() {
         return "AI 서비스가 활성화되었습니다";
     }
-
     /**
      * 🚫 AI 서비스 비활성화 상태 Bean
      * <p>AI 서비스가 비활성화된 경우에 대한 메시지를 반환합니다.</p>

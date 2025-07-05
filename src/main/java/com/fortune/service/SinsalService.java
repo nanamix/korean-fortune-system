@@ -1,13 +1,10 @@
 package com.fortune.service;
-
 import com.fortune.dto.SajuResult;
 import com.fortune.dto.SinsalInfo;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
-
 import java.time.LocalDate;
 import java.util.*;
-
 /**
  * 신살(神殺) 계산 서비스
  *
@@ -20,22 +17,18 @@ import java.util.*;
 @Slf4j
 @Service
 public class SinsalService {
-
     /**
      * 천간별 길신 매핑
      */
     private static final Map<String, List<String>> LUCKY_SINSALS = new HashMap<>();
-
     /**
      * 천간별 흉신 매핑
      */
     private static final Map<String, List<String>> UNLUCKY_SINSALS = new HashMap<>();
-
     /**
      * 신살 설명 매핑
      */
     private static final Map<String, String> SINSAL_DESCRIPTIONS = new HashMap<>();
-
     /**
      * 정적 초기화 메서드들
      */
@@ -44,7 +37,6 @@ public class SinsalService {
         initializeUnluckySinsals();
         initializeSinsalDescriptions();
     }
-
     /**
      * 일일 신살 계산
      * SQL: SELECT * FROM sinsals WHERE day_master = ? AND date = ?;
@@ -55,14 +47,11 @@ public class SinsalService {
     public List<SinsalInfo> calculateDailySinsals(LocalDate targetDate, SajuResult saju) {
         /* 신살 정보 리스트 생성 */
         List<SinsalInfo> sinsals = new ArrayList<>();
-
         /* 예외 처리 */
         try {
             String dayMaster = saju.getDayMaster();
-
             /* 1. 일간 기반 길신 계산 */
             List<String> luckySinsalNames = LUCKY_SINSALS.getOrDefault(dayMaster, new ArrayList<>());
-
             /* 길신 계산 */
             for (String sinsalName : luckySinsalNames) {
                 /* 신살 활성화 여부 확인 */
@@ -76,10 +65,8 @@ public class SinsalService {
                     ));
                 }
             }
-
             /* 2. 일간 기반 흉신 계산 */
             List<String> unluckySinsalNames = UNLUCKY_SINSALS.getOrDefault(dayMaster, new ArrayList<>());
-
             /* 흉신 계산 */
             for (String sinsalName : unluckySinsalNames) {
                 /* 신살 활성화 여부 확인 */
@@ -93,19 +80,15 @@ public class SinsalService {
                     ));
                 }
             }
-
             /* 3. 특수 신살 계산 (날짜 기반) */
             addDateBasedSinsals(sinsals, targetDate);
-
             log.info("✅ 신살 계산 완료: {} 개 발견", sinsals.size());
             return sinsals;
-
         } catch (Exception e) {
             log.error("❌ 신살 계산 중 오류 발생: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
-
     /**
      * 신살 활성화 여부 확인
      * SQL: SELECT * FROM sinsals WHERE name = ? AND date = ?;
@@ -117,14 +100,11 @@ public class SinsalService {
     private boolean isActiveSinsal(String sinsalName, LocalDate targetDate, SajuResult saju) {
         /* 간단한 활성화 로직 (실제로는 더 복잡한 계산 필요) */
         int dayOfYear = targetDate.getDayOfYear();
-
         /* 해시 계산 */
         int hash = (sinsalName.hashCode() + saju.getDayMaster().hashCode()) % 100;
-
         /* 대략 1/3 확률로 활성화 */
         return (dayOfYear + hash) % 3 == 0;
     }
-
     /**
      * 신살 영향도 계산
      * SQL: SELECT * FROM sinsals WHERE name = ? AND is_lucky = ?;
@@ -135,7 +115,6 @@ public class SinsalService {
     private int calculateInfluence(String sinsalName, boolean isLucky) {
         /* 기본 영향도 */
         int baseInfluence = sinsalName.length() * 2;
-
         /* 길신 여부에 따라 영향도 조정 */
         if (isLucky) {
             return Math.min(20, baseInfluence + 5);
@@ -143,7 +122,6 @@ public class SinsalService {
             return Math.max(1, baseInfluence);
         }
     }
-
     /**
      * 날짜 기반 특수 신살 추가
      * SQL: SELECT * FROM sinsals WHERE date = ?;
@@ -153,17 +131,14 @@ public class SinsalService {
     private void addDateBasedSinsals(List<SinsalInfo> sinsals, LocalDate targetDate) {
         /* 월의 날짜 */
         int dayOfMonth = targetDate.getDayOfMonth();
-
         /* 1일 또는 15일에 활성화되는 신살 */
         if (dayOfMonth == 1 || dayOfMonth == 15) {
             sinsals.add(new SinsalInfo("월건", "월건일로 길한 기운이 있습니다", true, 15));
         }
-
         /* 7일마다 활성화되는 신살 */
         if (dayOfMonth % 7 == 0) {
             sinsals.add(new SinsalInfo("칠살", "조심스러운 날입니다", false, 10));
         }
-
         /* 요일별 신살 추가 */
         switch (targetDate.getDayOfWeek()) {
             case SUNDAY -> sinsals.add(new SinsalInfo("일요길신", "일요일의 좋은 기운", true, 12));
@@ -171,7 +146,6 @@ public class SinsalService {
             default -> {} // 다른 요일은 특별한 신살 없음
         }
     }
-
     /**
      * 길신 초기화
      * SQL: SELECT * FROM sinsals WHERE is_lucky = true;
@@ -191,7 +165,6 @@ public class SinsalService {
         LUCKY_SINSALS.put("임", Arrays.asList("천을귀인", "천의", "천덕"));
         LUCKY_SINSALS.put("계", Arrays.asList("천을귀인", "괴강", "양인"));
     }
-
     /**
      * 흉신 초기화
      * SQL: SELECT * FROM sinsals WHERE is_lucky = false;
@@ -211,7 +184,6 @@ public class SinsalService {
         UNLUCKY_SINSALS.put("임", Arrays.asList("천라", "지망", "원진"));
         UNLUCKY_SINSALS.put("계", Arrays.asList("고신", "혈광", "삼재"));
     }
-
     /**
      * 신살 설명 초기화
      * SQL: SELECT * FROM sinsals WHERE is_lucky = true;
@@ -239,7 +211,6 @@ public class SinsalService {
         SINSAL_DESCRIPTIONS.put("천덕", "하늘의 덕을 받는 길한 날입니다");
         SINSAL_DESCRIPTIONS.put("괴강", "특별한 능력을 발휘하는 신살입니다");
         SINSAL_DESCRIPTIONS.put("양인", "강한 기운을 받는 날입니다");
-
         // 흉신 설명
         SINSAL_DESCRIPTIONS.put("겁살", "재물 손실에 주의해야 하는 날입니다");
         SINSAL_DESCRIPTIONS.put("망신", "명예나 체면에 손상이 올 수 있습니다");
@@ -268,7 +239,6 @@ public class SinsalService {
         SINSAL_DESCRIPTIONS.put("원진", "원한이나 진노를 사는 일에 조심하세요");
         SINSAL_DESCRIPTIONS.put("혈광", "피를 보는 일이나 사고에 특별히 주의하세요");
         SINSAL_DESCRIPTIONS.put("삼재", "3년간의 재앙 중 하나로 매우 조심해야 합니다");
-
         // 특수 신살 설명
         SINSAL_DESCRIPTIONS.put("월건", "월건일로 길한 기운이 강한 날입니다");
         SINSAL_DESCRIPTIONS.put("칠살", "7일마다 돌아오는 조심스러운 기운입니다");

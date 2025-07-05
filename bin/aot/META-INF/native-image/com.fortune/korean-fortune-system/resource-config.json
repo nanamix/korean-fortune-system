@@ -8,12 +8,6 @@
         "pattern": "\\QMETA-INF\\E"
       },
       {
-        "pattern": "\\QMETA-INF\/resources\\E"
-      },
-      {
-        "pattern": "\\QMETA-INF\/resources\/\\E.*"
-      },
-      {
         "pattern": "\\QMETA-INF\/spring.factories\\E"
       },
       {
@@ -173,9 +167,6 @@
         "pattern": "\\Qspring.properties\\E"
       },
       {
-        "pattern": "\\Qspringdoc.config.properties\\E"
-      },
-      {
         "pattern": "\\Qstatic\\E"
       },
       {
@@ -192,9 +183,6 @@
   "bundles": [
     {
       "name": "org.springframework.security.messages"
-    },
-    {
-      "name": "sun.util.resources.LocaleNames"
     }
   ]
 }

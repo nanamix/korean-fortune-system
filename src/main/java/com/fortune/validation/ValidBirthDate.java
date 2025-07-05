@@ -1,9 +1,7 @@
 package com.fortune.validation;
-
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import java.lang.annotation.*;
-
 /**
  * 생년월일 유효성 검사 어노테이션
  * @author 김동현

@@ -1,12 +1,9 @@
 package com.fortune.repository;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import com.fortune.entity.TojeongGwaEntity;
-
 import java.util.List;
 import java.util.Optional;
-
 /**
  * 🔮 토정비결 괘 정보를 관리하는 리포지토리
  * 
@@ -18,7 +15,6 @@ import java.util.Optional;
  */
 @Repository
 public interface TojeongGwaRepository extends JpaRepository<TojeongGwaEntity, Long> {
-   
     /**
      * 괘 번호로 괘 정보 조회
      * SQL: SELECT * FROM tojeong_gwa WHERE gwa_number = :gwaNumber
@@ -26,7 +22,6 @@ public interface TojeongGwaRepository extends JpaRepository<TojeongGwaEntity, Lo
      * @return 괘 정보
      */
     Optional<TojeongGwaEntity> findByGwaNumber(Integer gwaNumber);
-
     /**
      * 점수 이상 괘 정보 조회
      * SQL: SELECT * FROM tojeong_gwa WHERE overall_score >= :score
@@ -34,7 +29,6 @@ public interface TojeongGwaRepository extends JpaRepository<TojeongGwaEntity, Lo
      * @return 점수 이상 괘 정보
      */
     List<TojeongGwaEntity> findByOverallScoreGreaterThanEqual(Integer score);
-
     /**
      * 점수 범위 괘 정보 조회
      * SQL: SELECT * FROM tojeong_gwa WHERE overall_score BETWEEN :minScore AND :maxScore

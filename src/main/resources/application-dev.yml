@@ -35,3 +35,10 @@ logging:
   level:
     com.fortune: DEBUG
     root: INFO
+
+# 개발 환경에서 SpringDoc 설정 (호환성 문제로 비활성화)
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

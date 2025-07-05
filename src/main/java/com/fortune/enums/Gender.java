@@ -1,5 +1,4 @@
 package com.fortune.enums;
-
 /**
  * 성별 ENUM
  * 
@@ -10,10 +9,8 @@ package com.fortune.enums;
 enum Gender {
     MALE("남성", "M"),
     FEMALE("여성", "F");
-
     private final String korean;
     private final String code;
-
     /**
      * 성별 생성자
      * 
@@ -24,7 +21,6 @@ enum Gender {
         this.korean = korean;
         this.code = code;
     }
-
     /**
      * 성별 한글 이름 반환
      * 
@@ -33,7 +29,6 @@ enum Gender {
     public String getKorean() {
         return korean;
     }
-
     /**
      * 성별 코드 반환
      * 

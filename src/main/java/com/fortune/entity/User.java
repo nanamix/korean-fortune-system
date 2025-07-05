@@ -1,5 +1,4 @@
 package com.fortune.entity;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,10 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.Set;
-
 /**
  * 👤 사용자 엔티티
  * 
@@ -41,141 +38,100 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     // ========== 기본 정보 ==========
-    
     @Column(nullable = false, length = 50)
     private String name;
-
     @Column(unique = true, length = 100)
     private String username;
-
     @Column(nullable = false, unique = true, length = 100)
     private String email;
-
     @Column(length = 255)
     private String password;
-
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
-
     // ========== 사주 관련 생년월일 정보 ==========
-    
     @Column(name = "birth_year")
     private Integer birthYear;
-
     @Column(name = "birth_month")
     private Integer birthMonth;
-
     @Column(name = "birth_day")
     private Integer birthDay;
-
     @Column(name = "birth_hour")
     private Integer birthHour;
-
     @Column(name = "birth_minute")
     private Integer birthMinute;
-
     @Enumerated(EnumType.STRING)
     @Column(length = 10)
     private Gender gender;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "calendar_type", length = 10)
     private CalendarType calendarType;
-
     @Column(name = "birth_location", length = 100)
     private String birthLocation; // 출생지 (태양시 보정용)
-
     // ========== OAuth2 관련 정보 ==========
-    
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", nullable = false, length = 20)
     @Builder.Default
     private AuthProvider authProvider = AuthProvider.LOCAL;
-
     @Column(name = "provider_id", length = 100)
     private String providerId;
-
     // ========== 계정 상태 정보 ==========
-    
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private Set<Role> roles;
-
     @Column(name = "enabled")
     @Builder.Default
     private boolean enabled = true;
-
     @Column(name = "account_locked")
     @Builder.Default
     private Boolean accountLocked = false;
-
     @Column(name = "email_verified")
     @Builder.Default
     private Boolean emailVerified = false;
-
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
-
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
-
     @Column(name = "login_count")
     @Builder.Default
     private Integer loginCount = 0;
-
     @Column(name = "failed_login_attempts")
     @Builder.Default
     private Integer failedLoginAttempts = 0;
-
     @Column(name = "password_changed_at")
     private LocalDateTime passwordChangedAt;
-
     // ========== 사용자 설정 ==========
-    
     @Enumerated(EnumType.STRING)
     @Column(name = "preferred_language", length = 10)
     @Builder.Default
     private Language preferredLanguage = Language.KOREAN;
-
     @Column(name = "timezone", length = 50)
     @Builder.Default
     private String timezone = "Asia/Seoul";
-
     @Column(name = "ai_features_enabled")
     @Builder.Default
     private Boolean aiFeaturesEnabled = true;
-
     @Column(name = "notification_enabled")
     @Builder.Default
     private Boolean notificationEnabled = true;
-
     @Column(name = "marketing_emails_enabled")
     @Builder.Default
     private Boolean marketingEmailsEnabled = false;
-
     // ========== 타임스탬프 ==========
-    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
     // ========== Enum 정의 ==========
-    
     /**
      * 사용자 역할 Enum
      * 
@@ -188,12 +144,10 @@ public class User {
         ADMIN("관리자"),
         MODERATOR("모더레이터"),
         PREMIUM("프리미엄 사용자");
-
         /**
          * 사용자 역할 설명
          */
         private final String description;
-
         /**
          * 사용자 역할 생성자
          *
@@ -202,7 +156,6 @@ public class User {
         Role(String description) {
             this.description = description;
         }
-
         /**
          * 사용자 역할 설명 반환
          * 
@@ -212,7 +165,6 @@ public class User {
             return description;
         }
     }
-
     /**
      * 성별 Enum
      * 
@@ -223,18 +175,14 @@ public class User {
     public enum Gender {
         M("남성"), 
         F("여성");
-
         private final String description;
-
         Gender(String description) {
             this.description = description;
         }
-
         public String getDescription() {
             return description;
         }
     }
-
     /**
      * 달력 타입 Enum
      * 
@@ -245,12 +193,10 @@ public class User {
     public enum CalendarType {
         SOLAR("양력"), 
         LUNAR("음력");
-
         /**
          * 달력 타입 설명
          */
         private final String description;
-
         /**
          * 달력 타입 생성자
          * 
@@ -259,7 +205,6 @@ public class User {
         CalendarType(String description) {
             this.description = description;
         }
-
         /**
          * 달력 타입 설명 반환
          * 
@@ -269,7 +214,6 @@ public class User {
             return description;
         }
     }
-
     /**
      * 인증 제공자 Enum
      * 
@@ -283,12 +227,10 @@ public class User {
         KAKAO("카카오"),
         NAVER("네이버"),
         FACEBOOK("페이스북");
-
         /**
          * 인증 제공자 설명
          */
         private final String description;
-
         /**
          * 인증 제공자 생성자
          * 
@@ -297,7 +239,6 @@ public class User {
         AuthProvider(String description) {
             this.description = description;
         }
-
         /**
          * 인증 제공자 설명 반환
          * 
@@ -307,7 +248,6 @@ public class User {
             return description;
         }
     }
-
     /**
      * 언어 설정 Enum
      * 
@@ -320,10 +260,8 @@ public class User {
         ENGLISH("en", "English"),
         JAPANESE("ja", "日本語"),
         CHINESE("zh", "中文");
-
         private final String code;
         private final String description;
-
         /**
          * 언어 생성자
          * 
@@ -334,7 +272,6 @@ public class User {
             this.code = code;
             this.description = description;
         }
-
         /**
          * 언어 코드 반환
          * 
@@ -343,7 +280,6 @@ public class User {
         public String getCode() {
             return code;
         }
-
         /**
          * 언어 설명 반환
          * 
@@ -353,9 +289,7 @@ public class User {
             return description;
         }
     }
-
     // ========== 비즈니스 메서드 ==========
-    
     /**
      * 📅 출생일 정보 완전성 확인
      * 
@@ -364,7 +298,6 @@ public class User {
     public boolean hasBirthDateInfo() {
         return birthYear != null && birthMonth != null && birthDay != null;
     }
-
     /**
      * ⏰ 출생시간 정보 완전성 확인
      * 
@@ -373,7 +306,6 @@ public class User {
     public boolean hasBirthTimeInfo() {
         return birthHour != null && birthMinute != null;
     }
-
     /**
      * 🔒 OAuth2 사용자 여부 확인
      * 
@@ -382,7 +314,6 @@ public class User {
     public boolean isOAuth2User() {
         return authProvider != AuthProvider.LOCAL;
     }
-
     /**
      * ✅ 이메일 인증 완료 여부
      * 
@@ -391,7 +322,6 @@ public class User {
     public boolean isEmailVerified() {
         return Boolean.TRUE.equals(emailVerified);
     }
-
     /**
      * 🔐 계정 활성화 상태 확인
      * 
@@ -402,7 +332,6 @@ public class User {
                !Boolean.TRUE.equals(accountLocked) && 
                deletedAt == null;
     }
-
     /**
      * 🚨 로그인 실패 횟수 증가
      * 
@@ -412,13 +341,11 @@ public class User {
      */
     public void incrementFailedLoginAttempts() {
         this.failedLoginAttempts = (this.failedLoginAttempts == null) ? 1 : this.failedLoginAttempts + 1;
-        
         // 5회 실패 시 계정 잠금
         if (this.failedLoginAttempts >= 5) {
             this.accountLocked = true;
         }
     }
-
     /**
      * ✅ 로그인 성공 처리
      *  
@@ -432,7 +359,6 @@ public class User {
         this.failedLoginAttempts = 0;
         this.accountLocked = false;
     }
-
     /**
      * 📧 이메일 인증 완료 처리
      * 
@@ -444,7 +370,6 @@ public class User {
         this.emailVerified = true;
         this.emailVerifiedAt = LocalDateTime.now();
     }
-
     /**
      * 🔑 비밀번호 변경 처리
      * 
@@ -457,7 +382,6 @@ public class User {
         this.password = newPassword;
         this.passwordChangedAt = LocalDateTime.now();
     }
-
     /**
      * 🗑️ 소프트 삭제 처리
      */
@@ -465,7 +389,6 @@ public class User {
         this.deletedAt = LocalDateTime.now();
         this.enabled = false;
     }
-
     /**
      * 🔄 OAuth2 정보 업데이트
      * 
@@ -485,7 +408,6 @@ public class User {
         this.emailVerified   = true; // OAuth2는 이메일 인증 완료로 간주
         this.emailVerifiedAt = LocalDateTime.now();
     }
-
     /**
      * 사용자 역할 조회
      * 
@@ -494,7 +416,6 @@ public class User {
     public Set<Role> getRoles() {
         return roles;
     }
-
     /**
      * 사용자 활성화 상태 확인
      * 
@@ -503,9 +424,7 @@ public class User {
     public boolean isEnabled() {
         return enabled;
     }
-
     // ========== toString, equals, hashCode 최적화 ==========
-    
     /**
      * 사용자 정보 문자열 표현
      * 
@@ -523,7 +442,6 @@ public class User {
                 ", createdAt=" + createdAt +
                 '}';
     }
-
     /**
      * 사용자 정보 비교
      * 
@@ -537,7 +455,6 @@ public class User {
         User user = (User) o;
         return id != null && id.equals(user.getId());
     }
-
     /**
      * 사용자 정보 해시 코드 생성
      * 

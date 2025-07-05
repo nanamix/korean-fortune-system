@@ -1,5 +1,4 @@
 package com.fortune.service;
-
 import com.fortune.entity.User;
 import com.fortune.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,9 +8,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
-
 /**
  * 🚀 캐시를 사용하는 사용자 서비스
  * 
@@ -23,7 +20,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CachedUserService {
-
     /**
      * 사용자 리포지토리
      * - Autowired 어노테이션을 사용하여 사용자 리포지토리를 주입합니다.
@@ -34,7 +30,6 @@ public class CachedUserService {
      * @since 2025-06-24
      */
     private final UserRepository userRepository;
-
     /**
      * 사용자 조회 (캐시 적용)
      * 
@@ -47,7 +42,6 @@ public class CachedUserService {
         log.info("🔍 데이터베이스에서 사용자 조회: {}", userId);
         return userRepository.findById(userId);
     }
-
     /**
      * 사용자명으로 조회 (캐시 적용)
      * 
@@ -60,7 +54,6 @@ public class CachedUserService {
         log.info("🔍 데이터베이스에서 사용자 조회 (username): {}", username);
         return userRepository.findByUsernameAndDeletedAtIsNull(username);
     }
-
     /**
      * 사용자 정보 업데이트 (캐시 갱신)
      * 
@@ -73,7 +66,6 @@ public class CachedUserService {
         log.info("💾 사용자 정보 업데이트 및 캐시 갱신: {}", user.getId());
         return userRepository.save(user);
     }
-
     /**
      * 사용자 삭제 (캐시 제거)
      * 
@@ -86,7 +78,6 @@ public class CachedUserService {
         log.info("🗑️ 사용자 삭제 및 캐시 제거: {}", userId);
         userRepository.deleteById(userId);
     }
-
     /**
      * 모든 사용자 캐시 제거
      * @return 모든 사용자 캐시 제거

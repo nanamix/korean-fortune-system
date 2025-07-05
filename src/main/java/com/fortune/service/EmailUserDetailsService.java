@@ -1,5 +1,4 @@
 package com.fortune.service;
-
 import com.fortune.entity.User;
 import com.fortune.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -7,11 +6,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import java.util.Collection;
 import java.util.stream.Collectors;
-
-
 /**
  * 📧 이메일로 사용자 조회
  * <p>이메일을 사용하여 사용자 정보를 조회하고, Spring Security의 UserDetails를 반환합니다.</p>
@@ -28,14 +24,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EmailUserDetailsService {
-
     /**
      * 사용자 리포지토리
      * - Autowired 어노테이션을 사용하여 사용자 리포지토리를 주입합니다.
      * - UserRepository 클래스를 사용하여 사용자 정보를 조회합니다.
      */
     private final UserRepository userRepository;
-
     /**
      * 이메일로 사용자 조회
      * 
@@ -47,12 +41,10 @@ public class EmailUserDetailsService {
         /* 사용자 조회 */
         User user = userRepository.findByEmailAndDeletedAtIsNull(email)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
-
         /* 권한 조회 */
         Collection<SimpleGrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .collect(Collectors.toList());
-
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail()) // 이메일을 username으로 사용
                 .password(user.getPassword()) // 비밀번호

@@ -35,3 +35,10 @@ logging:
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
     org.springframework.ai: ERROR
+
+# 테스트 환경에서 SpringDoc 비활성화 (성능 향상)
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

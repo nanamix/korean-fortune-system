@@ -1,5 +1,4 @@
 package com.fortune.security;
-
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -7,12 +6,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-
 import javax.crypto.SecretKey;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 /**
  * 🔑 JWT 토큰 유틸리티 클래스
  * 
@@ -25,7 +22,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class JwtTokenUtil {
-
     /**
      * JWT 시크릿 키
      * - 환경 변수에서 주입됩니다.
@@ -33,7 +29,6 @@ public class JwtTokenUtil {
      */
     @Value("${jwt.secret:mySecretKey123456789012345678901234567890}")
     private String jwtSecret;
-
     /**
      * JWT 토큰 만료 시간
      * - 환경 변수에서 주입됩니다.
@@ -41,7 +36,6 @@ public class JwtTokenUtil {
      */
     @Value("${jwt.expiration:86400}") // 24시간 (초 단위)
     private int jwtExpirationInSeconds;
-
     /**
      * 리프레시 토큰 만료 시간
      * - 환경 변수에서 주입됩니다.
@@ -49,7 +43,6 @@ public class JwtTokenUtil {
      */
     @Value("${jwt.refresh-expiration:604800}") // 7일 (초 단위)
     private int jwtRefreshExpirationInSeconds;
-
     /**
      * JWT 토큰에서 사용자명 추출
      * @param token JWT 토큰
@@ -58,7 +51,6 @@ public class JwtTokenUtil {
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
-
     /**
      * JWT 토큰에서 만료일 추출
      * 
@@ -68,7 +60,6 @@ public class JwtTokenUtil {
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
-
     /**
      * JWT 토큰에서 권한 목록 추출
      * 
@@ -81,7 +72,6 @@ public class JwtTokenUtil {
         List<String> authorities = (List<String>) claims.get("authorities");
         return authorities != null ? authorities : Collections.emptyList();
     }
-
     /**
      * JWT 토큰에서 특정 클레임 추출
      * 
@@ -93,7 +83,6 @@ public class JwtTokenUtil {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
-
     /**
      * JWT 토큰에서 모든 클레임 추출
      * 
@@ -112,7 +101,6 @@ public class JwtTokenUtil {
             throw e;
         }
     }
-
     /**
      * JWT 토큰 만료 여부 확인
      * 
@@ -123,7 +111,6 @@ public class JwtTokenUtil {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
-
     /**
      * 사용자 정보로 JWT 토큰 생성
      * 
@@ -132,16 +119,13 @@ public class JwtTokenUtil {
      */
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        
         // 권한 정보를 토큰에 포함
         Collection<String> authorities = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         claims.put("authorities", authorities);
-        
         return createToken(claims, userDetails.getUsername(), jwtExpirationInSeconds);
     }
-
     /**
      * 리프레시 토큰 생성
      * 
@@ -153,7 +137,6 @@ public class JwtTokenUtil {
         claims.put("type", "refresh");
         return createToken(claims, userDetails.getUsername(), jwtRefreshExpirationInSeconds);
     }
-
     /**
      * JWT 토큰 생성 (내부 메서드)
      * 
@@ -165,7 +148,6 @@ public class JwtTokenUtil {
     private String createToken(Map<String, Object> claims, String subject, int expirationSeconds) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationSeconds * 1000L);
-
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -174,7 +156,6 @@ public class JwtTokenUtil {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
-
     /**
      * JWT 토큰 유효성 검증
      * 
@@ -191,7 +172,6 @@ public class JwtTokenUtil {
             return false;
         }
     }
-
     /**
      * 리프레시 토큰 유효성 검증
      * 
@@ -208,7 +188,6 @@ public class JwtTokenUtil {
             return false;
         }
     }
-
     /**
      * 토큰에서 남은 만료 시간 반환 (밀리초)
      * 
@@ -219,7 +198,6 @@ public class JwtTokenUtil {
         Date expiration = getExpirationDateFromToken(token);
         return expiration.getTime() - System.currentTimeMillis();
     }
-
     /**
      * 서명 키 생성
      * 
@@ -229,7 +207,6 @@ public class JwtTokenUtil {
         byte[] keyBytes = jwtSecret.getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
     /**
      * 토큰이 곧 만료되는지 확인 (30분 이내)
      * 

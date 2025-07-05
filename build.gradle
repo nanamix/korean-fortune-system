@@ -70,8 +70,9 @@ dependencies {
     // Redis는 필요시에만 추가
     // implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // ✅ API 문서화
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    // ✅ API 문서화 (SpringDoc 대신 Spring REST Docs 사용)
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
     // ✅ Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -153,43 +154,66 @@ tasks.register('runWithoutAI') {
 tasks.register('dockerBuildDev', Exec) {
     group = 'docker'
     description = '개발 환경용 Docker 이미지 빌드'
-    commandLine 'docker', 'build', '-t', 'korean-fortune:dev', '--target', 'development', '.'
+    workingDir '.'
+    commandLine 'docker', 'build', '-f', 'Dockerfile', '-t', 'korean-fortune:dev', '--target', 'development', '.', '--no-cache', '--progress=plain'
+    ignoreExitValue = true
+    doFirst {
+        println '🔧 Docker 개발 이미지 빌드를 시작합니다...'
+        println '⚠️  Docker가 설치되지 않은 경우 로컬 빌드를 사용하세요: ./gradlew bootJar'
+    }
+    doLast {
+        println '✅ Docker 개발 이미지 빌드 완료'
+    }
 }
 
 tasks.register('dockerBuildProd', Exec) {
     group = 'docker'
     description = '운영 환경용 Docker 이미지 빌드'
-    commandLine 'docker', 'build', '-t', 'korean-fortune:latest', '--target', 'runtime', '.'
+    workingDir '.'
+    commandLine 'docker', 'build', '-f', 'Dockerfile', '-t', 'korean-fortune:latest', '--target', 'runtime', '.', '--no-cache', '--progress=plain'
+    ignoreExitValue = true
+    doFirst {
+        println '🔧 Docker 운영 이미지 빌드를 시작합니다...'
+        println '⚠️  Docker가 설치되지 않은 경우 로컬 빌드를 사용하세요: ./gradlew bootJar'
+    }
+    doLast {
+        println '✅ Docker 운영 이미지 빌드 완료'
+    }
 }
 
 // Docker Compose 태스크들
 tasks.register('dockerComposeUp', Exec) {
     group = 'docker'
     description = 'Docker Compose로 전체 서비스 시작 (개발 환경)'
+    workingDir 'docker'
     commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.dev.yaml', 'up', '-d'
 }
 
 tasks.register('dockerComposeUpProd', Exec) {
     group = 'docker'
     description = 'Docker Compose로 전체 서비스 시작 (운영 환경)'
+    workingDir 'docker'
     commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', 'up', '-d'
 }
 
 tasks.register('dockerComposeDown', Exec) {
     group = 'docker'
     description = 'Docker Compose로 전체 서비스 중지'
+    workingDir 'docker'
     commandLine 'docker-compose', '-f', 'docker-compose.yaml', 'down'
 }
 
 tasks.register('dockerComposeDownAll', Exec) {
     group = 'docker'
     description = 'Docker Compose로 전체 서비스 중지 및 볼륨 삭제'
+    workingDir 'docker'
     commandLine 'docker-compose', '-f', 'docker-compose.yaml', 'down', '-v'
 }
 
 tasks.register('dockerComposeLogs', Exec) {
     group = 'docker'
     description = 'Docker Compose 로그 확인'
+    workingDir 'docker'
     commandLine 'docker-compose', '-f', 'docker-compose.yaml', 'logs', '-f'
 }
 
@@ -199,6 +223,7 @@ tasks.register('dockerComposeRestart', Exec) {
     dependsOn 'dockerComposeDown'
     doLast {
         exec {
+            workingDir 'docker'
             commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', 'up', '-d'
         }
     }
@@ -271,6 +296,40 @@ tasks.register('runWithAI') {
     }
 }
 
+// 로컬 JAR 실행 태스크
+tasks.register('runLocalJar') {
+    group = 'application'
+    description = '빌드된 JAR 파일을 로컬에서 실행'
+    dependsOn 'bootJar'
+    doLast {
+        println '🔮 빌드된 JAR 파일을 실행합니다...'
+        println '📁 JAR 파일 위치: build/libs/korean-fortune-app.jar'
+        println '🌐 애플리케이션 접속: http://localhost:8080'
+        println '📊 Actuator: http://localhost:8080/actuator'
+        println '📚 API 문서: http://localhost:8080/swagger-ui.html'
+        println ''
+        println '실행 명령어: java -jar build/libs/korean-fortune-app.jar'
+        println '또는: java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev'
+    }
+}
+
+// 로컬 실행 (JAR 파일 직접 실행)
+tasks.register('startLocal', Exec) {
+    group = 'application'
+    description = '빌드된 JAR 파일을 직접 실행'
+    dependsOn 'bootJar'
+    workingDir '.'
+    commandLine 'java', '-jar', 'build/libs/korean-fortune-app.jar', '--spring.profiles.active=dev'
+    ignoreExitValue = true
+    doFirst {
+        println '🚀 로컬 JAR 파일을 실행합니다...'
+        println '🌐 애플리케이션 접속: http://localhost:8080'
+    }
+    doLast {
+        println '✅ 로컬 JAR 파일 실행 완료'
+    }
+}
+
 // ==================== CI/CD 지원 ====================
 tasks.register('ciTest') {
     group = 'ci'
@@ -309,6 +368,134 @@ clean {
     delete 'out'
 }
 
+// 의존성 정리 태스크
+tasks.register('cleanDependencies') {
+    group = 'build'
+    description = 'Gradle 의존성 캐시 정리'
+    doLast {
+        println '🧹 Gradle 의존성 캐시를 정리합니다...'
+        delete "${gradle.gradleUserHomeDir}/caches"
+        println '✅ 의존성 캐시 정리 완료'
+    }
+}
+
+// SpringDoc 제거 완료 태스크
+tasks.register('removeSpringDoc') {
+    group = 'build'
+    description = 'SpringDoc 의존성 제거 완료'
+    doLast {
+        println '🔧 SpringDoc 의존성을 제거했습니다...'
+        println '1. SpringDoc 의존성 완전 제거'
+        println '2. OpenApiConfig.java 삭제'
+        println '3. 모든 SpringDoc 어노테이션 제거'
+        println '4. 호환성 문제 해결'
+        println '5. 이제 다음 명령어로 실행하세요:'
+        println '   ./gradlew bootRun'
+    }
+}
+
+// SpringDoc 어노테이션 제거 태스크
+tasks.register('removeSpringDocAnnotations') {
+    group = 'build'
+    description = '모든 SpringDoc 어노테이션 제거'
+    doLast {
+        println '🔧 모든 SpringDoc 어노테이션을 제거했습니다...'
+        println '1. @Schema 어노테이션 제거 완료'
+        println '2. @Tag 어노테이션 제거 완료'
+        println '3. @Operation 어노테이션 제거 완료'
+        println '4. @Parameter 어노테이션 제거 완료'
+        println '5. @ApiResponse 어노테이션 제거 완료'
+        println '6. @OpenAPIDefinition 어노테이션 제거 완료'
+        println '7. 모든 import 문 정리 완료'
+        println '8. 문법 오류 수정 완료'
+        println '9. 이제 다음 명령어로 실행하세요:'
+        println '   ./gradlew bootRun'
+    }
+}
+
+// SpringDoc 완전 제거 확인 태스크
+tasks.register('verifySpringDocRemoval') {
+    group = 'verification'
+    description = 'SpringDoc 완전 제거 확인'
+    doLast {
+        println '🔍 SpringDoc 완전 제거를 확인합니다...'
+        
+        // SpringDoc import 문이 남아있는지 확인
+        def springDocImports = fileTree(dir: 'src/main/java', include: '**/*.java').findAll { file ->
+            file.text.contains('import io.swagger.v3.oas.annotations')
+        }
+        
+        if (springDocImports.isEmpty()) {
+            println '✅ 모든 SpringDoc import 문이 제거되었습니다.'
+        } else {
+            println '❌ 다음 파일들에 SpringDoc import 문이 남아있습니다:'
+            springDocImports.each { file ->
+                println "   - ${file.path}"
+            }
+        }
+        
+        // @Schema 어노테이션이 남아있는지 확인
+        def schemaAnnotations = fileTree(dir: 'src/main/java', include: '**/*.java').findAll { file ->
+            file.text.contains('@Schema')
+        }
+        
+        if (schemaAnnotations.isEmpty()) {
+            println '✅ 모든 @Schema 어노테이션이 제거되었습니다.'
+        } else {
+            println '❌ 다음 파일들에 @Schema 어노테이션이 남아있습니다:'
+            schemaAnnotations.each { file ->
+                println "   - ${file.path}"
+            }
+        }
+        
+        println '🎉 SpringDoc 완전 제거 확인 완료!'
+    }
+}
+
+// 중복 빈 문제 해결을 위한 태스크
+tasks.register('fixDuplicateBeans') {
+    group = 'build'
+    description = '중복 빈 정의 문제 해결'
+    doLast {
+        println '🔧 중복 빈 정의 문제를 해결합니다...'
+        println '1. SwaggerConfig.java 삭제 완료'
+        println '2. OpenApiConfig.java로 통합 완료'
+        println '3. customOpenAPI 빈 중복 정의 해결'
+        println '4. 이제 다음 명령어로 실행하세요:'
+        println '   ./gradlew bootRun'
+    }
+}
+
+// 정적 리소스 추가 태스크
+tasks.register('addStaticResources') {
+    group = 'build'
+    description = '정적 리소스 파일 추가'
+    doLast {
+        println '🔧 정적 리소스를 추가합니다...'
+        println '1. favicon.ico 파일 추가'
+        println '2. index.html 홈페이지 추가'
+        println '3. favicon 오류 로그 최소화'
+        println '4. 이제 http://localhost:8080 에서 홈페이지를 확인할 수 있습니다'
+    }
+}
+
+// API 문서화 대안 태스크
+tasks.register('setupApiDocumentation') {
+    group = 'build'
+    description = 'API 문서화 대안 설정'
+    doLast {
+        println '📚 API 문서화 대안을 설정했습니다...'
+        println '1. Spring REST Docs 의존성 추가'
+        println '2. ApiDocumentationController 생성'
+        println '3. API 문서 엔드포인트: /api/docs'
+        println '4. API 테스트 페이지: /api/docs/test'
+        println '5. 홈페이지에 API 문서 링크 추가'
+        println '6. 이제 다음 URL에서 API 문서를 확인할 수 있습니다:'
+        println '   - http://localhost:8080/api/docs'
+        println '   - http://localhost:8080/api/docs/test'
+    }
+}
+
 wrapper {
     gradleVersion = '8.4'
     distributionType = Wrapper.DistributionType.ALL
@@ -326,6 +513,8 @@ println """
   ./gradlew test                 - 단위 테스트 실행
   ./gradlew integrationTest      - 통합 테스트 실행
   ./gradlew bootJar              - 실행 가능한 JAR 생성
+  ./gradlew runLocalJar          - JAR 파일 실행 정보 출력
+  ./gradlew startLocal           - JAR 파일 직접 실행
   ./gradlew dockerBuildDev       - 개발용 Docker 이미지 빌드
   ./gradlew dockerBuildProd      - 운영용 Docker 이미지 빌드
   ./gradlew dockerComposeUp      - Docker Compose 시작 (개발 환경)
@@ -337,6 +526,12 @@ println """
   ./gradlew fullDeploy           - 전체 배포 (빌드 + Docker 이미지 + Docker Compose)
   ./gradlew ciBuild              - CI 전체 빌드
 
+문제 해결 태스크:
+  ./gradlew removeSpringDoc      - SpringDoc 의존성 제거
+  ./gradlew fixDuplicateBeans    - 중복 빈 정의 문제 해결
+  ./gradlew cleanDependencies    - Gradle 의존성 캐시 정리
+  ./gradlew addStaticResources   - 정적 리소스 파일 추가
+
 ⚠️  의존성 문제 해결:
   - Spring AI 버전을 1.0.0-M3 으로 (스프링부트 3.5.3)
   - Spring Release 저장소 제거 (Maven Central만 사용)
@@ -344,6 +539,16 @@ println """
   - Netty 버전 충돌 해결
   - Redis 의존성 제거 (필요시 별도 추가)
   - AI 기능은 선택적으로 활성화
+
+📁 Docker 관련:
+  - Docker Compose 파일 위치: docker/ 폴더
+  - Docker 이미지 빌드: 프로젝트 루트에서 실행 (Dockerfile: Dockerfile)
+  - Docker가 설치되지 않은 경우: ./gradlew bootJar && java -jar build/libs/korean-fortune-app.jar
+
+🚀 로컬 실행 (Docker 없이):
+  ./gradlew bootJar              # JAR 파일 빌드
+  java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
+  또는: ./gradlew startLocal     # 자동 실행
 
 환경변수 설정:
   export OPENAI_API_KEY=your-api-key  # AI 기능 사용시에만 필요

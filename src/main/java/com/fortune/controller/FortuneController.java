@@ -5,11 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.fortune.service.*;
 import com.fortune.dto.*;
@@ -17,8 +12,6 @@ import com.fortune.dto.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
-
-
 
 /**
  * 🔮 운세 관련 API 컨트롤러
@@ -32,7 +25,6 @@ import java.time.LocalDate;
 @Slf4j
 @RestController
 @RequestMapping("/api/fortune")
-@Tag(name = "🔮 운세 API", description = "한국형 만세력 운세 시스템 - 사주, 토정비결, 별자리 운세 제공")
 public class FortuneController {
 
     private final GanjiCalculatorService ganjiCalculatorService;
@@ -67,15 +59,6 @@ public class FortuneController {
      * <pre>
      */
     @PostMapping("/saju/calculate")
-    @Operation(
-            summary = "📊 사주팔자 계산",
-            description = "생년월일시를 입력받아 전통 사주팔자를 계산합니다."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "사주팔자 계산 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
-    })
     public ResponseEntity<com.fortune.dto.ApiResponse<SajuResult>> calculateSaju(
             @Valid @RequestBody SajuRequest request) {
 
@@ -108,14 +91,9 @@ public class FortuneController {
      * @return 일일 운세 결과
      */
     @PostMapping("/daily")
-    @Operation(
-            summary = "📅 일일 운세 계산",
-            description = "사주정보와 날짜를 입력받아 일일 운세를 계산합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<DailyFortuneResult>> calculateDailyFortune(
             @Valid @RequestBody SajuRequest sajuRequest,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            @Parameter(description = "운세를 계산할 날짜", example = "2025-06-24") LocalDate targetDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate) {
 
         log.info("📅 일일 운세 계산 요청: {} 날짜 {}", sajuRequest.getBirthYear(), targetDate);
 
@@ -149,10 +127,6 @@ public class FortuneController {
      * @return 오늘의 운세 결과
      */
     @PostMapping("/daily/today")
-    @Operation(
-            summary = "📅 오늘의 운세",
-            description = "사주정보를 입력받아 오늘의 운세를 계산합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<DailyFortuneResult>> getTodayFortune(
             @Valid @RequestBody SajuRequest request) {
 
@@ -187,10 +161,6 @@ public class FortuneController {
      * @return 토정비결 결과
      */
     @PostMapping("/tojeong")
-    @Operation(
-            summary = "📜 토정비결 계산",
-            description = "생년월일과 대상연도를 입력받아 토정비결을 계산합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<TojeongResult>> calculateTojeong(
             @Valid @RequestBody TojeongRequest request) {
 
@@ -204,7 +174,7 @@ public class FortuneController {
         } catch (Exception e) {
             log.error("❌ 토정비결 계산 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("토정비결 계산에 실패했습니다: " + e.getMessage(), "TOJEONG_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("토정비결 계산에 실패했습니다: " + e.getMessage(), "TOJEONG_CALC_ERROR"));
         }
     }
 
@@ -214,90 +184,60 @@ public class FortuneController {
      * <h3>요청 예시</h3>
      * <pre>
      * {
-     *   "birthDate": "1990-01-01",
+     *   "birthYear": 1990,
+     *   "birthMonth": 1,
+     *   "birthDay": 1,
      *   "targetDate": "2025-06-24"
      * }
      * </pre>
-     * @param request 사주정보
+     * @param request 별자리 운세 요청
      * @return 별자리 운세 결과
      */
     @PostMapping("/zodiac")
-    @Operation(
-            summary = "⭐ 별자리 운세 계산",
-            description = "생년월일과 대상날짜를 입력받아 별자리 운세를 계산합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<ZodiacFortuneResult>> calculateZodiacFortune(
             @Valid @RequestBody ZodiacRequest request) {
 
-        // 별자리 운세 계산
         log.info("⭐ 별자리 운세 계산 요청: {} -> {}",
                 request.getBirthDate(), request.getTargetDate());
 
         try {
-            // 1. 별자리 운세 계산 (사주 계산 없이 직접 계산)
             ZodiacFortuneResult result = zodiacFortuneService.calculateZodiacFortune(
                     request.getBirthDate(), request.getTargetDate());
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
         } catch (Exception e) {
             log.error("❌ 별자리 운세 계산 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("별자리 운세 계산에 실패했습니다: " + e.getMessage(), "ZODIAC_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("별자리 운세 계산에 실패했습니다: " + e.getMessage(), "ZODIAC_FORTUNE_ERROR"));
         }
     }
 
     /**
      * 📆 간지달력 조회
      * <p>지정된 년월의 간지달력을 조회합니다.</p>
-     * <h3>요청 예시</h3>
-     * <pre>
-     * GET /api/fortune/calendar/ganji/2025/6
-     * </pre>
      * @param year 연도
      * @param month 월
-     * @return 간지달력 결과
+     * @return 간지달력 정보
      */
     @GetMapping("/calendar/ganji/{year}/{month}")
-    @Operation(
-            summary = "📆 간지달력 조회",
-            description = "지정된 년월의 간지달력을 조회합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<GanjiCalendarResponse>> getGanjiCalendar(
-            @PathVariable @Parameter(description = "연도", example = "2025") int year,
-            @PathVariable @Parameter(description = "월", example = "6") int month) {
+            @PathVariable int year,
+            @PathVariable int month) {
 
         log.info("📆 간지달력 조회 요청: {}년 {}월", year, month);
 
-        // 간지달력 조회
         try {
-            // 유효성 검사
-            // 연도는 1900-2100 범위여야 합니다
-            // 월은 1-12 범위여야 합니다 
-            // 연도와 월이 유효하지 않으면 400 오류 반환
-            // 연도와 월이 유효하면 간지달력 생성
-            // 간지달력 생성에 실패하면 500 오류 반환
-            // 간지달력 생성에 성공하면 200 오류 반환
-            if (year < 1900 || year > 2100) {
-                return ResponseEntity.badRequest()
-                        .body(com.fortune.dto.ApiResponse.error("연도는 1900-2100 범위여야 합니다", "INVALID_YEAR"));
-            }
-            // 월은 1-12 범위여야 합니다
-            if (month < 1 || month > 12) {
-                return ResponseEntity.badRequest()
-                        .body(com.fortune.dto.ApiResponse.error("월은 1-12 범위여야 합니다", "INVALID_MONTH"));
-            }
-            // 간지달력 생성
             GanjiCalendarResponse result = ganjiCalendarService.generateMonthlyCalendar(year, month);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
         } catch (Exception e) {
             log.error("❌ 간지달력 조회 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("간지달력 조회에 실패했습니다: " + e.getMessage(), "CALENDAR_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("간지달력 조회에 실패했습니다: " + e.getMessage(), "GANJI_CALENDAR_ERROR"));
         }
     }
 
     /**
-     * 🤖 AI 사주 해석 (AI 서비스 활성화시에만 동작)
-     * <p>사주정보를 입력받아 AI를 활용하여 사주를 상세히 해석합니다.</p>
+     * 🤖 AI 사주 해석
+     * <p>AI를 활용하여 사주를 상세히 해석합니다.</p>
      * <h3>요청 예시</h3>
      * <pre>
      * {
@@ -307,68 +247,53 @@ public class FortuneController {
      * }
      * </pre>
      * @param request 사주정보
-     * @return AI 사주 해석 결과
+     * @return AI 해석 결과
      */
     @PostMapping("/ai/interpret-saju")
-    @Operation(
-            summary = "🤖 AI 사주 해석",
-            description = "AI를 활용하여 사주를 상세히 해석합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> interpretSajuWithAI(
             @Valid @RequestBody SajuRequest request) {
 
-        // AI 서비스가 활성화되지 않았으면 400 오류 반환
+        log.info("🤖 AI 사주 해석 요청: {}년 {}월 {}일",
+                request.getBirthYear(), request.getBirthMonth(), request.getBirthDay());
+
         if (aiFortuneService == null) {
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("AI 서비스가 활성화되지 않았습니다", "AI_SERVICE_DISABLED"));
+                    .body(com.fortune.dto.ApiResponse.error("AI 서비스가 활성화되지 않았습니다.", "AI_SERVICE_DISABLED"));
         }
-        // 사주 계산
-        log.info("🤖 AI 사주 해석 요청");
 
         try {
             // 1. 사주 계산
             SajuResult saju = ganjiCalculatorService.calculateSaju(request);
 
-            // 2. AI 사주 해석
+            // 2. AI 해석
             String interpretation = aiFortuneService.interpretSaju(saju);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(interpretation));
         } catch (Exception e) {
             log.error("❌ AI 사주 해석 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("AI 사주 해석에 실패했습니다: " + e.getMessage(), "AI_INTERPRET_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("AI 사주 해석에 실패했습니다: " + e.getMessage(), "AI_INTERPRETATION_ERROR"));
         }
     }
 
     /**
-     * 🤖 AI 일일 운세 조언 (AI 서비스 활성화시에만 동작)
-     * <p>사주정보와 날짜를 입력받아 AI를 활용하여 일일 운세에 대한 상세한 조언을 제공합니다.</p>
-     * <h3>요청 예시</h3>
-     * <pre>
-     * {
-     *   "birthYear": 1990,
-     *   "birthMonth": 1,
-     *   "birthDay": 1
-     * }
-     * </pre>
+     * 🤖 AI 일일 운세 조언
+     * <p>AI를 활용하여 일일 운세에 대한 상세한 조언을 제공합니다.</p>
      * @param sajuRequest 사주정보
-     * @param targetDate 운세를 계산할 날짜
-     * @return AI 일일 운세 조언 결과
+     * @param targetDate 대상 날짜
+     * @return AI 조언
      */
     @PostMapping("/ai/daily-advice")
-    @Operation(
-            summary = "🤖 AI 일일 운세 조언",
-            description = "AI를 활용하여 일일 운세에 대한 상세한 조언을 제공합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> getDailyAdviceWithAI(
             @Valid @RequestBody SajuRequest sajuRequest,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate targetDate) {
 
-        // AI 서비스가 활성화되지 않았으면 400 오류 반환
+        log.info("🤖 AI 일일 운세 조언 요청: {} 날짜 {}", sajuRequest.getBirthYear(), targetDate);
+
         if (aiFortuneService == null) {
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("AI 서비스가 활성화되지 않았습니다", "AI_SERVICE_DISABLED"));
+                    .body(com.fortune.dto.ApiResponse.error("AI 서비스가 활성화되지 않았습니다.", "AI_SERVICE_DISABLED"));
         }
-        // 사주 계산
+
         try {
             // 1. 사주 계산
             SajuResult saju = ganjiCalculatorService.calculateSaju(sajuRequest);
@@ -376,91 +301,57 @@ public class FortuneController {
             // 2. 일일 운세 계산
             DailyFortuneResult dailyFortune = dailyFortuneService.calculateDailyFortune(saju, targetDate);
 
-            // 3. AI 일일 운세 조언
+            // 3. AI 조언
             String advice = aiFortuneService.generateDailyAdvice(dailyFortune);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(advice));
         } catch (Exception e) {
-            log.error("❌ AI 일일 조언 생성 실패: {}", e.getMessage(), e);
+            log.error("❌ AI 일일 운세 조언 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("AI 일일 조언 생성에 실패했습니다: " + e.getMessage(), "AI_DAILY_ADVICE_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("AI 일일 운세 조언에 실패했습니다: " + e.getMessage(), "AI_ADVICE_ERROR"));
         }
     }
 
     /**
-     * 🤖 AI 운세 질문 답변 (AI 서비스 활성화시에만 동작)
-     * <p>사주정보와 함께 자연어 질문을 하면 AI가 답변합니다.</p>
-     * <h3>요청 예시</h3>
-     * <pre>
-     * {
-     *   "birthYear": 1990,
-     *   "birthMonth": 1,
-     *   "birthDay": 1
-     * }
-     * </pre>
+     * 🤖 AI 운세 질문 답변
+     * <p>사주 정보와 함께 자연어 질문을 하면 AI가 답변합니다.</p>
      * @param sajuRequest 사주정보
      * @param question 운세 관련 질문
-     * @return AI 운세 질문 답변 결과
+     * @return AI 답변
      */
     @PostMapping("/ai/ask")
-    @Operation(
-            summary = "🤖 AI 운세 질문 답변",
-            description = "사주 정보와 함께 자연어 질문을 하면 AI가 답변합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> askFortuneQuestion(
             @Valid @RequestBody SajuRequest sajuRequest,
-            @RequestParam @Parameter(description = "운세 관련 질문", example = "올해 연애운은 어떤가요?") String question) {
+            @RequestParam String question) {
 
-        // AI 서비스가 활성화되지 않았으면 400 오류 반환
+        log.info("🤖 AI 운세 질문 요청: {} 질문: {}", sajuRequest.getBirthYear(), question);
+
         if (aiFortuneService == null) {
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("AI 서비스가 활성화되지 않았습니다", "AI_SERVICE_DISABLED"));
+                    .body(com.fortune.dto.ApiResponse.error("AI 서비스가 활성화되지 않았습니다.", "AI_SERVICE_DISABLED"));
         }
-        // 사주 계산
+
         try {
             // 1. 사주 계산
             SajuResult saju = ganjiCalculatorService.calculateSaju(sajuRequest);
 
-            // 2. AI 운세 질문 답변
+            // 2. AI 질문 답변
             String answer = aiFortuneService.answerFortuneQuestion(saju, question);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(answer));
         } catch (Exception e) {
-            // AI 질문 답변 실패 시 500 오류 반환
-            log.error("❌ AI 질문 답변 실패: {}", e.getMessage(), e);
+            log.error("❌ AI 운세 질문 답변 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("AI 질문 답변에 실패했습니다: " + e.getMessage(), "AI_QA_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("AI 운세 질문 답변에 실패했습니다: " + e.getMessage(), "AI_QUESTION_ERROR"));
         }
     }
 
     /**
      * 🔍 시스템 상태 확인
      * <p>운세 시스템의 상태를 확인합니다.</p>
-     * <h3>요청 예시</h3>
-     * <pre>
-     * GET /api/fortune/health
-     * </pre>
-     * @return 시스템 상태 결과
+     * @return 시스템 상태
      */
     @GetMapping("/health")
-    @Operation(
-            summary = "🔍 시스템 상태 확인",
-            description = "운세 시스템의 상태를 확인합니다."
-    )
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> healthCheck() {
-        // 시스템 상태 확인
-        try {
-            // 1. 시스템 상태 확인
-            String status = "운세 시스템이 정상적으로 동작중입니다";
-            // AI 서비스가 활성화되었는지 확인
-            if (aiFortuneService != null) {
-                status += " (AI 서비스 활성화됨)";
-            } else {
-                status += " (AI 서비스 비활성화됨)";
-            }
-            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(status));
-        } catch (Exception e) {
-            // 시스템 상태 확인 실패 시 500 오류 반환
-            return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("시스템 상태 확인 실패: " + e.getMessage(), "HEALTH_CHECK_ERROR"));
-        }
+        log.info("🔍 시스템 상태 확인 요청");
+        return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("운세 시스템이 정상적으로 작동 중입니다."));
     }
 }

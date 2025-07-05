@@ -1,5 +1,4 @@
 package com.fortune.exception;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,7 +6,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import com.fortune.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
-
 /**
  * 글로벌 예외 처리기
  * 
@@ -18,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-
     /**
      * 운세 계산 예외 처리
      * <p>운세 계산 중 발생하는 예외를 처리합니다.</p>
@@ -40,7 +37,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(com.fortune.dto.ApiResponse.error("운세 계산 중 오류가 발생했습니다: " + e.getMessage(), "운세 계산 오류"));
     }
-
     /**
      * 입력 검증 예외 처리
      * <p>클라이언트가 보낸 입력값이 유효하지 않을 때 발생하는 예외를 처리합니다.</p>
@@ -60,14 +56,36 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
                 .orElse("입력값이 올바르지 않습니다.");
-
         // 입력 검증 실패 로깅
         log.warn("입력 검증 실패: {}", errorMessage);
         // 입력 검증 실패 응답 반환
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(errorMessage, "입력 검증 오류"));
     }
-
+    /**
+     * 정적 리소스 없음 예외 처리
+     * <p>favicon.ico 등 정적 리소스가 없을 때 발생하는 예외를 처리합니다.</p>
+     * <p>이 예외는 브라우저가 자동으로 요청하는 favicon 등이 없을 때 발생합니다.</p>
+     * <p>이 핸들러는 정적 리소스 없음 예외를 잡아 적절한 HTTP 응답을 반환합니다.</p>
+     * <p>정적 리소스 없음 예외가 발생하면, 클라이언트에게 404 Not Found 상태 코드를 반환합니다.</p>
+     * <p>이렇게 함으로써, 클라이언트는 요청한 리소스가 없음을 인지할 수 있습니다.</p>
+     * 
+     * @param e 정적 리소스 없음 예외 <p>정적 리소스가 없을 때 발생하는 예외 객체입니다.</p>
+     * @return ResponseEntity<ApiResponse<Void>> <p>정적 리소스 없음 예외에 대한 응답을 포함하는 ResponseEntity 객체입니다.</p>
+     */
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(
+            org.springframework.web.servlet.resource.NoResourceFoundException e) {
+        // favicon.ico 요청은 로그 레벨을 낮춤
+        if (e.getMessage().contains("favicon.ico")) {
+            log.debug("Favicon 요청: {}", e.getMessage());
+        } else {
+            log.warn("정적 리소스 없음: {}", e.getMessage());
+        }
+        // 정적 리소스 없음 응답 반환
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("요청한 리소스를 찾을 수 없습니다.", "리소스 없음"));
+    }
     /**
      * 일반 예외 처리
      * <p>예상치 못한 오류가 발생했을 때 처리하는 핸들러입니다.</p>
@@ -87,7 +105,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("시스템 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "시스템 오류"));
     }
-
     /**
      * 잘못된 날짜 예외 처리
      * <p>잘못된 날짜 예외를 처리합니다.</p>

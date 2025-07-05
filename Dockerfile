@@ -17,11 +17,19 @@ RUN apt-get update && \
     apt-get install -y curl git && \
     rm -rf /var/lib/apt/lists/*
 
-# 전체 프로젝트 복사 (임시 해결책)
-COPY . .
+# Gradle Wrapper 파일들 먼저 복사
+COPY gradlew ./
+COPY gradle gradle
+COPY gradle.properties ./
+COPY build.gradle ./
+COPY settings.gradle ./
 
-# Gradle wrapper 실행 권한 부여
-RUN chmod +x gradlew
+# Gradle wrapper 실행 권한 부여 및 테스트
+RUN chmod +x gradlew && \
+    ./gradlew --version
+
+# 전체 프로젝트 복사
+COPY . .
 
 # 애플리케이션 빌드
 RUN ./gradlew bootJar --no-daemon -x test

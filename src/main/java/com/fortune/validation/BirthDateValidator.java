@@ -1,11 +1,9 @@
 package com.fortune.validation;
-
 import java.time.LocalDate;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.stereotype.Component;
 import com.fortune.dto.SajuRequest;
-
 /**
  * 생년월일 유효성 검사
  * 
@@ -15,7 +13,6 @@ import com.fortune.dto.SajuRequest;
  */
 @Component
 public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, SajuRequest> {
-
     /**
      * 생년월일 유효성 검사
      * @param request 요청 객체
@@ -26,7 +23,6 @@ public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, S
     public boolean isValid(SajuRequest request, ConstraintValidatorContext context) {
         /* 요청 객체가 null인 경우 */
         if (request == null) return false;
-
         /* 날짜 유효성 검사 */
         try {
             /**
@@ -37,7 +33,6 @@ public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, S
              * @return 유효성 여부
              */
             LocalDate.of(request.getBirthYear(), request.getBirthMonth(), request.getBirthDay());
-
             /**
              * 시간 유효성 검사
              * 시간은 0-23 사이여야 합니다
@@ -64,7 +59,6 @@ public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, S
                         .addConstraintViolation();
                 return false;
             }
-
             /**
              * 년도 범위 검사
              * 년도는 1900-2100 사이여야 합니다
@@ -78,7 +72,6 @@ public class BirthDateValidator implements ConstraintValidator<ValidBirthDate, S
                         .addConstraintViolation();
                 return false;
             }
-
             return true;
         } catch (Exception e) {
             /**
