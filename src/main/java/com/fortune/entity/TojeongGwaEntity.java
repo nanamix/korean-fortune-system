@@ -6,12 +6,11 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 /**
- * 토정과 정보
- * 토정과 번호
- * 토정과 이름
- * 토정과 기호
- * 토정과 요약
- * 토정과 상세 운세
+ * 토정괘 엔티티
+ * 
+ * @author 하진영
+ * @version 2.5.0
+ * @since 2025-06-24
  */
 @Entity
 @Table(name = "tojeong_gwa")
