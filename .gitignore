@@ -345,3 +345,4 @@ src/main/resources/application-*-secrets.yml
 .env.local
 .env.development
 .env.production
+bin/main/application-dev-secrets.yml
