@@ -328,3 +328,20 @@ codeql-pack.yml
 *.class
 
 logs/
+
+# ==============================================
+# 민감한 정보 파일 (Git에 커밋되지 않음)
+# ==============================================
+src/main/resources/application-dev-secrets.yml
+src/main/resources/application-prod-secrets.yml
+src/main/resources/application-*-secrets.yml
+*.secrets.yml
+*.secrets.properties
+
+# ==============================================
+# 환경변수 파일
+# ==============================================
+.env
+.env.local
+.env.development
+.env.production
