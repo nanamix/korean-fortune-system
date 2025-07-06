@@ -35,7 +35,7 @@ public class ApiDocumentationController {
         
         // API 그룹별 정보
         docs.put("title", "🔮 한국형 만세력 운세 시스템 API 문서");
-        docs.put("version", "2.5.0");
+        docs.put("version", "2.6.0");
         docs.put("description", "전통 사주팔자와 토정비결을 제공하는 한국형 운세 시스템의 REST API 문서");
         docs.put("baseUrl", "http://localhost:8080");
         
@@ -226,6 +226,7 @@ public class ApiDocumentationController {
     /**
      * API 테스트 페이지 HTML 제공 (파라미터 입력 가능)
      * 
+     * @param 
      * @return API 테스트 페이지
      */
     @GetMapping("/test")
