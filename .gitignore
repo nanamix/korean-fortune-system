@@ -326,3 +326,5 @@ build/
 
 codeql-pack.yml
 *.class
+
+logs/
