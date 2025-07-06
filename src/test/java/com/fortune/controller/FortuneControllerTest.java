@@ -1,6 +1,7 @@
 package com.fortune.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fortune.config.TestConfig;
 import com.fortune.dto.*;
 import com.fortune.service.*;
 
@@ -11,6 +12,8 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,6 +39,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TestConfig.class)
+@TestPropertySource(properties = {
+        "app.fortune.telegram.bot-token=test-bot-token",
+        "app.fortune.telegram.chat-id=test-chat-id"
+})
 @DisplayName("🔮 운세 컨트롤러 테스트")
 class FortuneControllerTest {
 

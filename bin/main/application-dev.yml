@@ -5,6 +5,8 @@ spring:
   config:
     activate:
       on-profile: dev
+    import:
+      - optional:classpath:application-dev-secrets.yml
 
   datasource:
     url: jdbc:h2:mem:devdb
@@ -26,8 +28,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${spring.mail.username:fortune@jyha.net}
-    password: ${spring.mail.password:}
+    username: fortune@jyha.net
+    password: 
     properties:
       mail:
         smtp:
@@ -49,8 +51,8 @@ app:
       enabled: true # 개발환경에서 이메일 발송 활성화
     telegram:
       enabled: true # 개발환경에서 텔레그램 발송 활성화
-      bot-token: ${app.fortune.telegram.bot-token:}
-      chat-id: ${app.fortune.telegram.chat-id:}
+      bot-token: 
+      chat-id: 
       api-url: "https://api.telegram.org/bot"
 
 logging:

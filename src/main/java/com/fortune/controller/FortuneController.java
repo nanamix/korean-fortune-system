@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fortune.service.*;
 import com.fortune.dto.*;
 import com.fortune.dto.NotificationRequest;
+import com.fortune.dto.TelegramTestRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -367,23 +368,25 @@ public class FortuneController {
     /**
      * 📧 사주팔자 결과를 이메일/텔레그램으로 발송
      * 
-     * @param sajuRequest 사주팔자 요청
-     * @param notificationRequest 알림 발송 요청
+     * @param sajuRequest 사주팔자 요청 (알림 정보 포함)
      * @return 발송 결과
      */
     @PostMapping("/saju/calculate-and-send")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateSajuAndSend(
-            @Valid @RequestBody SajuRequest sajuRequest,
-            @Valid @RequestBody NotificationRequest notificationRequest) {
+            @Valid @RequestBody SajuRequest sajuRequest) {
 
-        log.info("🔮 사주팔자 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+        log.info("🔮 사주팔자 계산 및 발송 요청: {}님", 
+                sajuRequest.getNotification() != null ? sajuRequest.getNotification().getRecipientName() : "알 수 없음");
+        log.info("🔍 요청 데이터 확인: notification={}", sajuRequest.getNotification());
 
         try {
             // 1. 사주팔자 계산
             SajuResult sajuResult = ganjiCalculatorService.calculateSaju(sajuRequest);
 
-            // 2. 알림 발송
-            sendNotification(notificationRequest, sajuResult, null, null, null, "saju");
+            // 2. 알림 발송 (알림 정보가 있는 경우에만)
+            if (sajuRequest.getNotification() != null) {
+                sendNotification(sajuRequest.getNotification(), sajuResult, null, null, null, "saju");
+            }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("사주팔자 결과가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
@@ -402,10 +405,10 @@ public class FortuneController {
      */
     @PostMapping("/daily/today-and-send")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> getTodayFortuneAndSend(
-            @Valid @RequestBody SajuRequest sajuRequest,
-            @Valid @RequestBody NotificationRequest notificationRequest) {
+            @Valid @RequestBody SajuRequest sajuRequest) {
 
-        log.info("📅 오늘의 운세 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+        log.info("📅 오늘의 운세 계산 및 발송 요청: {}님", 
+                sajuRequest.getNotification() != null ? sajuRequest.getNotification().getRecipientName() : "알 수 없음");
 
         try {
             // 1. 사주팔자 계산
@@ -415,7 +418,9 @@ public class FortuneController {
             DailyFortuneResult dailyResult = dailyFortuneService.calculateDailyFortune(saju, LocalDate.now());
 
             // 3. 알림 발송
-            sendNotification(notificationRequest, null, dailyResult, null, null, "daily");
+            if (sajuRequest.getNotification() != null) {
+                sendNotification(sajuRequest.getNotification(), null, dailyResult, null, null, "daily");
+            }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("오늘의 운세 결과가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
@@ -434,17 +439,19 @@ public class FortuneController {
      */
     @PostMapping("/tojeong/calculate-and-send")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateTojeongAndSend(
-            @Valid @RequestBody TojeongRequest tojeongRequest,
-            @Valid @RequestBody NotificationRequest notificationRequest) {
+            @Valid @RequestBody TojeongRequest tojeongRequest) {
 
-        log.info("📜 토정비결 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+        log.info("📜 토정비결 계산 및 발송 요청: {}님", 
+                tojeongRequest.getNotification() != null ? tojeongRequest.getNotification().getRecipientName() : "알 수 없음");
 
         try {
             // 1. 토정비결 계산
             TojeongResult tojeongResult = tojeongBigyeolService.calculateTojeong(tojeongRequest);
 
             // 2. 알림 발송
-            sendNotification(notificationRequest, null, null, tojeongResult, null, "tojeong");
+            if (tojeongRequest.getNotification() != null) {
+                sendNotification(tojeongRequest.getNotification(), null, null, tojeongResult, null, "tojeong");
+            }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("토정비결 결과가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
@@ -463,10 +470,10 @@ public class FortuneController {
      */
     @PostMapping("/zodiac/calculate-and-send")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateZodiacFortuneAndSend(
-            @Valid @RequestBody ZodiacRequest zodiacRequest,
-            @Valid @RequestBody NotificationRequest notificationRequest) {
+            @Valid @RequestBody ZodiacRequest zodiacRequest) {
 
-        log.info("⭐ 별자리 운세 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+        log.info("⭐ 별자리 운세 계산 및 발송 요청: {}님", 
+                zodiacRequest.getNotification() != null ? zodiacRequest.getNotification().getRecipientName() : "알 수 없음");
 
         try {
             // 1. 별자리 운세 계산
@@ -474,13 +481,38 @@ public class FortuneController {
                     zodiacRequest.getBirthDate(), zodiacRequest.getTargetDate());
 
             // 2. 알림 발송
-            sendNotification(notificationRequest, null, null, null, zodiacResult, "zodiac");
+            if (zodiacRequest.getNotification() != null) {
+                sendNotification(zodiacRequest.getNotification(), null, null, null, zodiacResult, "zodiac");
+            }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("별자리 운세 결과가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
             log.error("❌ 별자리 운세 계산 및 발송 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
                     .body(com.fortune.dto.ApiResponse.error("별자리 운세 계산 및 발송에 실패했습니다: " + e.getMessage(), "ZODIAC_SEND_ERROR"));
+        }
+    }
+
+    /**
+     * 텔레그램 발송 테스트 (API 문서/테스트용)
+     */
+    @PostMapping("/telegram/test")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> testTelegramSend(
+            @RequestBody TelegramTestRequest request) {
+        try {
+            log.info("📱 텔레그램 발송 테스트: {} -> {}", 
+                    request.getChatId() != null ? request.getChatId() : "기본값", request.getMessage());
+            
+            if (request.getChatId() != null) {
+                telegramService.sendMessage(request.getMessage(), String.valueOf(request.getChatId()));
+            } else {
+                telegramService.sendMessage(request.getMessage());
+            }
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("텔레그램 메시지가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ 텔레그램 발송 테스트 실패", e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("텔레그램 발송 실패: " + e.getMessage(), "TELEGRAM_TEST_ERROR"));
         }
     }
 
@@ -607,7 +639,7 @@ public class FortuneController {
             📝 발송일: %s
             """,
             recipientName,
-            sajuResult.getBirthDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분")),
+            sajuResult.getAdjustedDateTime().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분")),
             sajuResult.getFormattedSaju(),
             sajuResult.getDayMaster(),
             sajuResult.getFortuneSummary(),

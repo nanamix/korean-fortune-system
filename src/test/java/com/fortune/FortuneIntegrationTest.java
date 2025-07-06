@@ -1,6 +1,7 @@
 package com.fortune;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fortune.config.TestConfig;
 import com.fortune.dto.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -30,12 +32,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@Import(TestConfig.class)
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
         "app.fortune.ai.enabled=false", // 테스트에서는 AI 기능 비활성화
         "app.fortune.cache.enabled=false", // 테스트에서는 캐시 비활성화
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "logging.level.com.fortune=DEBUG"
+        "logging.level.com.fortune=DEBUG",
+        "app.fortune.telegram.bot-token=test-bot-token",
+        "app.fortune.telegram.chat-id=test-chat-id"
 })
 @Transactional
 @DisplayName("🔄 운세 시스템 통합 테스트")

@@ -147,6 +147,19 @@ public class ApiDocumentationController {
         ));
         endpoints.put("AI운세", aiApis);
         
+        // 텔레그램 API
+        Map<String, Object> telegramApis = new HashMap<>();
+        telegramApis.put("test", Map.of(
+            "method", "POST",
+            "url", "/api/fortune/telegram/test",
+            "description", "텔레그램 메시지 발송 테스트",
+            "requestBody", Map.of(
+                "chatId", "long",
+                "message", "String"
+            )
+        ));
+        endpoints.put("텔레그램", telegramApis);
+        
         // 시스템 API
         Map<String, Object> systemApis = new HashMap<>();
         systemApis.put("status", Map.of(
@@ -349,6 +362,55 @@ public class ApiDocumentationController {
                             <div id="daily-status" class="status" style="display:none;"></div>
                             <div id="daily-response" class="response" style="display:none;"></div>
                         </div>
+                        
+                        <div class="api-endpoint">
+                            <span class="method post">POST</span>
+                            <span class="url">/api/fortune/daily/today-and-send</span>
+                            <div class="description">오늘의 운세를 계산하고 텔레그램으로 발송합니다.</div>
+                            
+                            <div class="form-group">
+                                <label>이름:</label>
+                                <input type="text" id="daily-send-name" value="테스트님" placeholder="사용자 이름">
+                            </div>
+                            <div class="form-group">
+                                <label>출생연도:</label>
+                                <input type="number" id="daily-send-birthYear" value="1981" min="1900" max="2030">
+                            </div>
+                            <div class="form-group">
+                                <label>출생월:</label>
+                                <input type="number" id="daily-send-birthMonth" value="3" min="1" max="12">
+                            </div>
+                            <div class="form-group">
+                                <label>출생일:</label>
+                                <input type="number" id="daily-send-birthDay" value="20" min="1" max="31">
+                            </div>
+                            <div class="form-group">
+                                <label>출생시간:</label>
+                                <input type="number" id="daily-send-birthHour" value="1" min="0" max="23">
+                            </div>
+                            <div class="form-group">
+                                <label>출생분:</label>
+                                <input type="number" id="daily-send-birthMinute" value="59" min="0" max="59">
+                            </div>
+                            <div class="form-group">
+                                <label>성별:</label>
+                                <select id="daily-send-gender">
+                                    <option value="M">남성 (M)</option>
+                                    <option value="F">여성 (F)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>달력타입:</label>
+                                <select id="daily-send-calendarType">
+                                    <option value="SOLAR">양력 (SOLAR)</option>
+                                    <option value="LUNAR">음력 (LUNAR)</option>
+                                </select>
+                            </div>
+                            
+                            <button class="test-button" onclick="testDailyFortuneAndSend()">일일운세 + 텔레그램 발송</button>
+                            <div id="daily-send-status" class="status" style="display:none;"></div>
+                            <div id="daily-send-response" class="response" style="display:none;"></div>
+                        </div>
                     </div>
                     
                     <div class="api-section">
@@ -380,6 +442,37 @@ public class ApiDocumentationController {
                             <div id="tojeong-status" class="status" style="display:none;"></div>
                             <div id="tojeong-response" class="response" style="display:none;"></div>
                         </div>
+                        
+                        <div class="api-endpoint">
+                            <span class="method post">POST</span>
+                            <span class="url">/api/fortune/tojeong/calculate-and-send</span>
+                            <div class="description">토정비결을 계산하고 텔레그램으로 발송합니다.</div>
+                            
+                            <div class="form-group">
+                                <label>이름:</label>
+                                <input type="text" id="tojeong-send-name" value="테스트님" placeholder="사용자 이름">
+                            </div>
+                            <div class="form-group">
+                                <label>출생연도:</label>
+                                <input type="number" id="tojeong-send-birthYear" value="1981" min="1900" max="2030">
+                            </div>
+                            <div class="form-group">
+                                <label>출생월:</label>
+                                <input type="number" id="tojeong-send-birthMonth" value="3" min="1" max="12">
+                            </div>
+                            <div class="form-group">
+                                <label>출생일:</label>
+                                <input type="number" id="tojeong-send-birthDay" value="20" min="1" max="31">
+                            </div>
+                            <div class="form-group">
+                                <label>대상연도:</label>
+                                <input type="number" id="tojeong-send-targetYear" value="2025" min="1900" max="2030">
+                            </div>
+                            
+                            <button class="test-button" onclick="testTojeongAndSend()">토정비결 + 텔레그램 발송</button>
+                            <div id="tojeong-send-status" class="status" style="display:none;"></div>
+                            <div id="tojeong-send-response" class="response" style="display:none;"></div>
+                        </div>
                     </div>
                     
                     <div class="api-section">
@@ -410,6 +503,37 @@ public class ApiDocumentationController {
                             <button class="test-button" onclick="testZodiac()">테스트</button>
                             <div id="zodiac-status" class="status" style="display:none;"></div>
                             <div id="zodiac-response" class="response" style="display:none;"></div>
+                        </div>
+                        
+                        <div class="api-endpoint">
+                            <span class="method post">POST</span>
+                            <span class="url">/api/fortune/zodiac/calculate-and-send</span>
+                            <div class="description">별자리 운세를 계산하고 텔레그램으로 발송합니다.</div>
+                            
+                            <div class="form-group">
+                                <label>이름:</label>
+                                <input type="text" id="zodiac-send-name" value="테스트님" placeholder="사용자 이름">
+                            </div>
+                            <div class="form-group">
+                                <label>출생연도:</label>
+                                <input type="number" id="zodiac-send-birthYear" value="1981" min="1900" max="2030">
+                            </div>
+                            <div class="form-group">
+                                <label>출생월:</label>
+                                <input type="number" id="zodiac-send-birthMonth" value="3" min="1" max="12">
+                            </div>
+                            <div class="form-group">
+                                <label>출생일:</label>
+                                <input type="number" id="zodiac-send-birthDay" value="20" min="1" max="31">
+                            </div>
+                            <div class="form-group">
+                                <label>대상일:</label>
+                                <input type="date" id="zodiac-send-targetDate">
+                            </div>
+                            
+                            <button class="test-button" onclick="testZodiacAndSend()">별자리운세 + 텔레그램 발송</button>
+                            <div id="zodiac-send-status" class="status" style="display:none;"></div>
+                            <div id="zodiac-send-response" class="response" style="display:none;"></div>
                         </div>
                     </div>
                     
@@ -449,6 +573,76 @@ public class ApiDocumentationController {
                     </div>
                     
                     <div class="api-section">
+                        <h2>📱 텔레그램 발송 테스트</h2>
+                        <div class="api-endpoint">
+                            <span class="method post">POST</span>
+                            <span class="url">/api/fortune/telegram/test</span>
+                            <div class="description">텔레그램 메시지 발송을 테스트합니다. (채팅 ID는 프로퍼티에서 자동으로 가져옵니다)</div>
+                            
+                            <div class="form-group">
+                                <label>메시지:</label>
+                                <input type="text" id="telegram-message" value="안녕하세요! API 테스트 메시지입니다. 🎉" placeholder="발송할 메시지">
+                            </div>
+                            
+                            <button class="test-button" onclick="testTelegramSend()">텔레그램 발송 테스트</button>
+                            <div id="telegram-status" class="status" style="display:none;"></div>
+                            <div id="telegram-response" class="response" style="display:none;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="api-section">
+                        <h2>🔮 사주팔자 + 텔레그램 발송</h2>
+                        <div class="api-endpoint">
+                            <span class="method post">POST</span>
+                            <span class="url">/api/fortune/saju/calculate-and-send</span>
+                            <div class="description">사주팔자를 계산하고 결과를 텔레그램으로 발송합니다.</div>
+                            
+                            <div class="form-group">
+                                <label>이름:</label>
+                                <input type="text" id="saju-send-name" value="테스트님" placeholder="사용자 이름">
+                            </div>
+                            <div class="form-group">
+                                <label>출생연도:</label>
+                                <input type="number" id="saju-send-birthYear" value="1981" min="1900" max="2030">
+                            </div>
+                            <div class="form-group">
+                                <label>출생월:</label>
+                                <input type="number" id="saju-send-birthMonth" value="3" min="1" max="12">
+                            </div>
+                            <div class="form-group">
+                                <label>출생일:</label>
+                                <input type="number" id="saju-send-birthDay" value="20" min="1" max="31">
+                            </div>
+                            <div class="form-group">
+                                <label>출생시간:</label>
+                                <input type="number" id="saju-send-birthHour" value="1" min="0" max="23">
+                            </div>
+                            <div class="form-group">
+                                <label>출생분:</label>
+                                <input type="number" id="saju-send-birthMinute" value="59" min="0" max="59">
+                            </div>
+                            <div class="form-group">
+                                <label>성별:</label>
+                                <select id="saju-send-gender">
+                                    <option value="M">남성 (M)</option>
+                                    <option value="F">여성 (F)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>달력타입:</label>
+                                <select id="saju-send-calendarType">
+                                    <option value="SOLAR">양력 (SOLAR)</option>
+                                    <option value="LUNAR">음력 (LUNAR)</option>
+                                </select>
+                            </div>
+                            
+                            <button class="test-button" onclick="testSajuCalculateAndSend()">사주팔자 + 텔레그램 발송</button>
+                            <div id="saju-send-status" class="status" style="display:none;"></div>
+                            <div id="saju-send-response" class="response" style="display:none;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="api-section">
                         <h2>🔍 시스템 상태</h2>
                         <div class="api-endpoint">
                             <span class="method get">GET</span>
@@ -471,6 +665,7 @@ public class ApiDocumentationController {
                         const day = String(today.getDate()).padStart(2, '0');
                         const todayString = `${year}-${month}-${day}`;
                         document.getElementById('zodiac-targetDate').value = todayString;
+                        document.getElementById('zodiac-send-targetDate').value = todayString;
                     });
                     
                     function showStatus(elementId, message, isSuccess) {
@@ -671,6 +866,223 @@ public class ApiDocumentationController {
                         } catch (error) {
                             showStatus('calendar-status', '❌ 네트워크 오류: ' + error.message, false);
                             showResponse('calendar-response', { error: error.message }, false);
+                        } finally {
+                            button.classList.remove('loading');
+                        }
+                    }
+                    
+                    async function testTelegramSend() {
+                        const button = event.target;
+                        button.classList.add('loading');
+                        
+                        try {
+                            const requestBody = {
+                                chatId: null, // 프로퍼티에서 자동으로 가져옴
+                                message: document.getElementById('telegram-message').value
+                            };
+                            
+                            showStatus('telegram-status', '텔레그램 발송 중...', true);
+                            
+                            const response = await fetch('/api/fortune/telegram/test', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                showStatus('telegram-status', '✅ 텔레그램 발송 성공!', true);
+                                showResponse('telegram-response', result, true);
+                            } else {
+                                showStatus('telegram-status', '❌ 오류: ' + (result.message || '알 수 없는 오류'), false);
+                                showResponse('telegram-response', result, false);
+                            }
+                        } catch (error) {
+                            showStatus('telegram-status', '❌ 네트워크 오류: ' + error.message, false);
+                            showResponse('telegram-response', { error: error.message }, false);
+                        } finally {
+                            button.classList.remove('loading');
+                        }
+                    }
+                    
+                    async function testSajuCalculateAndSend() {
+                        const button = event.target;
+                        button.classList.add('loading');
+                        
+                        try {
+                            const requestBody = {
+                                birthYear: parseInt(document.getElementById('saju-send-birthYear').value),
+                                birthMonth: parseInt(document.getElementById('saju-send-birthMonth').value),
+                                birthDay: parseInt(document.getElementById('saju-send-birthDay').value),
+                                birthHour: parseInt(document.getElementById('saju-send-birthHour').value),
+                                birthMinute: parseInt(document.getElementById('saju-send-birthMinute').value),
+                                gender: document.getElementById('saju-send-gender').value,
+                                calendarType: document.getElementById('saju-send-calendarType').value,
+                                notification: {
+                                    recipientName: document.getElementById('saju-send-name').value,
+                                    telegramChatId: "144112350",
+                                    notificationType: "telegram"
+                                }
+                            };
+                            
+                            console.log('📤 전송할 데이터:', JSON.stringify(requestBody, null, 2));
+                            
+                            showStatus('saju-send-status', '사주팔자 계산 및 텔레그램 발송 중...', true);
+                            
+                            const response = await fetch('/api/fortune/saju/calculate-and-send', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                showStatus('saju-send-status', '✅ 사주팔자 계산 및 텔레그램 발송 성공!', true);
+                                showResponse('saju-send-response', result, true);
+                            } else {
+                                showStatus('saju-send-status', '❌ 오류: ' + (result.message || '알 수 없는 오류'), false);
+                                showResponse('saju-send-response', result, false);
+                            }
+                        } catch (error) {
+                            showStatus('saju-send-status', '❌ 네트워크 오류: ' + error.message, false);
+                            showResponse('saju-send-response', { error: error.message }, false);
+                        } finally {
+                            button.classList.remove('loading');
+                        }
+                    }
+                    
+                    async function testDailyFortuneAndSend() {
+                        const button = event.target;
+                        button.classList.add('loading');
+                        
+                        try {
+                            const requestBody = {
+                                birthYear: parseInt(document.getElementById('daily-send-birthYear').value),
+                                birthMonth: parseInt(document.getElementById('daily-send-birthMonth').value),
+                                birthDay: parseInt(document.getElementById('daily-send-birthDay').value),
+                                birthHour: parseInt(document.getElementById('daily-send-birthHour').value),
+                                birthMinute: parseInt(document.getElementById('daily-send-birthMinute').value),
+                                gender: document.getElementById('daily-send-gender').value,
+                                calendarType: document.getElementById('daily-send-calendarType').value,
+                                notification: {
+                                    recipientName: document.getElementById('daily-send-name').value,
+                                    telegramChatId: "144112350",
+                                    notificationType: "telegram"
+                                }
+                            };
+                            
+                            showStatus('daily-send-status', '일일운세 계산 및 텔레그램 발송 중...', true);
+                            
+                            const response = await fetch('/api/fortune/daily/today-and-send', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                showStatus('daily-send-status', '✅ 일일운세 계산 및 텔레그램 발송 성공!', true);
+                                showResponse('daily-send-response', result, true);
+                            } else {
+                                showStatus('daily-send-status', '❌ 오류: ' + (result.message || '알 수 없는 오류'), false);
+                                showResponse('daily-send-response', result, false);
+                            }
+                        } catch (error) {
+                            showStatus('daily-send-status', '❌ 네트워크 오류: ' + error.message, false);
+                            showResponse('daily-send-response', { error: error.message }, false);
+                        } finally {
+                            button.classList.remove('loading');
+                        }
+                    }
+                    
+                    async function testTojeongAndSend() {
+                        const button = event.target;
+                        button.classList.add('loading');
+                        
+                        try {
+                            const requestBody = {
+                                birthYear: parseInt(document.getElementById('tojeong-send-birthYear').value),
+                                birthMonth: parseInt(document.getElementById('tojeong-send-birthMonth').value),
+                                birthDay: parseInt(document.getElementById('tojeong-send-birthDay').value),
+                                targetYear: parseInt(document.getElementById('tojeong-send-targetYear').value),
+                                notification: {
+                                    recipientName: document.getElementById('tojeong-send-name').value,
+                                    telegramChatId: "144112350",
+                                    notificationType: "telegram"
+                                }
+                            };
+                            
+                            showStatus('tojeong-send-status', '토정비결 계산 및 텔레그램 발송 중...', true);
+                            
+                            const response = await fetch('/api/fortune/tojeong/calculate-and-send', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                showStatus('tojeong-send-status', '✅ 토정비결 계산 및 텔레그램 발송 성공!', true);
+                                showResponse('tojeong-send-response', result, true);
+                            } else {
+                                showStatus('tojeong-send-status', '❌ 오류: ' + (result.message || '알 수 없는 오류'), false);
+                                showResponse('tojeong-send-response', result, false);
+                            }
+                        } catch (error) {
+                            showStatus('tojeong-send-status', '❌ 네트워크 오류: ' + error.message, false);
+                            showResponse('tojeong-send-response', { error: error.message }, false);
+                        } finally {
+                            button.classList.remove('loading');
+                        }
+                    }
+                    
+                    async function testZodiacAndSend() {
+                        const button = event.target;
+                        button.classList.add('loading');
+                        
+                        try {
+                            // 출생 정보를 LocalDate 형식으로 변환
+                            const birthYear = parseInt(document.getElementById('zodiac-send-birthYear').value);
+                            const birthMonth = parseInt(document.getElementById('zodiac-send-birthMonth').value);
+                            const birthDay = parseInt(document.getElementById('zodiac-send-birthDay').value);
+                            
+                            // YYYY-MM-DD 형식으로 birthDate 생성
+                            const birthDate = `${birthYear}-${String(birthMonth).padStart(2, '0')}-${String(birthDay).padStart(2, '0')}`;
+                            
+                            const requestBody = {
+                                birthDate: birthDate,
+                                targetDate: document.getElementById('zodiac-send-targetDate').value,
+                                notification: {
+                                    recipientName: document.getElementById('zodiac-send-name').value,
+                                    telegramChatId: "144112350",
+                                    notificationType: "telegram"
+                                }
+                            };
+                            
+                            showStatus('zodiac-send-status', '별자리운세 계산 및 텔레그램 발송 중...', true);
+                            
+                            const response = await fetch('/api/fortune/zodiac/calculate-and-send', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (response.ok) {
+                                showStatus('zodiac-send-status', '✅ 별자리운세 계산 및 텔레그램 발송 성공!', true);
+                                showResponse('zodiac-send-response', result, true);
+                            } else {
+                                showStatus('zodiac-send-status', '❌ 오류: ' + (result.message || '알 수 없는 오류'), false);
+                                showResponse('zodiac-send-response', result, false);
+                            }
+                        } catch (error) {
+                            showStatus('zodiac-send-status', '❌ 네트워크 오류: ' + error.message, false);
+                            showResponse('zodiac-send-response', { error: error.message }, false);
                         } finally {
                             button.classList.remove('loading');
                         }

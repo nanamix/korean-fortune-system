@@ -136,8 +136,11 @@ public class GanjiCalculatorService {
     private LocalDateTime adjustDateTime(SajuRequest request) {
         /* 날짜/시간 생성 */
         LocalDateTime dateTime = LocalDateTime.of(
-                request.getBirthYear(), request.getBirthMonth(), request.getBirthDay(),
-                request.getBirthHour(), request.getBirthMinute()
+                request.getBirthYear().intValue(), 
+                request.getBirthMonth().intValue(), 
+                request.getBirthDay().intValue(),
+                request.getBirthHour().intValue(), 
+                request.getBirthMinute().intValue()
         );
         /* 음력인 경우 양력으로 변환 (간단한 근사치 계산) */
         if ("LUNAR".equals(request.getCalendarType())) {
@@ -153,7 +156,7 @@ public class GanjiCalculatorService {
      * @return 연주
      */
     @Cacheable(value = "year-pillar", key = "#year")
-    public String calculateYearPillar(int year) {
+    public String calculateYearPillar(Integer year) {
         /* 1981년 = 신유년을 기준으로 계산 */
         int baseYear = 1981;
         int yearDiff = year - baseYear;
@@ -215,7 +218,11 @@ public class GanjiCalculatorService {
      * @param dayPillar 일주
      * @return 시주
      */
-    public String calculateTimePillar(int hour, String dayPillar) {
+    public String calculateTimePillar(Integer hour, String dayPillar) {
+        if (hour == null) {
+            throw new IllegalArgumentException("출생 시간은 필수입니다");
+        }
+        
         /* 시지 계산 (2시간씩 12시진) (2시간씩 12시간 매핑) */
         int timeIndex = (hour + 1) / 2 % 12;
         /* 시지 계산 결과 (2시간씩 12시간 매핑) */
