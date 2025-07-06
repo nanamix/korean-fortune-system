@@ -139,11 +139,34 @@ export TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 export TELEGRAM_CHAT_ID=your-telegram-chat-id
 ```
 
-#### 보안 주의사항
+#### 보안 주의사항 ⚠️
 
 - `application-dev-secrets.yml` 파일은 `.gitignore`에 추가되어 Git에 커밋되지 않습니다.
 - 민감한 정보는 절대 Git에 커밋하지 마세요.
 - 운영 환경에서는 별도의 보안 관리 시스템을 사용하세요.
+- 텔레그램 봇 토큰과 채팅 ID는 절대 공개 저장소에 올리지 마세요.
+- 이메일 비밀번호는 Gmail 앱 비밀번호를 사용하세요.
+
+#### 🔒 보안 강화 방법
+
+1. **환경변수 사용** (권장):
+   ```bash
+   export EMAIL_USERNAME=your-email@gmail.com
+   export EMAIL_PASSWORD=your-app-password
+   export TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+   export TELEGRAM_CHAT_ID=your-telegram-chat-id
+   ```
+
+2. **별도 설정 파일 사용**:
+   - `src/main/resources/application-dev-secrets.yml.template` 파일을 참고하여
+   - `src/main/resources/application-dev-secrets.yml` 파일을 생성하고 실제 값으로 설정
+
+3. **Git 히스토리에서 민감 정보 제거**:
+   ```bash
+   # 이미 커밋된 민감 정보가 있다면
+   git filter-repo --path path/to/sensitive/file --invert-paths --force
+   git push origin master --force
+   ```
 
 ### AI 기능 설정
 AI 기능을 사용하려면 OpenAI API 키를 설정하세요:
