@@ -8,7 +8,9 @@
 - **📅 일일/월별 운세**: 개인별 맞춤 운세 제공
 - **📜 토정비결**: 64괘 기반 토정비결 운세
 - **⭐ 별자리 운세**: 서양 별자리 운세
-- **📆 간지달력**: 간지 달력 및 길일 조회
+- **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
+- **📧 이메일 발송**: 운세 결과를 이메일로 발송
+- **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
 - **🤖 AI 운세**: OpenAI 기반 AI 운세 해석
 - **🔍 시스템 모니터링**: Spring Boot Actuator 기반 모니터링
 
@@ -60,6 +62,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 - **🏠 메인 홈페이지**: http://localhost:8080
 - **📚 API 문서**: http://localhost:8080/api/docs
 - **🧪 API 테스트**: http://localhost:8080/api/docs/test
+- **📅 간지달력 보기**: http://localhost:8080/api/calendar/view/current
 - **📊 Actuator**: http://localhost:8080/actuator
 - **🔍 헬스체크**: http://localhost:8080/actuator/health
 
@@ -87,19 +90,76 @@ open http://localhost:8080/api/docs/test
 | 기능 | 메서드 | URL | 설명 |
 |------|--------|-----|------|
 | 사주팔자 계산 | POST | `/api/fortune/saju/calculate` | 전통 사주팔자 계산 |
+| 사주팔자 발송 | POST | `/api/fortune/saju/calculate-and-send` | 사주팔자 계산 후 이메일/텔레그램 발송 |
 | 오늘의 운세 | POST | `/api/fortune/daily/today` | 오늘의 운세 |
+| 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 오늘의 운세 계산 후 이메일/텔레그램 발송 |
 | 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 64괘 운세 |
+| 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 토정비결 계산 후 이메일/텔레그램 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
-| 간지달력 | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 조회 |
+| 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 별자리 운세 계산 후 이메일/텔레그램 발송 |
+| 간지달력 API | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 JSON 조회 |
+| 간지달력 뷰 | GET | `/api/calendar/view/{year}/{month}` | 간지달력 HTML 뷰 |
 | AI 사주 해석 | POST | `/api/fortune/ai/interpret-saju` | AI 기반 사주 해석 |
 | 시스템 상태 | GET | `/api/system/status` | 시스템 상태 확인 |
 
 ## 🔑 환경변수 설정
 
+### 개발 환경에서 이메일/텔레그램 발송 설정
+
+개발 환경에서 이메일과 텔레그램 발송을 사용하려면 다음 환경변수를 설정하세요:
+
+```bash
+# 이메일 발송 설정
+export MAIL_USERNAME=your-email@gmail.com
+export MAIL_PASSWORD=your-app-password
+
+# 텔레그램 발송 설정
+export TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+export TELEGRAM_CHAT_ID=your-telegram-chat-id
+```
+
+### AI 기능 설정
 AI 기능을 사용하려면 OpenAI API 키를 설정하세요:
 
 ```bash
 export OPENAI_API_KEY=your-api-key
+```
+
+### 이메일 발송 설정
+이메일 발송 기능을 사용하려면 SMTP 설정을 추가하세요:
+
+```yaml
+# application-prod.yml 또는 환경변수
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  fortune:
+    email:
+      enabled: true
+```
+
+### 텔레그램 발송 설정
+텔레그램 발송 기능을 사용하려면 봇 토큰을 설정하세요:
+
+```yaml
+# application-prod.yml 또는 환경변수
+app:
+  fortune:
+    telegram:
+      enabled: true
+      bot-token: "your-telegram-bot-token"
+      api-url: "https://api.telegram.org/bot"
 ```
 
 ## 📋 주요 Gradle 태스크
@@ -241,6 +301,14 @@ korean-fortune-system/
 - **CI/CD**: Gradle 태스크 기반 자동화
 
 ## 🔄 최근 변경사항
+
+### v2.6.0 (2025-01-05)
+- ✅ 개발 환경에서 이메일 발송 기능 활성화
+- ✅ 개발 환경에서 텔레그램 발송 기능 활성화
+- ✅ 환경변수 기반 설정으로 보안 강화
+- ✅ 이메일 SMTP 설정 최적화 (타임아웃 추가)
+- ✅ 텔레그램 봇 토큰 환경변수 지원
+- ✅ README.md 환경변수 설정 가이드 추가
 
 ### v2.5.0 (2025-07-05)
 - ✅ SpringDoc/Swagger 제거 및 자체 API 문서화 시스템 구현

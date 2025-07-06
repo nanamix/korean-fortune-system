@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fortune.service.*;
 import com.fortune.dto.*;
+import com.fortune.dto.NotificationRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +36,10 @@ public class FortuneController {
 
     // AI 서비스는 Optional로 처리 (활성화되지 않을 수 있음)
     private final AIFortuneService aiFortuneService;
+    
+    // 알림 발송 서비스
+    private final EmailService emailService;
+    private final TelegramService telegramService;
 
     @Autowired
     public FortuneController(
@@ -43,13 +48,17 @@ public class FortuneController {
             TojeongBigyeolService tojeongBigyeolService,
             ZodiacFortuneService zodiacFortuneService,
             GanjiCalendarService ganjiCalendarService,
-            @Autowired(required = false) AIFortuneService aiFortuneService) {
+            @Autowired(required = false) AIFortuneService aiFortuneService,
+            EmailService emailService,
+            TelegramService telegramService) {
         this.ganjiCalculatorService = ganjiCalculatorService;
         this.dailyFortuneService = dailyFortuneService;
         this.tojeongBigyeolService = tojeongBigyeolService;
         this.zodiacFortuneService = zodiacFortuneService;
         this.ganjiCalendarService = ganjiCalendarService;
         this.aiFortuneService = aiFortuneService;
+        this.emailService = emailService;
+        this.telegramService = telegramService;
     }
 
     /**
@@ -353,5 +362,216 @@ public class FortuneController {
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> healthCheck() {
         log.info("🔍 시스템 상태 확인 요청");
         return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("운세 시스템이 정상적으로 작동 중입니다."));
+    }
+
+    /**
+     * 📧 사주팔자 결과를 이메일/텔레그램으로 발송
+     * 
+     * @param sajuRequest 사주팔자 요청
+     * @param notificationRequest 알림 발송 요청
+     * @return 발송 결과
+     */
+    @PostMapping("/saju/calculate-and-send")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateSajuAndSend(
+            @Valid @RequestBody SajuRequest sajuRequest,
+            @Valid @RequestBody NotificationRequest notificationRequest) {
+
+        log.info("🔮 사주팔자 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+
+        try {
+            // 1. 사주팔자 계산
+            SajuResult sajuResult = ganjiCalculatorService.calculateSaju(sajuRequest);
+
+            // 2. 알림 발송
+            sendNotification(notificationRequest, sajuResult, null, null, null, "saju");
+
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("사주팔자 결과가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ 사주팔자 계산 및 발송 실패: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("사주팔자 계산 및 발송에 실패했습니다: " + e.getMessage(), "SAJU_SEND_ERROR"));
+        }
+    }
+
+    /**
+     * 📧 일일운세 결과를 이메일/텔레그램으로 발송
+     * 
+     * @param sajuRequest 사주팔자 요청
+     * @param notificationRequest 알림 발송 요청
+     * @return 발송 결과
+     */
+    @PostMapping("/daily/today-and-send")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> getTodayFortuneAndSend(
+            @Valid @RequestBody SajuRequest sajuRequest,
+            @Valid @RequestBody NotificationRequest notificationRequest) {
+
+        log.info("📅 오늘의 운세 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+
+        try {
+            // 1. 사주팔자 계산
+            SajuResult saju = ganjiCalculatorService.calculateSaju(sajuRequest);
+
+            // 2. 오늘의 운세 계산
+            DailyFortuneResult dailyResult = dailyFortuneService.calculateDailyFortune(saju, LocalDate.now());
+
+            // 3. 알림 발송
+            sendNotification(notificationRequest, null, dailyResult, null, null, "daily");
+
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("오늘의 운세 결과가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ 오늘의 운세 계산 및 발송 실패: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("오늘의 운세 계산 및 발송에 실패했습니다: " + e.getMessage(), "DAILY_SEND_ERROR"));
+        }
+    }
+
+    /**
+     * 📧 토정비결 결과를 이메일/텔레그램으로 발송
+     * 
+     * @param tojeongRequest 토정비결 요청
+     * @param notificationRequest 알림 발송 요청
+     * @return 발송 결과
+     */
+    @PostMapping("/tojeong/calculate-and-send")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateTojeongAndSend(
+            @Valid @RequestBody TojeongRequest tojeongRequest,
+            @Valid @RequestBody NotificationRequest notificationRequest) {
+
+        log.info("📜 토정비결 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+
+        try {
+            // 1. 토정비결 계산
+            TojeongResult tojeongResult = tojeongBigyeolService.calculateTojeong(tojeongRequest);
+
+            // 2. 알림 발송
+            sendNotification(notificationRequest, null, null, tojeongResult, null, "tojeong");
+
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("토정비결 결과가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ 토정비결 계산 및 발송 실패: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("토정비결 계산 및 발송에 실패했습니다: " + e.getMessage(), "TOJEONG_SEND_ERROR"));
+        }
+    }
+
+    /**
+     * 📧 별자리 운세 결과를 이메일/텔레그램으로 발송
+     * 
+     * @param zodiacRequest 별자리 운세 요청
+     * @param notificationRequest 알림 발송 요청
+     * @return 발송 결과
+     */
+    @PostMapping("/zodiac/calculate-and-send")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateZodiacFortuneAndSend(
+            @Valid @RequestBody ZodiacRequest zodiacRequest,
+            @Valid @RequestBody NotificationRequest notificationRequest) {
+
+        log.info("⭐ 별자리 운세 계산 및 발송 요청: {}님", notificationRequest.getRecipientName());
+
+        try {
+            // 1. 별자리 운세 계산
+            ZodiacFortuneResult zodiacResult = zodiacFortuneService.calculateZodiacFortune(
+                    zodiacRequest.getBirthDate(), zodiacRequest.getTargetDate());
+
+            // 2. 알림 발송
+            sendNotification(notificationRequest, null, null, null, zodiacResult, "zodiac");
+
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("별자리 운세 결과가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ 별자리 운세 계산 및 발송 실패: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("별자리 운세 계산 및 발송에 실패했습니다: " + e.getMessage(), "ZODIAC_SEND_ERROR"));
+        }
+    }
+
+    /**
+     * 알림 발송 처리
+     * 
+     * @param notificationRequest 알림 요청
+     * @param sajuResult 사주팔자 결과
+     * @param dailyResult 일일운세 결과
+     * @param tojeongResult 토정비결 결과
+     * @param zodiacResult 별자리 운세 결과
+     * @param type 발송 타입
+     */
+    private void sendNotification(NotificationRequest notificationRequest,
+                                SajuResult sajuResult,
+                                DailyFortuneResult dailyResult,
+                                TojeongResult tojeongResult,
+                                ZodiacFortuneResult zodiacResult,
+                                String type) {
+
+        String recipientName = notificationRequest.getRecipientName();
+
+        switch (notificationRequest.getNotificationType().toLowerCase()) {
+            case "email":
+                if (notificationRequest.getEmail() != null) {
+                    sendEmailNotification(notificationRequest.getEmail(), recipientName, 
+                                        sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                }
+                break;
+            case "telegram":
+                if (notificationRequest.getTelegramChatId() != null) {
+                    sendTelegramNotification(notificationRequest.getTelegramChatId(), recipientName,
+                                           sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                }
+                break;
+            case "both":
+                if (notificationRequest.getEmail() != null) {
+                    sendEmailNotification(notificationRequest.getEmail(), recipientName,
+                                        sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                }
+                if (notificationRequest.getTelegramChatId() != null) {
+                    sendTelegramNotification(notificationRequest.getTelegramChatId(), recipientName,
+                                           sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                }
+                break;
+        }
+    }
+
+    /**
+     * 이메일 알림 발송
+     */
+    private void sendEmailNotification(String email, String recipientName,
+                                     SajuResult sajuResult, DailyFortuneResult dailyResult,
+                                     TojeongResult tojeongResult, ZodiacFortuneResult zodiacResult,
+                                     String type) {
+        switch (type) {
+            case "saju":
+                emailService.sendSajuResult(email, sajuResult, recipientName);
+                break;
+            case "daily":
+                emailService.sendDailyFortune(email, dailyResult, recipientName);
+                break;
+            case "tojeong":
+                emailService.sendTojeongResult(email, tojeongResult, recipientName);
+                break;
+            case "zodiac":
+                emailService.sendZodiacFortune(email, zodiacResult, recipientName);
+                break;
+        }
+    }
+
+    /**
+     * 텔레그램 알림 발송
+     */
+    private void sendTelegramNotification(String chatId, String recipientName,
+                                        SajuResult sajuResult, DailyFortuneResult dailyResult,
+                                        TojeongResult tojeongResult, ZodiacFortuneResult zodiacResult,
+                                        String type) {
+        switch (type) {
+            case "saju":
+                telegramService.sendSajuResult(chatId, sajuResult, recipientName);
+                break;
+            case "daily":
+                telegramService.sendDailyFortune(chatId, dailyResult, recipientName);
+                break;
+            case "tojeong":
+                telegramService.sendTojeongResult(chatId, tojeongResult, recipientName);
+                break;
+            case "zodiac":
+                telegramService.sendZodiacFortune(chatId, zodiacResult, recipientName);
+                break;
+        }
     }
 }

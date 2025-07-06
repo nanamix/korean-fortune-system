@@ -22,6 +22,21 @@ spring:
     livereload:
       enabled: true
 
+  # 이메일 설정 (개발환경에서 활성화)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "${MAIL_USERNAME:fortune@jyha.net}"
+    password: "${MAIL_PASSWORD:}"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          timeout: 5000
+          connectiontimeout: 5000
+
 app:
   fortune:
     ai:
@@ -30,6 +45,13 @@ app:
       enabled: false
     cache:
       enabled: true
+    email:
+      enabled: true # 개발환경에서 이메일 발송 활성화
+    telegram:
+      enabled: true # 개발환경에서 텔레그램 발송 활성화
+      bot-token: "${TELEGRAM_BOT_TOKEN:}" # 환경변수에서 텔레그램 봇 토큰 가져오기
+      chat-id: "${TELEGRAM_CHAT_ID:}"
+      api-url: "https://api.telegram.org/bot"
 
 logging:
   level:

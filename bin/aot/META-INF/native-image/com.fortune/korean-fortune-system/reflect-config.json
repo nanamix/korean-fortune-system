@@ -253,6 +253,34 @@
     "allDeclaredConstructors": true
   },
   {
+    "name": "com.fortune.controller.ApiDocumentationController",
+    "queryAllPublicMethods": true,
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "getApiDetail",
+        "parameterTypes": [
+          "java.lang.String",
+          "java.lang.String"
+        ]
+      },
+      {
+        "name": "getApiDocumentation",
+        "parameterTypes": [ ]
+      },
+      {
+        "name": "getApiTestPage",
+        "parameterTypes": [ ]
+      }
+    ],
+    "queriedMethods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [ ]
+      }
+    ]
+  },
+  {
     "name": "com.fortune.controller.FortuneController",
     "queryAllPublicMethods": true,
     "queryAllDeclaredMethods": true,
