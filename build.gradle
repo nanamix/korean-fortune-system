@@ -86,8 +86,8 @@ dependencies {
     // ✅ 이메일 발송
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     
-    // ✅ 텔레그램 봇 API (core 라이브러리만 사용)
-    implementation 'org.telegram:telegrambots:6.8.0'
+    // ✅ 텔레그램 봇 API (core 라이브러리 제거)
+    // implementation 'org.telegram:telegrambots:6.5.0'
     
     // ✅ Jersey 의존성 제거 (core만 사용하므로 불필요)
     // implementation 'org.glassfish.jersey.core:jersey-server:2.40'

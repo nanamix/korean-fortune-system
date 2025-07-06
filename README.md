@@ -106,7 +106,28 @@ open http://localhost:8080/api/docs/test
 
 ### 개발 환경에서 이메일/텔레그램 발송 설정
 
-개발 환경에서 이메일과 텔레그램 발송을 사용하려면 다음 환경변수를 설정하세요:
+개발 환경에서 이메일과 텔레그램 발송을 사용하려면 다음 방법 중 하나를 선택하세요:
+
+#### 방법 1: 프로퍼티 파일 사용 (권장)
+
+1. `src/main/resources/application-dev-secrets.yml` 파일을 생성하고 다음 내용을 추가:
+
+```yaml
+spring:
+  mail:
+    username: your-email@gmail.com
+    password: your-app-password
+
+app:
+  fortune:
+    telegram:
+      bot-token: your-telegram-bot-token
+      chat-id: your-telegram-chat-id
+```
+
+2. 실제 값으로 변경하여 사용하세요.
+
+#### 방법 2: 환경변수 사용
 
 ```bash
 # 이메일 발송 설정
@@ -117,6 +138,12 @@ export MAIL_PASSWORD=your-app-password
 export TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 export TELEGRAM_CHAT_ID=your-telegram-chat-id
 ```
+
+#### 보안 주의사항
+
+- `application-dev-secrets.yml` 파일은 `.gitignore`에 추가되어 Git에 커밋되지 않습니다.
+- 민감한 정보는 절대 Git에 커밋하지 마세요.
+- 운영 환경에서는 별도의 보안 관리 시스템을 사용하세요.
 
 ### AI 기능 설정
 AI 기능을 사용하려면 OpenAI API 키를 설정하세요:

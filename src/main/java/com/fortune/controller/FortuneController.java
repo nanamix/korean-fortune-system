@@ -559,19 +559,205 @@ public class FortuneController {
                                         SajuResult sajuResult, DailyFortuneResult dailyResult,
                                         TojeongResult tojeongResult, ZodiacFortuneResult zodiacResult,
                                         String type) {
+        String message = "";
+        
         switch (type) {
             case "saju":
-                telegramService.sendSajuResult(chatId, sajuResult, recipientName);
+                message = generateSajuTelegramMessage(sajuResult, recipientName);
                 break;
             case "daily":
-                telegramService.sendDailyFortune(chatId, dailyResult, recipientName);
+                message = generateDailyFortuneTelegramMessage(dailyResult, recipientName);
                 break;
             case "tojeong":
-                telegramService.sendTojeongResult(chatId, tojeongResult, recipientName);
+                message = generateTojeongTelegramMessage(tojeongResult, recipientName);
                 break;
             case "zodiac":
-                telegramService.sendZodiacFortune(chatId, zodiacResult, recipientName);
+                message = generateZodiacTelegramMessage(zodiacResult, recipientName);
                 break;
         }
+        
+        if (!message.isEmpty()) {
+            telegramService.sendMessage(message);
+        }
+    }
+
+    /**
+     * 사주팔자 텔레그램 메시지 생성
+     */
+    private String generateSajuTelegramMessage(SajuResult sajuResult, String recipientName) {
+        return String.format("""
+            🔮 %s님의 사주팔자 결과
+            
+            📅 생년월일시: %s
+            📊 사주팔자: %s
+            
+            🌟 일간: %s
+            📈 운세 요약: %s
+            
+            💡 오행 분석:
+            • 목(木): %d개
+            • 화(火): %d개
+            • 토(土): %d개
+            • 금(金): %d개
+            • 수(水): %d개
+            
+            🎯 가장 강한 오행: %s
+            ⚠️ 가장 약한 오행: %s
+            
+            📝 발송일: %s
+            """,
+            recipientName,
+            sajuResult.getBirthDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분")),
+            sajuResult.getFormattedSaju(),
+            sajuResult.getDayMaster(),
+            sajuResult.getFortuneSummary(),
+            sajuResult.getWuxingAnalysis().getWoodCount(),
+            sajuResult.getWuxingAnalysis().getFireCount(),
+            sajuResult.getWuxingAnalysis().getEarthCount(),
+            sajuResult.getWuxingAnalysis().getMetalCount(),
+            sajuResult.getWuxingAnalysis().getWaterCount(),
+            sajuResult.getWuxingAnalysis().getStrongestElement(),
+            sajuResult.getWuxingAnalysis().getWeakestElement(),
+            java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"))
+        );
+    }
+
+    /**
+     * 일일운세 텔레그램 메시지 생성
+     */
+    private String generateDailyFortuneTelegramMessage(DailyFortuneResult dailyResult, String recipientName) {
+        return String.format("""
+            📅 %s님의 %s 운세
+            
+            🎯 총점: %d점
+            📊 일간: %s
+            
+            💕 연애운: %d점
+            %s
+            
+            💼 직업운: %d점
+            %s
+            
+            💪 건강운: %d점
+            %s
+            
+            💰 재물운: %d점
+            %s
+            
+            🧭 길한 방향: %s
+            🎨 길한 색깔: %s
+            
+            ⚠️ 주의사항: %s
+            💡 조언: %s
+            
+            📝 발송일: %s
+            """,
+            recipientName,
+            dailyResult.getDate().format(java.time.format.DateTimeFormatter.ofPattern("MM월 dd일")),
+            dailyResult.getTotalScore(),
+            dailyResult.getDayPillar(),
+            dailyResult.getCategoryFortune().getLoveScore(),
+            dailyResult.getCategoryFortune().getLoveMessage(),
+            dailyResult.getCategoryFortune().getCareerScore(),
+            dailyResult.getCategoryFortune().getCareerMessage(),
+            dailyResult.getCategoryFortune().getHealthScore(),
+            dailyResult.getCategoryFortune().getHealthMessage(),
+            dailyResult.getCategoryFortune().getWealthScore(),
+            dailyResult.getCategoryFortune().getWealthMessage(),
+            dailyResult.getLuckyDirection(),
+            String.join(", ", dailyResult.getLuckyColors()),
+            dailyResult.getCaution(),
+            dailyResult.getAdvice(),
+            java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"))
+        );
+    }
+
+    /**
+     * 토정비결 텔레그램 메시지 생성
+     */
+    private String generateTojeongTelegramMessage(TojeongResult tojeongResult, String recipientName) {
+        return String.format("""
+            📜 %s님의 %d년 토정비결
+            
+            🎯 괘 번호: %d번
+            📛 괘 이름: %s
+            🎨 괘 기호: %s
+            
+            📊 총점: %d점
+            📝 요약: %s
+            
+            💡 상세 운세:
+            %s
+            
+            🎯 조언: %s
+            🍀 길한 달: %s
+            ⚠️ 조심할 달: %s
+            
+            📝 발송일: %s
+            """,
+            recipientName,
+            tojeongResult.getTargetYear(),
+            tojeongResult.getGwaNumber(),
+            tojeongResult.getGwaName(),
+            tojeongResult.getGwaSymbol(),
+            tojeongResult.getOverallScore(),
+            tojeongResult.getSummary(),
+            tojeongResult.getDetailedFortune(),
+            tojeongResult.getAdvice(),
+            tojeongResult.getLuckyMonths(),
+            tojeongResult.getCautionMonths(),
+            java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"))
+        );
+    }
+
+    /**
+     * 별자리 운세 텔레그램 메시지 생성
+     */
+    private String generateZodiacTelegramMessage(ZodiacFortuneResult zodiacResult, String recipientName) {
+        return String.format("""
+            ⭐ %s님의 %s 운세
+            
+            📅 대상일: %s
+            🎯 총점: %d점
+            
+            💕 연애운: %d점
+            %s
+            
+            💼 직업운: %d점
+            %s
+            
+            💪 건강운: %d점
+            %s
+            
+            💰 재물운: %d점
+            %s
+            
+            🎲 행운의 숫자: %s
+            🎨 행운의 색깔: %s
+            💎 행운의 보석: %s
+            
+            💡 성격: %s
+            
+            📝 발송일: %s
+            """,
+            recipientName,
+            zodiacResult.getZodiacKoreanName(),
+            zodiacResult.getTargetDate().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")),
+            (zodiacResult.getTodayFortune().getLoveScore() + zodiacResult.getTodayFortune().getCareerScore() + 
+             zodiacResult.getTodayFortune().getHealthScore() + zodiacResult.getTodayFortune().getMoneyScore()) / 4,
+            zodiacResult.getTodayFortune().getLoveScore(),
+            zodiacResult.getTodayFortune().getLoveMessage(),
+            zodiacResult.getTodayFortune().getCareerScore(),
+            zodiacResult.getTodayFortune().getCareerMessage(),
+            zodiacResult.getTodayFortune().getHealthScore(),
+            zodiacResult.getTodayFortune().getHealthMessage(),
+            zodiacResult.getTodayFortune().getMoneyScore(),
+            zodiacResult.getTodayFortune().getMoneyMessage(),
+            zodiacResult.getLuckyNumbers().toString(),
+            zodiacResult.getLuckyColor(),
+            zodiacResult.getLuckyStone(),
+            zodiacResult.getPersonality(),
+            java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"))
+        );
     }
 }

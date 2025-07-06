@@ -1,15 +1,11 @@
 package com.fortune.service;
 
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.bots.DefaultAbsSender;
-import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class TelegramService {
@@ -19,27 +15,17 @@ public class TelegramService {
     @Value("${app.fortune.telegram.chat-id}")
     private String chatId;
 
-    private DefaultAbsSender sender;
-
-    @PostConstruct
-    public void init() {
-        sender = new DefaultAbsSender(new DefaultBotOptions()) {
-            @Override
-            public String getBotToken() {
-                return botToken;
-            }
-        };
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * 텔레그램 메시지 전송
+     * 텔레그램 메시지 전송 (REST API 직접 호출)
      * @param message 전송할 메시지
-     * @throws TelegramApiException 전송 실패시 예외
      */
-    public void sendMessage(String message) throws TelegramApiException {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(message);
-        sender.execute(sendMessage);
+    public void sendMessage(String message) {
+        String url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
+        Map<String, String> params = new HashMap<>();
+        params.put("chat_id", chatId);
+        params.put("text", message);
+        restTemplate.postForObject(url, params, String.class);
     }
 } 
