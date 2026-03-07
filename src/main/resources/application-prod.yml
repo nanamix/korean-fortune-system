@@ -44,7 +44,7 @@ app:
     security:
       enabled: true
 
-# 운영환경 로깅
+# 운영환경 로깅 (traceId / spanId 포함)
 logging:
   level:
     com.fortune: INFO
@@ -57,12 +57,12 @@ logging:
     max-size: 100MB
     max-history: 30
 
-# 운영환경 모니터링
+# 운영환경 모니터링 + OpenTelemetry 추적
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,caches
   endpoint:
     health:
       show-details: when-authorized
@@ -70,3 +70,12 @@ management:
     export:
       prometheus:
         enabled: true
+  # 운영 환경: 10% 샘플링 (트래픽 부하 경감)
+  tracing:
+    sampling:
+      probability: ${OTEL_SAMPLING_PROBABILITY:0.1}
+  # OTLP 수집기 엔드포인트 (Jaeger / Grafana Tempo 등)
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-collector:4318/v1/traces}
+

@@ -107,8 +107,10 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
 
-    // ✅ 모니터링 (운영환경) - 주석 처리
-    // implementation 'io.micrometer:micrometer-registry-prometheus'
+    // ✅ 모니터링 및 추적 (OpenTelemetry / Micrometer Tracing)
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 }
 
 tasks.named('test') {
