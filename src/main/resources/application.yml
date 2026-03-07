@@ -34,8 +34,6 @@ spring:
   # 캐시 설정 (Caffeine만 사용)
   cache:
     type: caffeine
-    caffeine:
-      spec: maximumSize=1000,expireAfterWrite=1h
 
   # AI 설정 (기본적으로 비활성화)
   ai:
@@ -63,18 +61,18 @@ app:
     security:
       enabled: false  # 개발시 보안 비활성화
 
-# 로깅 설정
+# 로깅 설정 (traceId / spanId 포함)
 logging:
   level:
     com.fortune: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    org.springframework.ai: WARN  # AI 로그 최소화
-    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: WARN  # 정적 리소스 로그 최소화
+    org.springframework.ai: WARN
+    org.springframework.web.servlet.resource.ResourceHttpRequestHandler: WARN
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [trace=%X{traceId:-} span=%X{spanId:-}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [trace=%X{traceId:-} span=%X{spanId:-}] - %msg%n"
   file:
     name: logs/korean-fortune.log
 
@@ -83,13 +81,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus,caches
   endpoint:
     health:
       show-details: always
   info:
     env:
       enabled: true
+  # Micrometer Tracing (OpenTelemetry 브리지)
+  tracing:
+    sampling:
+      probability: 1.0  # 개발 환경: 전체 샘플링
+  otlp:
+    metrics:
+      export:
+        enabled: false  # 기본 비활성화 (각 프로파일에서 활성화)
 
 # API 문서 설정 (Spring Boot 3.5.3 호환)
 springdoc:

@@ -1,8 +1,9 @@
 # 🔮 한국형 만세력 운세 시스템 - Dockerfile
 # 멀티 스테이지 빌드를 사용하여 최적화된 프로덕션 이미지를 생성합니다.
+# Amazon Corretto 25 (Amazon Linux 2023 기반) 사용
 
 # ==================== 빌드 스테이지 ====================
-FROM eclipse-temurin:21-jdk AS builder
+FROM amazoncorretto:25 AS builder
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
@@ -12,10 +13,9 @@ LABEL description="Korean Traditional Fortune Telling System"
 # 작업 디렉토리 설정
 WORKDIR /build
 
-# 시스템 의존성 설치 (Debian 계열)
-RUN apt-get update && \
-    apt-get install -y curl git && \
-    rm -rf /var/lib/apt/lists/*
+# 시스템 의존성 설치 (Amazon Linux 2023)
+RUN dnf install -y curl git && \
+    dnf clean all
 
 # Gradle Wrapper 파일들 먼저 복사
 COPY gradlew ./
@@ -39,21 +39,20 @@ RUN ls -la build/libs/ && \
     mv build/libs/*.jar build/libs/app.jar
 
 # ==================== 런타임 스테이지 ====================
-FROM eclipse-temurin:21-jre AS runtime
+FROM amazoncorretto:25 AS runtime
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
 LABEL version="2.6.0"
 LABEL description="Korean Traditional Fortune Telling System - Runtime"
 
-# 보안을 위한 비특권 사용자 생성 (Debian 계열)
+# 보안을 위한 비특권 사용자 생성 (Amazon Linux 2023)
 RUN groupadd -g 1001 fortune && \
     useradd -u 1001 -g fortune -m fortune
 
-# 필수 런타임 도구 설치 (Debian 계열)
-RUN apt-get update && \
-    apt-get install -y curl tzdata dumb-init && \
-    rm -rf /var/lib/apt/lists/*
+# 필수 런타임 도구 설치 (Amazon Linux 2023)
+RUN dnf install -y curl tzdata dumb-init && \
+    dnf clean all
 
 # 타임존 설정
 ENV TZ=Asia/Seoul
@@ -70,18 +69,15 @@ COPY --from=builder --chown=fortune:fortune /build/build/libs/app.jar /app/app.j
 RUN mkdir -p /app/config /app/logs && \
     chown -R fortune:fortune /app/config /app/logs
 
-# JVM 최적화 설정 (JDK 21용 최적화)
-ENV JAVA_OPTS="-XX:+UseG1GC \
+# JVM 최적화 설정 (Amazon Corretto JDK 25 최적화)
+ENV JAVA_OPTS="-XX:+UseZGC \
                -XX:+UseContainerSupport \
                -XX:MaxRAMPercentage=75.0 \
                -XX:+HeapDumpOnOutOfMemoryError \
                -XX:HeapDumpPath=/app/logs/ \
                -XX:+ExitOnOutOfMemoryError \
-               -XX:+UnlockExperimentalVMOptions \
-               -XX:+UseZGC \
                -Djava.security.egd=file:/dev/./urandom \
-               -Dspring.backgroundpreinitializer.ignore=true \
-               --enable-preview"
+               -Dspring.backgroundpreinitializer.ignore=true"
 
 # 애플리케이션 설정
 ENV SPRING_PROFILES_ACTIVE=prod
@@ -104,11 +100,10 @@ CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
 # ==================== 개발 스테이지 (선택적) ====================
 FROM runtime AS development
 
-# 개발 도구 추가 설치 (Debian 계열)
+# 개발 도구 추가 설치 (Amazon Linux 2023)
 USER root
-RUN apt-get update && \
-    apt-get install -y vim htop procps && \
-    rm -rf /var/lib/apt/lists/*
+RUN dnf install -y vim-enhanced htop procps-ng && \
+    dnf clean all
 
 # 개발용 환경 변수
 ENV SPRING_PROFILES_ACTIVE=dev

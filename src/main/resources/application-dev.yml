@@ -58,7 +58,22 @@ app:
 logging:
   level:
     com.fortune: DEBUG
+    io.micrometer.tracing: DEBUG  # 트레이싱 디버그 로그
+    io.opentelemetry: DEBUG        # OpenTelemetry 디버그 로그
     root: INFO
+
+# 개발 환경 추적 설정 (전체 샘플링 + OTEL 로깅)
+management:
+  tracing:
+    sampling:
+      probability: 1.0  # 개발: 모든 요청 추적
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}  # 미설정 시 콘솔 로그로 대체
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,caches,trace
 
 # 개발 환경에서 SpringDoc 설정 (호환성 문제로 비활성화)
 springdoc:
@@ -66,3 +81,4 @@ springdoc:
     enabled: false
   api-docs:
     enabled: false
+
