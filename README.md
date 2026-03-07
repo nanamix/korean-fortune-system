@@ -333,8 +333,8 @@ korean-fortune-system/
 
 ### Backend
 - **Framework**: Spring Boot 3.5.3
-- **Language**: Java 21
-- **Build Tool**: Gradle 8.4
+- **Language**: Java 25 (Amazon Corretto)
+- **Build Tool**: Gradle 8.12
 - **Security**: Spring Security, JWT
 - **Database**: H2 (개발), PostgreSQL (운영)
 - **ORM**: Spring Data JPA
