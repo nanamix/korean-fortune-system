@@ -28,7 +28,7 @@ public class SystemController {
         // 시스템 상태 생성
         SystemStatus status = SystemStatus.builder()
                 .systemName("한국형 만세력 운세 시스템")
-                .version("2.5.0")
+                .version("2.6.0")
                 .status("RUNNING")
                 .currentTime(LocalDateTime.now())
                 .uptime(getUptime())
@@ -66,6 +66,10 @@ public class SystemController {
         features.put("토정비결", true);
         features.put("별자리운세", true);
         features.put("간지달력", true);
+        features.put("이메일발송", true);
+        features.put("텔레그램발송", true);
+        features.put("AI운세", true);
+        features.put("시스템모니터링", true);
         return features;
     }
 }

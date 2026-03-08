@@ -1,4 +1,6 @@
 package com.fortune;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -6,7 +8,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-// SpringDoc 어노테이션 제거 (호환성 문제로 인해)
 /**
  * 🔮 한국형 만세력 운세 시스템 메인 애플리케이션
  *
@@ -20,23 +21,25 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  *   <li>📜 토정비결 64괘 운세</li>
  *   <li>⭐ 서양 별자리 운세</li>
  *   <li>📆 간지달력 및 길일 조회</li>
- *   <li>🤖 AI 기반 운세 분석</li>
+ *   <li>📧 이메일 발송</li>
+ *   <li>📱 텔레그램 발송</li>
+ *   <li>🤖 AI 기반 운세 분석 (OpenAI)</li>
+ *   <li>🔍 시스템 모니터링 (Spring Boot Actuator)</li>
  * </ul>
  *
  * <h3>기술 스택</h3>
  * <ul>
  *   <li>Java 17 (Eclipse Temurin)</li>
- *   <li>Spring Boot 3.3.x</li>
+ *   <li>Spring Boot 3.4.x</li>
  *   <li>Spring Data JPA</li>
  *   <li>Spring Security</li>
- *   <li>Spring AI (OpenAI 연동)</li>
- *   <li>MySQL 8.0 / H2 Database</li>
- *   <li>Redis (캐싱)</li>
- *   <li>Docker & Docker Compose</li>
+ *   <li>H2 / PostgreSQL Database</li>
+ *   <li>Caffeine 캐시</li>
+ *   <li>Docker &amp; Docker Compose</li>
  * </ul>
  *
  * @author 하진영
- * @version 2.5.0
+ * @version 2.6.0
  * @since 2025-06-24
  */
 @SpringBootApplication
@@ -45,18 +48,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableScheduling
 @EnableTransactionManagement
 @ConfigurationPropertiesScan
-// OpenAPI 정의 제거 (SpringDoc 호환성 문제로 인해)
-/**
- * 한국형 만세력 운세 시스템 메인 애플리케이션
- * 
- * @author 하진영
- * @version 2.5.0
- * @since 2025-06-24
- */
 public class KoreanFortuneApplication {
+
+    private static final Logger log = LoggerFactory.getLogger(KoreanFortuneApplication.class);
+
     /**
      * 메인 메서드
-     * 
+     *
      * @param args 인수
      */
     public static void main(String[] args) {
@@ -66,30 +64,23 @@ public class KoreanFortuneApplication {
         System.setProperty("file.encoding", "UTF-8");
         /* 시간대 설정 (서울) */
         System.setProperty("user.timezone", "Asia/Seoul");
-        /* Spring Boot 애플리케이션 시작 (KoreanFortuneApplication.class) */
+        /* Spring Boot 애플리케이션 시작 */
         var app = new SpringApplication(KoreanFortuneApplication.class);
-        // 배너 설정 (콘솔)
         app.setBannerMode(org.springframework.boot.Banner.Mode.CONSOLE);
         /* 애플리케이션 실행 */
         var context = app.run(args);
         /* 시작 완료 로그 */
         var environment = context.getEnvironment();
-        /* 포트 설정 (8080) */
         var port = environment.getProperty("server.port", "8080");
-        /* 프로필 설정 (환경 변수)
-         * - 프로필 설정 (환경 변수)
-         * ex) dev, prod 
-         */
         var profile = String.join(",", environment.getActiveProfiles());
-        /* 배너 출력 */
-        System.out.println("""
+        log.info("""
             🔮 한국형 만세력 운세 시스템이 성공적으로 시작되었습니다!
             📊 서버 정보:
-               • 포트: http://localhost:%s
-               • 프로필: %s
-               • API 문서: http://localhost:%s/swagger-ui.html
-               • 헬스체크: http://localhost:%s/actuator/health
+               • 포트: http://localhost:{}
+               • 프로필: {}
+               • API 문서: http://localhost:{}/api/docs
+               • 헬스체크: http://localhost:{}/actuator/health
             ✨ 모든 준비가 완료되었습니다. 행운을 빕니다! ✨
-            """.formatted(port, profile, port, port));
+            """, port, profile, port, port);
     }
 }

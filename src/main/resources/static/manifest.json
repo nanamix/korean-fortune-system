@@ -1,0 +1,39 @@
+{
+  "name": "한국형 만세력 운세 시스템",
+  "short_name": "만세력 운세",
+  "description": "사주팔자, 토정비결, 별자리 운세를 AI와 함께 제공하는 정통 운세 서비스",
+  "start_url": "/fortune-app.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#667eea",
+  "orientation": "any",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["lifestyle", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "사주팔자 계산",
+      "short_name": "사주팔자",
+      "description": "생년월일로 사주팔자를 계산합니다",
+      "url": "/fortune-app.html#saju"
+    },
+    {
+      "name": "오늘의 운세",
+      "short_name": "오늘운세",
+      "description": "오늘의 맞춤 운세를 확인합니다",
+      "url": "/fortune-app.html#daily"
+    },
+    {
+      "name": "토정비결",
+      "short_name": "토정비결",
+      "description": "올해의 토정비결을 봅니다",
+      "url": "/fortune-app.html#tojeong"
+    }
+  ]
+}

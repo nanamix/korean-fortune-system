@@ -6,7 +6,7 @@ package com.fortune.enums;
  * @version 2.5.0
  * @since 2025-06-24
  */
-enum Wuxing {
+public enum Wuxing {
     WOOD("목", "木"),
     FIRE("화", "火"),
     EARTH("토", "土"),

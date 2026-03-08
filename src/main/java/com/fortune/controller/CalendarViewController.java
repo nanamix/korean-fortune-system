@@ -82,7 +82,7 @@ public class CalendarViewController {
                     * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { 
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                         color: white;
                         min-height: 100vh;
                         padding: 20px;
@@ -441,7 +441,7 @@ public class CalendarViewController {
                 <style>
                     body { 
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%);
                         color: white;
                         display: flex;
                         justify-content: center;

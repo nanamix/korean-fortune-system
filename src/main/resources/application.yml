@@ -60,6 +60,11 @@ app:
       ttl: 3600
     security:
       enabled: false  # 개발시 보안 비활성화
+    email:
+      enabled: ${FORTUNE_EMAIL_ENABLED:false}
+    telegram:
+      bot-token: ${TELEGRAM_BOT_TOKEN:}
+      chat-id: ${TELEGRAM_CHAT_ID:}
 
 # 로깅 설정 (traceId / spanId 포함)
 logging:
@@ -92,22 +97,11 @@ management:
   tracing:
     sampling:
       probability: 1.0  # 개발 환경: 전체 샘플링
+    enabled: true
   otlp:
     metrics:
       export:
         enabled: false  # 기본 비활성화 (각 프로파일에서 활성화)
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:}  # 미설정 시 비활성화
 
-# API 문서 설정 (Spring Boot 3.5.3 호환)
-springdoc:
-  api-docs:
-    path: /api-docs
-    enabled: false  # 호환성 문제로 임시 비활성화
-  swagger-ui:
-    path: /swagger-ui.html
-    operationsSorter: method
-    tagsSorter: alpha
-    docExpansion: none
-    enabled: false  # 호환성 문제로 임시 비활성화
-  packages-to-scan: com.fortune.controller
-  paths-to-match: /api/**
-  # Spring Boot 3.5.3과 호환성 문제로 임시 비활성화

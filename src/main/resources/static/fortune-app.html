@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="사주팔자, 토정비결, 별자리 운세 등 전통 한국 운세를 제공하는 서비스">
+<meta name="theme-color" content="#667eea">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<title>🔮 한국형 만세력 운세 시스템</title>
+<style>
+:root {
+  --primary: #667eea;
+  --primary-dark: #5a67d8;
+  --secondary: #764ba2;
+  --accent: #f093fb;
+  --gold: #f7c948;
+  --success: #48bb78;
+  --error: #fc8181;
+  --warning: #f6ad55;
+  --bg-dark: #1a1a2e;
+  --bg-card: rgba(255,255,255,0.95);
+  --text-dark: #2d3748;
+  --text-muted: #718096;
+  --border: #e2e8f0;
+  --radius: 16px;
+  --shadow: 0 10px 40px rgba(0,0,0,0.15);
+  --transition: 0.3s ease;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  color: var(--text-dark);
+}
+
+/* ─── TOPBAR ─────────────────────────────── */
+.topbar {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  background: rgba(26,26,46,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 0 1.5rem;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topbar-brand {
+  font-size: 1.25rem; font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 0.5rem;
+  text-decoration: none;
+}
+.topbar-brand span { color: var(--gold); }
+.topbar-nav {
+  display: flex; gap: 0.5rem; align-items: center;
+}
+.topbar-nav a {
+  color: rgba(255,255,255,0.75); font-size: 0.85rem; font-weight:500;
+  text-decoration: none; padding: 0.4rem 0.85rem; border-radius: 30px;
+  transition: var(--transition);
+}
+.topbar-nav a:hover, .topbar-nav a.active {
+  background: rgba(255,255,255,0.15); color: #fff;
+}
+.menu-btn {
+  display: none; background: none; border: none; cursor: pointer;
+  color: #fff; font-size: 1.4rem; padding: 0.25rem;
+}
+
+/* ─── MAIN LAYOUT ─────────────────────────── */
+.page { padding-top: 60px; min-height: 100vh; }
+
+/* ─── HERO ───────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 4rem 1.5rem 3rem;
+  text-align: center; color: #fff;
+}
+.hero h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 0.75rem; }
+.hero p  { font-size: 1.1rem; opacity: 0.9; max-width: 560px; margin: 0 auto 2rem; }
+.hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.75rem 1.75rem; border-radius: 30px; font-size: 0.95rem;
+  font-weight: 600; cursor: pointer; border: none; text-decoration: none;
+  transition: var(--transition);
+}
+.btn-primary {
+  background: #fff; color: var(--primary);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+.btn-outline {
+  background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.7);
+}
+.btn-outline:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+/* ─── FEATURE TABS ───────────────────────── */
+.tabs-wrap {
+  background: rgba(26,26,46,0.9); position: sticky; top: 60px; z-index: 90;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  overflow-x: auto; white-space: nowrap;
+}
+.tabs {
+  display: inline-flex; gap: 0; min-width: 100%; padding: 0 1rem;
+}
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.6); font-size: 0.88rem; font-weight: 600;
+  padding: 0.85rem 1.1rem; white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  transition: var(--transition);
+}
+.tab-btn:hover { color: rgba(255,255,255,0.9); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ─── CONTENT SECTIONS ───────────────────── */
+.content { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ─── CARDS ──────────────────────────────── */
+.card {
+  background: var(--bg-card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 2rem; margin-bottom: 1.5rem;
+}
+.card-title {
+  font-size: 1.3rem; font-weight: 700; color: var(--primary);
+  margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* ─── FORM ELEMENTS ──────────────────────── */
+.form-row {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem; margin-bottom: 1rem;
+}
+.form-full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-group label {
+  font-size: 0.82rem; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.form-group input, .form-group select {
+  padding: 0.65rem 0.9rem; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 0.95rem; color: var(--text-dark);
+  transition: var(--transition); background: #fff; width: 100%;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+.form-group input[type="checkbox"] {
+  width: auto; height: 18px; cursor: pointer;
+  accent-color: var(--primary);
+}
+.checkbox-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.9rem; color: var(--text-muted); margin: 0.5rem 0;
+}
+
+/* ─── NOTIFICATION ACCORDION ─────────────── */
+.notif-toggle {
+  background: #f8fafc; border: 1px dashed var(--border);
+  border-radius: 10px; padding: 0.75rem 1rem; cursor: pointer;
+  font-size: 0.88rem; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 0.75rem; user-select: none;
+}
+.notif-toggle:hover { border-color: var(--primary); color: var(--primary); }
+.notif-body { display: none; padding: 1rem 0 0; }
+.notif-body.open { display: block; }
+
+/* ─── ACTION BUTTON ──────────────────────── */
+.btn-action {
+  width: 100%; padding: 0.9rem; margin-top: 1.25rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  transition: var(--transition); display: flex; align-items: center;
+  justify-content: center; gap: 0.5rem;
+}
+.btn-action:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(102,126,234,0.35); }
+.btn-action:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.spinner {
+  width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.4);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.7s linear infinite; display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── RESULT PANELS ──────────────────────── */
+.result-panel {
+  margin-top: 1.5rem; border-radius: var(--radius);
+  overflow: hidden; display: none;
+}
+.result-panel.visible { display: block; }
+.result-header {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: #fff; font-weight: 700; font-size: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.result-body { background: #fff; padding: 1.5rem; }
+
+/* Saju pillars */
+.pillars { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.pillar {
+  flex: 1; min-width: 80px; background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%);
+  border: 2px solid var(--primary); border-radius: 12px; padding: 0.75rem;
+  text-align: center;
+}
+.pillar-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.pillar-value { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin: 0.25rem 0; }
+.pillar-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+/* Score bar */
+.score-section { margin: 1rem 0; }
+.score-label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; display: flex; justify-content: space-between; }
+.score-bar-bg { background: #e2e8f0; border-radius: 30px; height: 12px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 30px; transition: width 0.8s ease; }
+.score-high  { background: linear-gradient(90deg, #48bb78, #38a169); }
+.score-mid   { background: linear-gradient(90deg, #f6ad55, #ed8936); }
+.score-low   { background: linear-gradient(90deg, #fc8181, #e53e3e); }
+
+/* Wuxing elements */
+.wuxing-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0; }
+.wuxing-tag {
+  padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+}
+.tag-wood   { background: #c6f6d5; color: #276749; }
+.tag-fire   { background: #fed7d7; color: #9b2c2c; }
+.tag-earth  { background: #fefcbf; color: #744210; }
+.tag-metal  { background: #e2e8f0; color: #2d3748; }
+.tag-water  { background: #bee3f8; color: #2c5282; }
+
+/* Monthly fortune grid */
+.month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 0.75rem 0; }
+.month-item { background: #f8fafc; border-radius: 10px; padding: 0.6rem; text-align: center; }
+.month-num { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.month-score { font-size: 1rem; font-weight: 800; }
+
+/* Info grid */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 0.75rem 0; }
+.info-item { background: #f8fafc; border-radius: 10px; padding: 0.75rem; }
+.info-item .label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.25rem; }
+.info-item .value { font-size: 0.95rem; font-weight: 700; color: var(--text-dark); }
+
+/* Summary text */
+.summary-text {
+  background: linear-gradient(135deg, #f6f0ff 0%, #f0f4ff 100%);
+  border-left: 4px solid var(--primary); padding: 1rem 1.25rem;
+  border-radius: 0 10px 10px 0; font-size: 0.95rem;
+  line-height: 1.7; color: var(--text-dark); margin: 0.75rem 0;
+}
+
+/* Alert boxes */
+.alert {
+  padding: 0.85rem 1rem; border-radius: 10px; margin: 0.5rem 0;
+  font-size: 0.9rem; display: flex; align-items: flex-start; gap: 0.5rem;
+}
+.alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
+.alert-error   { background: #fff5f5; border: 1px solid #fed7d7; color: #9b2c2c; }
+.alert-info    { background: #ebf8ff; border: 1px solid #90cdf4; color: #2c5282; }
+.alert-warn    { background: #fffbeb; border: 1px solid #fbd38d; color: #744210; }
+
+/* System status grid */
+.status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+.status-item { background: var(--bg-card); border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow); }
+.status-item .s-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 0.35rem; }
+.status-item .s-value { font-size: 1.1rem; font-weight: 800; color: var(--text-dark); }
+.status-dot { width:10px; height:10px; border-radius:50%; background: var(--success); display:inline-block; margin-right:6px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.feature-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.feature-badge {
+  font-size: 0.78rem; padding: 0.3rem 0.6rem; border-radius: 20px; font-weight: 600;
+  background: #f0f4ff; color: var(--primary); border: 1px solid #c3dafe;
+}
+.feature-badge.off { background: #f7fafc; color: var(--text-muted); border-color: var(--border); }
+
+/* Calendar embed */
+.calendar-frame {
+  width: 100%; border: none; border-radius: var(--radius);
+  min-height: 600px; background: #f8fafc;
+}
+
+/* Zodiac cards */
+.zodiac-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: 0.6rem; margin-bottom: 1rem; }
+.zodiac-card {
+  background: #f8fafc; border: 2px solid var(--border); border-radius: 12px;
+  padding: 0.6rem 0.3rem; text-align: center; cursor: pointer; transition: var(--transition);
+}
+.zodiac-card:hover, .zodiac-card.selected {
+  border-color: var(--primary); background: #f0f4ff;
+}
+.zodiac-card .zname { font-size: 0.75rem; font-weight: 700; color: var(--text-dark); }
+.zodiac-card .zdates { font-size: 0.65rem; color: var(--text-muted); }
+
+/* Lucky items */
+.lucky-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
+.lucky-tag {
+  padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+  background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%);
+  border: 1px solid #c3dafe; color: var(--primary-dark);
+}
+
+/* Telegram section */
+.tg-setup { background: #f0f8ff; border: 1px solid #90cdf4; border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.88rem; color: #2c5282; }
+.tg-setup ol { padding-left: 1.25rem; margin-top: 0.5rem; }
+.tg-setup li { margin: 0.3rem 0; }
+.tg-setup code { background: #bee3f8; padding: 0.1rem 0.35rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.75rem; }
+  .form-row { grid-template-columns: 1fr 1fr; }
+  .info-grid { grid-template-columns: 1fr; }
+  .pillars .pillar { min-width: 60px; }
+  .topbar-nav { display: none; }
+  .topbar-nav.mobile-open { display: flex; flex-direction: column; position: fixed; top: 60px; left: 0; right: 0; background: rgba(26,26,46,0.98); padding: 1rem; z-index: 99; gap: 0.5rem; }
+  .menu-btn { display: block; }
+  .month-grid { grid-template-columns: repeat(4,1fr); }
+  .zodiac-grid { grid-template-columns: repeat(4,1fr); }
+}
+</style>
+</head>
+<body>
+<!-- ── TOPBAR ──────────────────────────────────── -->
+<nav class="topbar">
+  <a class="topbar-brand" href="/">🔮 <span>만세력 운세</span></a>
+  <div class="topbar-nav" id="mainNav">
+    <a href="#" onclick="showTab('saju');return false;">사주팔자</a>
+    <a href="#" onclick="showTab('daily');return false;">오늘운세</a>
+    <a href="#" onclick="showTab('tojeong');return false;">토정비결</a>
+    <a href="#" onclick="showTab('zodiac');return false;">별자리</a>
+    <a href="#" onclick="showTab('calendar');return false;">간지달력</a>
+    <a href="#" onclick="showTab('system');return false;">시스템</a>
+  </div>
+  <button class="menu-btn" onclick="toggleMenu()" id="menuBtn">☰</button>
+</nav>
+
+<!-- ── PAGE ────────────────────────────────────── -->
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero" id="hero">
+    <h1>🔮 한국형 만세력 운세</h1>
+    <p>전통 사주팔자, 토정비결, 별자리 운세를 AI와 함께 제공하는<br>정통 운세 서비스</p>
+    <div class="hero-btns">
+      <a href="#" class="btn btn-primary" onclick="showTab('saju');scrollToContent();return false;">🔮 사주팔자 보기</a>
+      <a href="#" class="btn btn-outline" onclick="showTab('daily');scrollToContent();return false;">📅 오늘 운세 확인</a>
+    </div>
+  </div>
+
+  <!-- TABS BAR -->
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-saju"    onclick="showTab('saju')">🔮 사주팔자</button>
+      <button class="tab-btn"        id="tab-daily"   onclick="showTab('daily')">📅 오늘운세</button>
+      <button class="tab-btn"        id="tab-tojeong" onclick="showTab('tojeong')">📜 토정비결</button>
+      <button class="tab-btn"        id="tab-zodiac"  onclick="showTab('zodiac')">⭐ 별자리운세</button>
+      <button class="tab-btn"        id="tab-calendar"onclick="showTab('calendar')">📆 간지달력</button>
+      <button class="tab-btn"        id="tab-ai"      onclick="showTab('ai')">🤖 AI운세</button>
+      <button class="tab-btn"        id="tab-system"  onclick="showTab('system')">🔍 시스템</button>
+    </div>
+  </div>
+
+  <!-- ── CONTENT ──────────────────────────────── -->
+  <div class="content" id="contentArea">
+
+    <!-- ── 사주팔자 ───────────────────────────── -->
+    <div class="section active" id="sec-saju">
+      <div class="card">
+        <div class="card-title">🔮 사주팔자 계산</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>출생년도</label>
+            <input type="number" id="s-year" value="1990" min="1900" max="2010" placeholder="예: 1990">
+          </div>
+          <div class="form-group">
+            <label>출생월</label>
+            <input type="number" id="s-month" value="5" min="1" max="12" placeholder="1-12">
+          </div>
+          <div class="form-group">
+            <label>출생일</label>
+            <input type="number" id="s-day" value="15" min="1" max="31" placeholder="1-31">
+          </div>
+          <div class="form-group">
+            <label>출생시간 (시)</label>
+            <input type="number" id="s-hour" value="14" min="0" max="23" placeholder="0-23">
+          </div>
+          <div class="form-group">
+            <label>출생분</label>
+            <input type="number" id="s-minute" value="30" min="0" max="59" placeholder="0-59">
+          </div>
+          <div class="form-group">
+            <label>성별</label>
+            <select id="s-gender">
+              <option value="M">남성</option>
+              <option value="F">여성</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>역법</label>
+            <select id="s-calendar">
+              <option value="SOLAR">양력</option>
+              <option value="LUNAR">음력</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="notif-toggle" onclick="toggleNotif('saju-notif')">
+          📬 알림 발송 설정 (이메일/텔레그램) <span id="saju-notif-arrow">▼</span>
+        </div>
+        <div class="notif-body" id="saju-notif">
+          <div class="form-row">
+            <div class="form-group form-full">
+              <label>수신자 이름</label>
+              <input type="text" id="s-name" placeholder="홍길동">
+            </div>
+            <div class="form-group form-full">
+              <label>이메일 주소</label>
+              <input type="email" id="s-email" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+              <label>텔레그램 채팅ID</label>
+              <input type="text" id="s-tg" placeholder="숫자 ID">
+            </div>
+            <div class="form-group">
+              <label>발송 방법</label>
+              <select id="s-notif-type">
+                <option value="">선택 안함</option>
+                <option value="email">이메일</option>
+                <option value="telegram">텔레그램</option>
+                <option value="both">둘 다</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-action" id="saju-btn" onclick="calcSaju()">
+          <span class="spinner" id="saju-spin"></span>
+          🔮 사주팔자 계산하기
+        </button>
+      </div>
+
+      <div class="result-panel" id="saju-result">
+        <div class="result-header">🔮 사주팔자 결과</div>
+        <div class="result-body" id="saju-body"></div>
+      </div>
+    </div>
+
+    <!-- ── 오늘의 운세 ─────────────────────────── -->
+    <div class="section" id="sec-daily">
+      <div class="card">
+        <div class="card-title">📅 오늘의 운세</div>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.25rem;">생년월일을 입력하면 오늘의 맞춤 운세를 계산합니다.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>출생년도</label>
+            <input type="number" id="d-year" value="1990" min="1900" max="2010">
+          </div>
+          <div class="form-group">
+            <label>출생월</label>
+            <input type="number" id="d-month" value="5" min="1" max="12">
+          </div>
+          <div class="form-group">
+            <label>출생일</label>
+            <input type="number" id="d-day" value="15" min="1" max="31">
+          </div>
+          <div class="form-group">
+            <label>출생시 (시)</label>
+            <input type="number" id="d-hour" value="0" min="0" max="23">
+          </div>
+          <div class="form-group">
+            <label>성별</label>
+            <select id="d-gender">
+              <option value="M">남성</option>
+              <option value="F">여성</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>역법</label>
+            <select id="d-calendar">
+              <option value="SOLAR">양력</option>
+              <option value="LUNAR">음력</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="notif-toggle" onclick="toggleNotif('daily-notif')">
+          📬 알림 발송 설정 <span id="daily-notif-arrow">▼</span>
+        </div>
+        <div class="notif-body" id="daily-notif">
+          <div class="form-row">
+            <div class="form-group form-full">
+              <label>수신자 이름</label>
+              <input type="text" id="d-name" placeholder="홍길동">
+            </div>
+            <div class="form-group form-full">
+              <label>이메일</label>
+              <input type="email" id="d-email">
+            </div>
+            <div class="form-group">
+              <label>텔레그램ID</label>
+              <input type="text" id="d-tg">
+            </div>
+            <div class="form-group">
+              <label>발송 방법</label>
+              <select id="d-notif-type">
+                <option value="">선택 안함</option>
+                <option value="email">이메일</option>
+                <option value="telegram">텔레그램</option>
+                <option value="both">둘 다</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-action" id="daily-btn" onclick="calcDaily()">
+          <span class="spinner" id="daily-spin"></span>
+          📅 오늘의 운세 확인하기
+        </button>
+      </div>
+
+      <div class="result-panel" id="daily-result">
+        <div class="result-header">📅 오늘의 운세 결과</div>
+        <div class="result-body" id="daily-body"></div>
+      </div>
+    </div>
+
+    <!-- ── 토정비결 ───────────────────────────── -->
+    <div class="section" id="sec-tojeong">
+      <div class="card">
+        <div class="card-title">📜 토정비결</div>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.25rem;">64괘 기반 전통 토정비결로 한 해의 운세를 살펴봅니다.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>출생년도</label>
+            <input type="number" id="t-year" value="1990" min="1900" max="2010">
+          </div>
+          <div class="form-group">
+            <label>출생월</label>
+            <input type="number" id="t-month" value="5" min="1" max="12">
+          </div>
+          <div class="form-group">
+            <label>출생일</label>
+            <input type="number" id="t-day" value="15" min="1" max="31">
+          </div>
+          <div class="form-group">
+            <label>운세 연도</label>
+            <input type="number" id="t-target" value="" min="2020" max="2100" placeholder="올해">
+          </div>
+        </div>
+
+        <div class="notif-toggle" onclick="toggleNotif('tojeong-notif')">
+          📬 알림 발송 설정 <span id="tojeong-notif-arrow">▼</span>
+        </div>
+        <div class="notif-body" id="tojeong-notif">
+          <div class="form-row">
+            <div class="form-group form-full">
+              <label>수신자 이름</label>
+              <input type="text" id="t-name" placeholder="홍길동">
+            </div>
+            <div class="form-group form-full">
+              <label>이메일</label>
+              <input type="email" id="t-email">
+            </div>
+            <div class="form-group">
+              <label>텔레그램ID</label>
+              <input type="text" id="t-tg">
+            </div>
+            <div class="form-group">
+              <label>발송 방법</label>
+              <select id="t-notif-type">
+                <option value="">선택 안함</option>
+                <option value="email">이메일</option>
+                <option value="telegram">텔레그램</option>
+                <option value="both">둘 다</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-action" id="tojeong-btn" onclick="calcTojeong()">
+          <span class="spinner" id="tojeong-spin"></span>
+          📜 토정비결 보기
+        </button>
+      </div>
+
+      <div class="result-panel" id="tojeong-result">
+        <div class="result-header">📜 토정비결 결과</div>
+        <div class="result-body" id="tojeong-body"></div>
+      </div>
+    </div>
+
+    <!-- ── 별자리 운세 ─────────────────────────── -->
+    <div class="section" id="sec-zodiac">
+      <div class="card">
+        <div class="card-title">⭐ 별자리 운세</div>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;">생년월일을 입력하거나 아래에서 별자리를 선택하세요.</p>
+
+        <div class="zodiac-grid" id="zodiacGrid"></div>
+
+        <div class="form-row">
+          <div class="form-group form-full">
+            <label>생년월일</label>
+            <input type="date" id="z-birth" value="1990-05-15">
+          </div>
+        </div>
+
+        <div class="notif-toggle" onclick="toggleNotif('zodiac-notif')">
+          📬 알림 발송 설정 <span id="zodiac-notif-arrow">▼</span>
+        </div>
+        <div class="notif-body" id="zodiac-notif">
+          <div class="form-row">
+            <div class="form-group form-full">
+              <label>수신자 이름</label>
+              <input type="text" id="z-name">
+            </div>
+            <div class="form-group form-full">
+              <label>이메일</label>
+              <input type="email" id="z-email">
+            </div>
+            <div class="form-group">
+              <label>텔레그램ID</label>
+              <input type="text" id="z-tg">
+            </div>
+            <div class="form-group">
+              <label>발송 방법</label>
+              <select id="z-notif-type">
+                <option value="">선택 안함</option>
+                <option value="email">이메일</option>
+                <option value="telegram">텔레그램</option>
+                <option value="both">둘 다</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-action" id="zodiac-btn" onclick="calcZodiac()">
+          <span class="spinner" id="zodiac-spin"></span>
+          ⭐ 별자리 운세 보기
+        </button>
+      </div>
+
+      <div class="result-panel" id="zodiac-result">
+        <div class="result-header">⭐ 별자리 운세 결과</div>
+        <div class="result-body" id="zodiac-body"></div>
+      </div>
+    </div>
+
+    <!-- ── 간지달력 ───────────────────────────── -->
+    <div class="section" id="sec-calendar">
+      <div class="card">
+        <div class="card-title">📆 간지달력</div>
+        <div class="form-row" style="margin-bottom:1rem;">
+          <div class="form-group">
+            <label>연도</label>
+            <input type="number" id="cal-year" min="1900" max="2100">
+          </div>
+          <div class="form-group">
+            <label>월</label>
+            <select id="cal-month">
+              <option value="1">1월</option><option value="2">2월</option>
+              <option value="3">3월</option><option value="4">4월</option>
+              <option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option>
+              <option value="9">9월</option><option value="10">10월</option>
+              <option value="11">11월</option><option value="12">12월</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button class="btn-action" style="width:auto;padding:0.65rem 1.5rem;margin:0;" onclick="loadCalendar()">
+              📆 달력 보기
+            </button>
+          </div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button onclick="prevMonth()" class="btn-action" style="width:auto;padding:0.65rem 1rem;margin:0;background:#718096;">◀</button>
+          </div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <button onclick="nextMonth()" class="btn-action" style="width:auto;padding:0.65rem 1rem;margin:0;background:#718096;">▶</button>
+          </div>
+        </div>
+      </div>
+      <iframe id="calFrame" class="calendar-frame" src="/api/calendar/view/current"></iframe>
+    </div>
+
+    <!-- ── AI 운세 ────────────────────────────── -->
+    <div class="section" id="sec-ai">
+      <div class="card">
+        <div class="card-title">🤖 AI 운세 해석</div>
+        <div class="alert alert-info">
+          ℹ️ AI 운세는 OpenAI API 키가 설정된 경우에만 실제 AI 해석이 제공됩니다. 미설정 시 전통 운세 데이터를 기반으로 한 기본 해석이 제공됩니다.
+        </div>
+        <div style="margin-top:1.25rem;">
+          <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1rem;">
+            먼저 사주팔자를 계산한 후 AI 해석을 요청해야 합니다.
+          </p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>출생년도</label>
+              <input type="number" id="ai-year" value="1990" min="1900" max="2010">
+            </div>
+            <div class="form-group">
+              <label>출생월</label>
+              <input type="number" id="ai-month" value="5" min="1" max="12">
+            </div>
+            <div class="form-group">
+              <label>출생일</label>
+              <input type="number" id="ai-day" value="15" min="1" max="31">
+            </div>
+            <div class="form-group">
+              <label>출생시</label>
+              <input type="number" id="ai-hour" value="14" min="0" max="23">
+            </div>
+            <div class="form-group">
+              <label>성별</label>
+              <select id="ai-gender"><option value="M">남성</option><option value="F">여성</option></select>
+            </div>
+            <div class="form-group">
+              <label>역법</label>
+              <select id="ai-calendar"><option value="SOLAR">양력</option><option value="LUNAR">음력</option></select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:0.75rem;">
+            <label>AI에게 질문하기 (선택)</label>
+            <input type="text" id="ai-question" placeholder="예: 올해 취직 운세는 어떤가요?">
+          </div>
+          <button class="btn-action" id="ai-btn" onclick="calcAI()">
+            <span class="spinner" id="ai-spin"></span>
+            🤖 AI 운세 해석 요청
+          </button>
+        </div>
+      </div>
+      <div class="result-panel" id="ai-result">
+        <div class="result-header">🤖 AI 운세 해석 결과</div>
+        <div class="result-body" id="ai-body"></div>
+      </div>
+    </div>
+
+    <!-- ── 시스템 상태 ─────────────────────────── -->
+    <div class="section" id="sec-system">
+      <div class="card">
+        <div class="card-title">🔍 시스템 상태</div>
+        <button class="btn-action" style="width:auto;padding:0.7rem 1.5rem;" onclick="loadSystemStatus()">
+          🔄 상태 새로고침
+        </button>
+        <div id="system-status-content" style="margin-top:1.5rem;">
+          <div class="alert alert-info">시스템 상태 로드 중...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🌡️ 헬스체크</div>
+        <div id="health-content">
+          <button class="btn-action" style="width:auto;padding:0.7rem 1.5rem;" onclick="loadHealth()">
+            🔄 헬스체크
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📱 텔레그램 알림 테스트</div>
+        <div class="tg-setup">
+          <strong>📌 텔레그램 봇 설정 방법:</strong>
+          <ol>
+            <li>텔레그램에서 <code>@BotFather</code>를 검색하고 대화 시작</li>
+            <li><code>/newbot</code> 명령으로 봇 생성 후 토큰 발급</li>
+            <li>생성한 봇과 대화 시작 후 <code>https://api.telegram.org/bot{TOKEN}/getUpdates</code>에서 채팅ID 확인</li>
+            <li>환경변수 <code>TELEGRAM_BOT_TOKEN</code>, <code>TELEGRAM_CHAT_ID</code> 설정</li>
+          </ol>
+        </div>
+        <div class="form-row" style="margin-top:1rem;">
+          <div class="form-group form-full">
+            <label>테스트 메시지</label>
+            <input type="text" id="tg-msg" value="🔮 한국형 만세력 운세 시스템 테스트 메시지입니다!">
+          </div>
+          <div class="form-group">
+            <label>채팅ID (선택)</label>
+            <input type="text" id="tg-chatid" placeholder="기본 설정 사용">
+          </div>
+        </div>
+        <button class="btn-action" id="tg-btn" onclick="testTelegram()" style="width:auto;padding:0.7rem 1.5rem;">
+          <span class="spinner" id="tg-spin"></span>
+          📱 텔레그램 전송 테스트
+        </button>
+        <div id="tg-result" style="margin-top:0.75rem;"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /page -->
+
+<script>
+// ── ZODIAC DATA ─────────────────────────────────────
+const ZODIACS = [
+  {name:'양자리', symbol:'♈', start:'03-21', end:'04-19'},
+  {name:'황소자리', symbol:'♉', start:'04-20', end:'05-20'},
+  {name:'쌍둥이자리', symbol:'♊', start:'05-21', end:'06-20'},
+  {name:'게자리', symbol:'♋', start:'06-21', end:'07-22'},
+  {name:'사자자리', symbol:'♌', start:'07-23', end:'08-22'},
+  {name:'처녀자리', symbol:'♍', start:'08-23', end:'09-22'},
+  {name:'천칭자리', symbol:'♎', start:'09-23', end:'10-22'},
+  {name:'전갈자리', symbol:'♏', start:'10-23', end:'11-21'},
+  {name:'사수자리', symbol:'♐', start:'11-22', end:'12-21'},
+  {name:'염소자리', symbol:'♑', start:'12-22', end:'01-19'},
+  {name:'물병자리', symbol:'♒', start:'01-20', end:'02-18'},
+  {name:'물고기자리', symbol:'♓', start:'02-19', end:'03-20'},
+];
+
+// ── INIT ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildZodiacGrid();
+  initCalendar();
+  loadSystemStatus();
+});
+
+function buildZodiacGrid() {
+  const g = document.getElementById('zodiacGrid');
+  ZODIACS.forEach(z => {
+    const d = document.createElement('div');
+    d.className = 'zodiac-card';
+    d.innerHTML = `<div style="font-size:1.4rem">${z.symbol}</div><div class="zname">${z.name}</div><div class="zdates">${z.start} ~ ${z.end}</div>`;
+    d.onclick = () => selectZodiac(z, d);
+    g.appendChild(d);
+  });
+}
+
+function selectZodiac(z, el) {
+  document.querySelectorAll('.zodiac-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  // derive a birth date in the middle of the zodiac range (approx)
+  const [sm, sd] = z.start.split('-').map(Number);
+  const yr = document.getElementById('z-birth').value.split('-')[0] || '1990';
+  const mm = String(sm).padStart(2,'0');
+  const dd = String(sd+5 < 28 ? sd+5 : sd).padStart(2,'0');
+  document.getElementById('z-birth').value = `${yr}-${mm}-${dd}`;
+}
+
+function initCalendar() {
+  const now = new Date();
+  document.getElementById('cal-year').value = now.getFullYear();
+  document.getElementById('cal-month').value = now.getMonth() + 1;
+  // Set tojeong target year
+  document.getElementById('t-target').value = now.getFullYear();
+}
+
+// ── TAB NAVIGATION ────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  // Update topbar links
+  document.querySelectorAll('.topbar-nav a').forEach(a => a.classList.remove('active'));
+}
+
+function scrollToContent() {
+  document.getElementById('contentArea').scrollIntoView({behavior:'smooth'});
+}
+
+function toggleMenu() {
+  const nav = document.getElementById('mainNav');
+  nav.classList.toggle('mobile-open');
+}
+
+// ── NOTIFICATION TOGGLE ───────────────────────────────
+function toggleNotif(id) {
+  const body = document.getElementById(id);
+  const arrow = document.getElementById(id + '-arrow');
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ── LOADING STATE ─────────────────────────────────────
+function setLoading(prefix, loading) {
+  const btn = document.getElementById(prefix + '-btn');
+  const spin = document.getElementById(prefix + '-spin');
+  if (!btn) return;
+  btn.disabled = loading;
+  if (spin) spin.style.display = loading ? 'block' : 'none';
+}
+
+// ── API HELPERS ───────────────────────────────────────
+async function apiPost(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function apiGet(url) {
+  const res = await fetch(url);
+  return res.json();
+}
+
+function buildNotif(prefix) {
+  const type = document.getElementById(prefix + '-notif-type')?.value;
+  if (!type) return null;
+  const name = document.getElementById(prefix + '-name')?.value?.trim();
+  if (!name) return null;
+  return {
+    recipientName: name,
+    email: document.getElementById(prefix + '-email')?.value?.trim() || null,
+    telegramChatId: document.getElementById(prefix + '-tg')?.value?.trim() || null,
+    notificationType: type
+  };
+}
+
+function showError(bodyId, message) {
+  document.getElementById(bodyId).innerHTML =
+    `<div class="alert alert-error">❌ ${escHtml(message)}</div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function scoreColor(n) {
+  if (n >= 70) return 'score-high';
+  if (n >= 45) return 'score-mid';
+  return 'score-low';
+}
+
+function scoreBar(label, score, max) {
+  const pct = Math.min(100, Math.round(score / (max||100) * 100));
+  return `<div class="score-section">
+    <div class="score-label"><span>${label}</span><span>${score}점</span></div>
+    <div class="score-bar-bg"><div class="score-bar-fill ${scoreColor(score)}" style="width:${pct}%"></div></div>
+  </div>`;
+}
+
+// ── 사주팔자 ──────────────────────────────────────────
+async function calcSaju() {
+  setLoading('saju', true);
+  const notif = buildNotif('s');
+  const body = {
+    birthYear: +document.getElementById('s-year').value,
+    birthMonth: +document.getElementById('s-month').value,
+    birthDay: +document.getElementById('s-day').value,
+    birthHour: +document.getElementById('s-hour').value,
+    birthMinute: +document.getElementById('s-minute').value,
+    gender: document.getElementById('s-gender').value,
+    calendarType: document.getElementById('s-calendar').value,
+    notification: notif
+  };
+
+  try {
+    let resp;
+    if (notif) {
+      resp = await apiPost('/api/fortune/saju/calculate-and-send', body);
+    } else {
+      resp = await apiPost('/api/fortune/saju/calculate', body);
+    }
+    const panel = document.getElementById('saju-result');
+    panel.classList.add('visible');
+    if (!resp.success) { showError('saju-body', resp.message || '계산 오류'); return; }
+    const d = resp.data;
+    document.getElementById('saju-body').innerHTML = renderSaju(d);
+  } catch(e) {
+    showError('saju-body', '서버 통신 오류: ' + e.message);
+    document.getElementById('saju-result').classList.add('visible');
+  } finally {
+    setLoading('saju', false);
+  }
+}
+
+function renderSaju(d) {
+  const w = d.wuxingAnalysis || {};
+  const elements = [
+    {label:'목(木)', count: w.woodCount,  cls:'tag-wood'},
+    {label:'화(火)', count: w.fireCount,  cls:'tag-fire'},
+    {label:'토(土)', count: w.earthCount, cls:'tag-earth'},
+    {label:'금(金)', count: w.metalCount, cls:'tag-metal'},
+    {label:'수(水)', count: w.waterCount, cls:'tag-water'},
+  ];
+  const wuxingTags = elements.map(e =>
+    `<span class="wuxing-tag ${e.cls}">${e.label} ${e.count||0}개</span>`
+  ).join('');
+
+  return `
+    <div class="pillars">
+      ${['연주','월주','일주','시주'].map((l,i) => {
+        const v = [d.yearPillar, d.monthPillar, d.dayPillar, d.timePillar][i] || '-';
+        return `<div class="pillar"><div class="pillar-label">${l}</div><div class="pillar-value">${v}</div><div class="pillar-sub">${l.charAt(0)}</div></div>`;
+      }).join('')}
+    </div>
+    <div class="info-grid">
+      <div class="info-item"><div class="label">일간 (日干)</div><div class="value">${d.dayMaster || '-'}</div></div>
+      <div class="info-item"><div class="label">성별</div><div class="value">${d.gender === 'M' ? '남성 ♂' : '여성 ♀'}</div></div>
+    </div>
+    <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin:0.75rem 0 0.4rem;">오행 분석</div>
+    <div class="wuxing-row">${wuxingTags}</div>
+    ${w.strongestElement ? `<div class="alert alert-info">💪 강한 오행: <strong>${w.strongestElement}</strong> | 약한 오행: <strong>${w.weakestElement||'-'}</strong></div>` : ''}
+    ${scoreBar('오행 균형', w.balance||0)}
+    ${d.fortuneSummary ? `<div class="summary-text">📖 ${escHtml(d.fortuneSummary)}</div>` : ''}
+    ${d.notification ? `<div class="alert alert-success">✅ 알림이 발송되었습니다.</div>` : ''}
+  `;
+}
+
+// ── 오늘의 운세 ───────────────────────────────────────
+async function calcDaily() {
+  setLoading('daily', true);
+  const notif = buildNotif('d');
+  const body = {
+    birthYear: +document.getElementById('d-year').value,
+    birthMonth: +document.getElementById('d-month').value,
+    birthDay: +document.getElementById('d-day').value,
+    birthHour: +document.getElementById('d-hour').value,
+    birthMinute: 0,
+    gender: document.getElementById('d-gender').value,
+    calendarType: document.getElementById('d-calendar').value,
+    notification: notif
+  };
+  try {
+    let resp;
+    if (notif) {
+      resp = await apiPost('/api/fortune/daily/today-and-send', body);
+    } else {
+      resp = await apiPost('/api/fortune/daily/today', body);
+    }
+    const panel = document.getElementById('daily-result');
+    panel.classList.add('visible');
+    if (!resp.success) { showError('daily-body', resp.message || '계산 오류'); return; }
+    document.getElementById('daily-body').innerHTML = renderDaily(resp.data);
+  } catch(e) {
+    showError('daily-body', '서버 통신 오류: ' + e.message);
+    document.getElementById('daily-result').classList.add('visible');
+  } finally {
+    setLoading('daily', false);
+  }
+}
+
+function renderDaily(d) {
+  const cat = d.categoryFortune || {};
+  const colors = (d.luckyColors || []).map(c => `<span class="lucky-tag">${c}</span>`).join('');
+  const score = d.totalScore || 0;
+  return `
+    <div style="text-align:center;margin-bottom:1rem;">
+      <div style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">종합 점수</div>
+      <div style="font-size:3rem;font-weight:900;color:${score>=70?'var(--success)':score>=45?'var(--warning)':'var(--error)'};">${score}</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);">/ 100점</div>
+    </div>
+    ${scoreBar('연애운', cat.loveScore||0)}
+    ${scoreBar('직장운', cat.careerScore||0)}
+    ${scoreBar('건강운', cat.healthScore||0)}
+    ${scoreBar('재물운', cat.wealthScore||0)}
+    <div class="info-grid" style="margin-top:0.75rem;">
+      <div class="info-item"><div class="label">오늘의 일주</div><div class="value">${d.dayPillar||'-'}</div></div>
+      <div class="info-item"><div class="label">길방위</div><div class="value">${d.luckyDirection||'-'}</div></div>
+    </div>
+    ${colors ? `<div style="margin:0.5rem 0;"><div style="font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:0.3rem;">행운의 색깔</div><div class="lucky-row">${colors}</div></div>` : ''}
+    ${d.advice ? `<div class="summary-text">💡 ${escHtml(d.advice)}</div>` : ''}
+    ${d.caution ? `<div class="alert alert-warn">⚠️ ${escHtml(d.caution)}</div>` : ''}
+  `;
+}
+
+// ── 토정비결 ──────────────────────────────────────────
+async function calcTojeong() {
+  setLoading('tojeong', true);
+  const notif = buildNotif('t');
+  const targetYear = +document.getElementById('t-target').value || new Date().getFullYear();
+  const body = {
+    birthYear: +document.getElementById('t-year').value,
+    birthMonth: +document.getElementById('t-month').value,
+    birthDay: +document.getElementById('t-day').value,
+    targetYear,
+    notification: notif
+  };
+  try {
+    let resp;
+    if (notif) {
+      resp = await apiPost('/api/fortune/tojeong/calculate-and-send', body);
+    } else {
+      resp = await apiPost('/api/fortune/tojeong', body);
+    }
+    const panel = document.getElementById('tojeong-result');
+    panel.classList.add('visible');
+    if (!resp.success) { showError('tojeong-body', resp.message || '계산 오류'); return; }
+    document.getElementById('tojeong-body').innerHTML = renderTojeong(resp.data);
+  } catch(e) {
+    showError('tojeong-body', '서버 통신 오류: ' + e.message);
+    document.getElementById('tojeong-result').classList.add('visible');
+  } finally {
+    setLoading('tojeong', false);
+  }
+}
+
+function renderTojeong(d) {
+  const monthly = d.monthlyFortune || [];
+  const monthGrid = monthly.length ? `
+    <div style="margin:0.75rem 0;">
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:0.5rem;">월별 운세</div>
+      <div class="month-grid">
+        ${monthly.map(m => {
+          const sc = m.score || 0;
+          const col = sc>=70?'var(--success)':sc>=45?'var(--warning)':'var(--error)';
+          return `<div class="month-item"><div class="month-num">${m.month}월</div><div class="month-score" style="color:${col}">${sc}</div><div style="font-size:0.65rem;color:var(--text-muted)">${(m.keywords||[]).slice(0,1).join(',')}</div></div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  return `
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+      <div style="font-size:2.5rem;">${d.gwaSymbol||'☰'}</div>
+      <div>
+        <div style="font-size:1.4rem;font-weight:800;color:var(--primary)">${d.targetYear}년 ${d.gwaName||''}</div>
+        <div style="font-size:0.85rem;color:var(--text-muted)">${d.gwaNumber||'-'}번 괘</div>
+      </div>
+    </div>
+    ${scoreBar('종합 운세', d.overallScore||0)}
+    ${d.summary ? `<div class="summary-text">📜 ${escHtml(d.summary)}</div>` : ''}
+    <div class="info-grid">
+      <div class="info-item"><div class="label">길한 달</div><div class="value">${d.luckyMonths||'-'}</div></div>
+      <div class="info-item"><div class="label">주의할 달</div><div class="value">${d.cautionMonths||'-'}</div></div>
+    </div>
+    ${monthGrid}
+    ${d.advice ? `<div class="alert alert-success">💡 ${escHtml(d.advice)}</div>` : ''}
+    ${d.detailedFortune ? `<div class="summary-text" style="margin-top:0.75rem;">📖 상세: ${escHtml(d.detailedFortune)}</div>` : ''}
+  `;
+}
+
+// ── 별자리 운세 ───────────────────────────────────────
+async function calcZodiac() {
+  setLoading('zodiac', true);
+  const notif = buildNotif('z');
+  const bd = document.getElementById('z-birth').value;
+  const today = new Date().toISOString().slice(0,10);
+  const body = {
+    birthDate: bd,
+    targetDate: today,
+    notification: notif
+  };
+  try {
+    let resp;
+    if (notif) {
+      resp = await apiPost('/api/fortune/zodiac/calculate-and-send', body);
+    } else {
+      resp = await apiPost('/api/fortune/zodiac', body);
+    }
+    const panel = document.getElementById('zodiac-result');
+    panel.classList.add('visible');
+    if (!resp.success) { showError('zodiac-body', resp.message || '계산 오류'); return; }
+    document.getElementById('zodiac-body').innerHTML = renderZodiac(resp.data);
+  } catch(e) {
+    showError('zodiac-body', '서버 통신 오류: ' + e.message);
+    document.getElementById('zodiac-result').classList.add('visible');
+  } finally {
+    setLoading('zodiac', false);
+  }
+}
+
+function renderZodiac(d) {
+  const daily = d.todayFortune || {};
+  const monthly = d.monthlyFortune || {};
+  const nums = (d.luckyNumbers||[]).map(n => `<span class="lucky-tag">${n}</span>`).join('');
+  const compat = (d.compatibleZodiacs||[]).map(z => `<span class="lucky-tag">${z}</span>`).join('');
+  return `
+    <div style="text-align:center;margin-bottom:1rem;">
+      <div style="font-size:2rem;font-weight:800;color:var(--primary)">${d.zodiacKoreanName||'-'}</div>
+      <div style="font-size:0.9rem;color:var(--text-muted)">${d.targetDate||''}</div>
+    </div>
+    ${d.personality ? `<div class="summary-text">👤 ${escHtml(d.personality)}</div>` : ''}
+    <div class="info-grid">
+      <div class="info-item"><div class="label">행운의 색깔</div><div class="value">${d.luckyColor||'-'}</div></div>
+      <div class="info-item"><div class="label">행운의 보석</div><div class="value">${d.luckyStone||'-'}</div></div>
+    </div>
+    ${nums ? `<div style="margin:0.5rem 0;"><div class="label" style="font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:0.3rem;">행운의 숫자</div><div class="lucky-row">${nums}</div></div>` : ''}
+    ${compat ? `<div style="margin:0.5rem 0;"><div style="font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:0.3rem;">잘 맞는 별자리</div><div class="lucky-row">${compat}</div></div>` : ''}
+    ${daily.overallMessage ? `<div class="summary-text" style="margin-top:0.75rem;">📅 오늘: ${escHtml(daily.overallMessage)}</div>` : ''}
+    ${monthly.theme ? `<div class="summary-text">📆 이번 달 테마: ${escHtml(monthly.theme)}</div>` : ''}
+    ${monthly.opportunity ? `<div class="alert alert-success">✨ 기회: ${escHtml(monthly.opportunity)}</div>` : ''}
+    ${monthly.caution ? `<div class="alert alert-warn">⚠️ 주의: ${escHtml(monthly.caution)}</div>` : ''}
+  `;
+}
+
+// ── 간지달력 ──────────────────────────────────────────
+function loadCalendar() {
+  const year  = document.getElementById('cal-year').value;
+  const month = document.getElementById('cal-month').value;
+  document.getElementById('calFrame').src = `/api/calendar/view/${year}/${month}`;
+}
+
+function prevMonth() {
+  const m = document.getElementById('cal-month');
+  const y = document.getElementById('cal-year');
+  let mo = +m.value - 1;
+  let yr = +y.value;
+  if (mo < 1) { mo = 12; yr--; }
+  m.value = mo; y.value = yr;
+  loadCalendar();
+}
+
+function nextMonth() {
+  const m = document.getElementById('cal-month');
+  const y = document.getElementById('cal-year');
+  let mo = +m.value + 1;
+  let yr = +y.value;
+  if (mo > 12) { mo = 1; yr++; }
+  m.value = mo; y.value = yr;
+  loadCalendar();
+}
+
+// ── AI 운세 ───────────────────────────────────────────
+async function calcAI() {
+  setLoading('ai', true);
+  const sajuBody = {
+    birthYear: +document.getElementById('ai-year').value,
+    birthMonth: +document.getElementById('ai-month').value,
+    birthDay: +document.getElementById('ai-day').value,
+    birthHour: +document.getElementById('ai-hour').value,
+    birthMinute: 0,
+    gender: document.getElementById('ai-gender').value,
+    calendarType: document.getElementById('ai-calendar').value
+  };
+  const question = document.getElementById('ai-question').value.trim();
+  const panel = document.getElementById('ai-result');
+  panel.classList.add('visible');
+  try {
+    // First calculate saju
+    const sajuResp = await apiPost('/api/fortune/saju/calculate', sajuBody);
+    if (!sajuResp.success) { showError('ai-body', sajuResp.message || '사주 계산 오류'); return; }
+
+    let aiResp;
+    if (question) {
+      aiResp = await apiPost('/api/fortune/ai/ask?question=' + encodeURIComponent(question), sajuResp.data);
+    } else {
+      aiResp = await apiPost('/api/fortune/ai/interpret-saju', sajuResp.data);
+    }
+    if (!aiResp.success) { showError('ai-body', aiResp.message || 'AI 오류'); return; }
+    document.getElementById('ai-body').innerHTML =
+      `<div class="summary-text" style="white-space:pre-wrap">${escHtml(aiResp.data)}</div>`;
+  } catch(e) {
+    showError('ai-body', '서버 통신 오류: ' + e.message);
+  } finally {
+    setLoading('ai', false);
+  }
+}
+
+// ── SYSTEM STATUS ─────────────────────────────────────
+async function loadSystemStatus() {
+  try {
+    const [statusResp, fortuneHealth] = await Promise.all([
+      apiGet('/api/system/status'),
+      apiGet('/api/fortune/health')
+    ]);
+
+    const d = statusResp.data || {};
+    const features = d.features || {};
+    const featureHtml = Object.entries(features).map(([k,v]) =>
+      `<span class="feature-badge ${v?'':'off'}">${v?'✅':'❌'} ${k}</span>`
+    ).join('');
+
+    const statusHtml = `
+      <div class="status-grid">
+        <div class="status-item">
+          <div class="s-label">시스템 상태</div>
+          <div class="s-value"><span class="status-dot"></span>${d.status||'RUNNING'}</div>
+        </div>
+        <div class="status-item">
+          <div class="s-label">버전</div>
+          <div class="s-value">${d.version||'-'}</div>
+        </div>
+        <div class="status-item">
+          <div class="s-label">현재 시간</div>
+          <div class="s-value" style="font-size:0.9rem">${d.currentTime ? new Date(d.currentTime).toLocaleString('ko-KR') : '-'}</div>
+        </div>
+        <div class="status-item">
+          <div class="s-label">가동 시간</div>
+          <div class="s-value" style="font-size:0.9rem">${d.uptime||'-'}</div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:0.5rem;">사용 가능한 기능</div>
+        <div class="feature-list">${featureHtml}</div>
+      </div>
+    `;
+    document.getElementById('system-status-content').innerHTML = statusHtml;
+
+    // fortune health
+    if (fortuneHealth.success) {
+      document.getElementById('health-content').innerHTML =
+        `<div class="alert alert-success">✅ ${escHtml(fortuneHealth.data)}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('system-status-content').innerHTML =
+      `<div class="alert alert-error">❌ 시스템 상태를 불러올 수 없습니다: ${escHtml(e.message)}</div>`;
+  }
+}
+
+async function loadHealth() {
+  try {
+    const r = await apiGet('/actuator/health');
+    const status = r.status || '알 수 없음';
+    const cls = status === 'UP' ? 'alert-success' : 'alert-error';
+    document.getElementById('health-content').innerHTML =
+      `<div class="alert ${cls}">${status === 'UP' ? '✅' : '❌'} Actuator 상태: <strong>${status}</strong></div>`;
+  } catch(e) {
+    document.getElementById('health-content').innerHTML =
+      `<div class="alert alert-error">❌ 헬스체크 실패: ${escHtml(e.message)}</div>`;
+  }
+}
+
+// ── TELEGRAM TEST ─────────────────────────────────────
+async function testTelegram() {
+  setLoading('tg', true);
+  const msg = document.getElementById('tg-msg').value;
+  const chatId = document.getElementById('tg-chatid').value;
+  const body = { message: msg };
+  if (chatId) body.chatId = Number(chatId);
+  try {
+    const r = await apiPost('/api/fortune/telegram/test', body);
+    document.getElementById('tg-result').innerHTML = r.success
+      ? `<div class="alert alert-success">✅ 텔레그램 전송 완료</div>`
+      : `<div class="alert alert-error">❌ 전송 실패: ${escHtml(r.message||'')}</div>`;
+  } catch(e) {
+    document.getElementById('tg-result').innerHTML =
+      `<div class="alert alert-error">❌ 오류: ${escHtml(e.message)}</div>`;
+  } finally {
+    setLoading('tg', false);
+  }
+}
+</script>
+<script>
+// Register Service Worker for PWA support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.warn('[SW] 서비스 워커 등록 실패:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
