@@ -121,7 +121,8 @@ dependencies {
     // ✅ 모니터링 및 추적 (OpenTelemetry / Micrometer Tracing)
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-    runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
+    // OTLP exporter only needed when OTEL_EXPORTER_OTLP_ENDPOINT is configured
+    // runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 }
 
 tasks.named('test') {
