@@ -1,6 +1,222 @@
 # 🔮 한국형 만세력 운세 시스템
 
-전통 사주팔자와 토정비결을 제공하는 한국형 운세 시스템입니다.
+전통 사주팔자와 토정비결을 AI와 함께 제공하는 한국형 운세 시스템입니다.
+
+## ✨ 주요 기능
+
+- **🔮 사주팔자 계산**: 전통 사주팔자 계산 및 오행 분석
+- **📅 오늘의 운세**: 생년월일 기반 맞춤 일일 운세
+- **📜 토정비결**: 64괘 기반 연간 토정비결 운세
+- **⭐ 별자리 운세**: 서양 별자리 운세
+- **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
+- **📧 이메일 발송**: 운세 결과를 이메일로 발송
+- **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
+- **🤖 AI 운세**: OpenAI 기반 AI 운세 해석
+- **🔍 시스템 모니터링**: Spring Boot Actuator 기반 모니터링
+
+## 🚀 빠른 시작
+
+### 1. 로컬 실행 (가장 간단)
+
+```bash
+# JAR 파일 빌드
+./gradlew bootJar
+
+# 애플리케이션 실행 (개발 모드 - H2 인메모리 DB 사용)
+java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
+```
+
+브라우저에서 `http://localhost:8080` 또는 `http://localhost:8080/fortune-app.html` 로 접속합니다.
+
+### 2. Gradle로 직접 실행
+
+```bash
+# 개발 환경으로 실행
+./gradlew runDev
+
+# AI 기능 활성화하고 실행 (OPENAI_API_KEY 필요)
+./gradlew runWithAI
+```
+
+### 3. Docker 단독 실행 (가장 간편한 배포)
+
+```bash
+# 이미 빌드된 이미지로 바로 실행
+docker compose -f docker/docker-compose.standalone.yml up -d
+
+# 접속: http://localhost:8080
+```
+
+### 4. Docker Compose 전체 스택 (운영 환경)
+
+```bash
+# 환경 변수 설정
+cp .env.example .env
+# .env 파일 편집 후 실행
+
+# 운영 환경 (MySQL + Redis + Nginx + 모니터링)
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+```
+
+## 🌐 접속 정보
+
+애플리케이션 실행 후 다음 URL로 접속할 수 있습니다:
+
+| 서비스 | URL | 설명 |
+|--------|-----|------|
+| 🔮 **운세 앱 (메인)** | http://localhost:8080/fortune-app.html | **사주팔자, 운세, 토정비결 GUI** |
+| 🏠 홈페이지 | http://localhost:8080 | 랜딩 페이지 |
+| 📚 API 문서 | http://localhost:8080/api/docs | REST API 문서 |
+| 🧪 API 테스트 | http://localhost:8080/api/docs/test | 개발자용 API 테스트 |
+| 📅 간지달력 | http://localhost:8080/api/calendar/view/current | 이번 달 간지달력 |
+| 🔍 헬스체크 | http://localhost:8080/actuator/health | 시스템 상태 |
+
+## 📚 API 엔드포인트
+
+| 기능 | 메서드 | URL | 설명 |
+|------|--------|-----|------|
+| 사주팔자 계산 | POST | `/api/fortune/saju/calculate` | 전통 사주팔자 계산 |
+| 사주팔자 발송 | POST | `/api/fortune/saju/calculate-and-send` | 계산 후 이메일/텔레그램 발송 |
+| 오늘의 운세 | POST | `/api/fortune/daily/today` | 오늘의 운세 |
+| 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 계산 후 발송 |
+| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 64괘 운세 |
+| 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 계산 후 발송 |
+| 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
+| 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 계산 후 발송 |
+| 간지달력 API | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 JSON 조회 |
+| 간지달력 뷰 | GET | `/api/calendar/view/{year}/{month}` | 간지달력 HTML 뷰 |
+| AI 사주 해석 | POST | `/api/fortune/ai/interpret-saju` | AI 기반 사주 해석 |
+| 시스템 상태 | GET | `/api/system/status` | 시스템 상태 확인 |
+
+## 🔑 환경 변수 설정
+
+배포 시 `.env.example` 파일을 복사하여 설정하세요:
+
+```bash
+cp .env.example .env
+# .env 파일에서 실제 값으로 수정
+```
+
+### 주요 환경 변수
+
+```bash
+# 데이터베이스
+MYSQL_PASSWORD=your_password
+
+# AI 기능 (선택)
+AI_ENABLED=true
+OPENAI_API_KEY=sk-...
+
+# 텔레그램 봇 (선택)
+TELEGRAM_BOT_TOKEN=1234567890:AAH...
+TELEGRAM_CHAT_ID=123456789
+
+# 이메일 발송 (선택)
+MAIL_USERNAME=your@gmail.com
+MAIL_PASSWORD=app_password
+```
+
+## 📋 주요 Gradle 태스크
+
+```bash
+# 실행
+./gradlew bootJar              # JAR 파일 빌드
+./gradlew runDev               # 개발 환경 실행
+./gradlew runWithAI            # AI 기능 활성화 실행
+
+# 테스트
+./gradlew test                 # 단위 테스트
+./gradlew integrationTest      # 통합 테스트
+
+# Docker
+./gradlew dockerBuildProd      # 운영용 Docker 이미지 빌드
+./gradlew dockerComposeUpProd  # 운영 환경 Docker Compose 시작
+./gradlew dockerComposeDown    # Docker Compose 중지
+
+# 배포
+./gradlew deployProd           # 운영 환경 배포
+./gradlew fullDeploy           # 전체 배포 (빌드 + Docker)
+```
+
+## 🛠️ 기술 스택
+
+| 분류 | 기술 |
+|------|------|
+| **Framework** | Spring Boot 3.4.5 |
+| **Language** | Java 17 (Amazon Corretto) |
+| **Build** | Gradle 8.12 |
+| **Security** | Spring Security, JWT |
+| **Database** | H2 (개발), MySQL 8.0 (운영) |
+| **ORM** | Spring Data JPA |
+| **Cache** | Caffeine |
+| **AI** | Spring AI (OpenAI) |
+| **Monitoring** | Spring Boot Actuator, Prometheus, Grafana |
+| **Container** | Docker, Docker Compose |
+| **CI/CD** | GitHub Actions |
+
+## 📁 프로젝트 구조
+
+```
+korean-fortune-system/
+├── src/main/
+│   ├── java/com/fortune/
+│   │   ├── controller/      # REST API + HTML 뷰 컨트롤러
+│   │   ├── service/         # 비즈니스 로직
+│   │   ├── dto/             # 데이터 전송 객체
+│   │   ├── entity/          # JPA 엔티티
+│   │   └── config/          # 설정 (Security, Cache 등)
+│   └── resources/
+│       ├── static/          # 정적 파일 (fortune-app.html, sw.js 등)
+│       ├── application.yml  # 기본 설정
+│       ├── application-dev.yml
+│       ├── application-prod.yml
+│       └── application-docker.yml
+├── docker/                  # Docker 관련 파일
+│   ├── docker-compose.yaml         # 기본 컴포즈
+│   ├── docker-compose.prod.yaml    # 운영 오버라이드
+│   ├── docker-compose.standalone.yml # 단독 실행
+│   ├── nginx/               # Nginx 설정
+│   ├── mysql/               # MySQL 초기화 스크립트
+│   └── prometheus/          # Prometheus 설정
+├── .github/workflows/       # GitHub Actions CI/CD
+├── .env.example             # 환경 변수 템플릿
+├── Dockerfile               # 멀티 스테이지 빌드
+└── build.gradle             # Gradle 빌드 설정
+```
+
+## 🔄 최근 변경사항
+
+### v2.6.0 (2026-03-08)
+- ✅ 웹 GUI 앱 추가 (`/fortune-app.html`) — 사주팔자, 오늘운세, 토정비결, 별자리, 간지달력, AI운세를 탭 인터페이스로 제공
+- ✅ PWA(Progressive Web App) 지원 — 모바일 홈 화면에 앱처럼 설치 가능
+- ✅ 서비스 워커 추가 — 정적 자산 오프라인 캐시
+- ✅ GitHub Actions CI/CD 파이프라인 추가
+- ✅ Dockerfile Java 버전 수정 (Amazon Corretto 17)
+- ✅ Nginx 루트 경로 → `/fortune-app.html` 로 변경
+- ✅ `CalendarViewController` String.format % 이스케이프 버그 수정
+- ✅ OTLP 익스포터 시작 오류 수정
+
+## 📄 라이선스
+
+Apache License 2.0
+
+## 🤝 기여하기
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 문의
+
+- **이메일**: admin@jyha.net
+- **GitHub**: https://github.com/nanamix/korean-fortune-system
+
+---
+
+**🔮 한국형 만세력 운세 시스템** - 전통과 현대가 만나는 운세 서비스
+
 
 ## ✨ 주요 기능
 

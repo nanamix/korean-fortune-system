@@ -1,0 +1,35 @@
+# ================================================================
+# 🔮 한국형 만세력 운세 시스템 - 단독 실행 (Standalone)
+# ================================================================
+# 외부 DB/Redis 없이 H2 인메모리 DB로 빠르게 실행합니다.
+# 개발 테스트 또는 데모 목적으로 사용하세요.
+#
+# 실행 방법:
+#   docker compose -f docker/docker-compose.standalone.yml up -d
+#
+# 접속:
+#   http://localhost:8080
+# ================================================================
+
+services:
+  app:
+    image: ghcr.io/nanamix/korean-fortune-system:latest
+    container_name: korean-fortune-standalone
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      AI_ENABLED: ${AI_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      TZ: Asia/Seoul
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
