@@ -432,12 +432,12 @@ class FortuneIntegrationTest {
     @DisplayName("🔧 에러 처리 및 복구 테스트")
     @Tag("error-handling")
     void testErrorHandling() throws Exception {
-        // 잘못된 JSON 형식 (500 오류가 정상)
+        // 잘못된 JSON 형식 (400 Bad Request - HttpMessageNotReadableException)
         mockMvc.perform(post("/api/fortune/saju/calculate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"invalid\" \"json\"}"))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isBadRequest());
 
         // 빈 요청 본문
         mockMvc.perform(post("/api/fortune/saju/calculate")
@@ -447,15 +447,15 @@ class FortuneIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
 
-        // 존재하지 않는 엔드포인트 (500 오류가 정상)
+        // 존재하지 않는 엔드포인트 (404 Not Found)
         mockMvc.perform(get("/api/fortune/nonexistent"))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().is4xxClientError());
 
-        // 잘못된 HTTP 메서드 (500 오류가 정상)
+        // 잘못된 HTTP 메서드 (405 Method Not Allowed)
         mockMvc.perform(put("/api/fortune/health"))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().is4xxClientError());
     }
 
     /**

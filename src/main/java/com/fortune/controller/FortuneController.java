@@ -235,6 +235,15 @@ public class FortuneController {
 
         log.info("📆 간지달력 조회 요청: {}년 {}월", year, month);
 
+        if (year < 1900 || year > 2100) {
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("유효하지 않은 연도입니다: " + year, "INVALID_YEAR"));
+        }
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("유효하지 않은 월입니다: " + month, "INVALID_MONTH"));
+        }
+
         try {
             GanjiCalendarResponse result = ganjiCalendarService.generateMonthlyCalendar(year, month);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
@@ -362,7 +371,7 @@ public class FortuneController {
     @GetMapping("/health")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> healthCheck() {
         log.info("🔍 시스템 상태 확인 요청");
-        return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("운세 시스템이 정상적으로 작동 중입니다."));
+        return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("운세 시스템이 정상적으로 동작중입니다."));
     }
 
     /**
