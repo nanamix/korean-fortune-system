@@ -17,3 +17,14 @@ server:
 logging:
   file:
     name: /app/logs/korean-fortune.log
+
+app:
+  fortune:
+    ai:
+      enabled: ${APP_FORTUNE_AI_ENABLED:false}
+      provider: ${APP_FORTUNE_AI_PROVIDER:openai}
+      model: ${APP_FORTUNE_AI_MODEL:gpt-5.4-mini}
+      base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.openai.com/v1}
+      api-key: ${OPENAI_API_KEY:}
+      timeout: ${APP_FORTUNE_AI_TIMEOUT:30s}
+      fallback-enabled: true

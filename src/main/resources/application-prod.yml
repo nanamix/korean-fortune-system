@@ -23,7 +23,6 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: false
         use_sql_comments: false
 
@@ -36,8 +35,13 @@ server:
 app:
   fortune:
     ai:
-      enabled: ${AI_ENABLED:false}  # 환경변수로 제어
-      provider: ${AI_PROVIDER:openai}
+      enabled: ${APP_FORTUNE_AI_ENABLED:false}  # 환경변수로 제어
+      provider: ${APP_FORTUNE_AI_PROVIDER:openai}
+      model: ${APP_FORTUNE_AI_MODEL:gpt-5.4-mini}
+      base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.openai.com/v1}
+      api-key: ${OPENAI_API_KEY:}
+      timeout: ${APP_FORTUNE_AI_TIMEOUT:30s}
+      fallback-enabled: true
     cache:
       enabled: true
       ttl: 7200 # 2시간
@@ -48,9 +52,9 @@ app:
 logging:
   level:
     com.fortune: INFO
+    com.fortune.ai: INFO
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
-    org.springframework.ai: WARN
     root: WARN
   file:
     name: /app/logs/korean-fortune.log
@@ -78,4 +82,3 @@ management:
   otlp:
     tracing:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-collector:4318/v1/traces}
-

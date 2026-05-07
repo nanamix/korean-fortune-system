@@ -87,7 +87,11 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-fortune_secure_2025!}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      AI_ENABLED: ${AI_ENABLED:-false}
+      APP_FORTUNE_AI_ENABLED: ${APP_FORTUNE_AI_ENABLED:-false}
+      APP_FORTUNE_AI_PROVIDER: ${APP_FORTUNE_AI_PROVIDER:-openai}
+      APP_FORTUNE_AI_MODEL: ${APP_FORTUNE_AI_MODEL:-gpt-5.4-mini}
+      APP_FORTUNE_AI_BASE_URL: ${APP_FORTUNE_AI_BASE_URL:-https://api.openai.com/v1}
+      APP_FORTUNE_AI_TIMEOUT: ${APP_FORTUNE_AI_TIMEOUT:-30s}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       TZ: Asia/Seoul
     ports:

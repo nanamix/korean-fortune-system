@@ -25,18 +25,18 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  *
  * <h3>기술 스택</h3>
  * <ul>
- *   <li>Java 17 (Eclipse Temurin)</li>
- *   <li>Spring Boot 3.3.x</li>
+ *   <li>Java 25 (Amazon Corretto)</li>
+ *   <li>Spring Boot 4.0.x</li>
  *   <li>Spring Data JPA</li>
  *   <li>Spring Security</li>
- *   <li>Spring AI (OpenAI 연동)</li>
- *   <li>MySQL 8.0 / H2 Database</li>
- *   <li>Redis (캐싱)</li>
+ *   <li>OpenAI-compatible AI 연동</li>
+ *   <li>PostgreSQL / H2 Database</li>
+ *   <li>Caffeine Cache</li>
  *   <li>Docker & Docker Compose</li>
  * </ul>
  *
  * @author 하진영
- * @version 2.5.0
+ * @version 3.0.0-modernization
  * @since 2025-06-24
  */
 @SpringBootApplication
@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * 한국형 만세력 운세 시스템 메인 애플리케이션
  * 
  * @author 하진영
- * @version 2.5.0
+ * @version 3.0.0-modernization
  * @since 2025-06-24
  */
 public class KoreanFortuneApplication {
@@ -87,7 +87,7 @@ public class KoreanFortuneApplication {
             📊 서버 정보:
                • 포트: http://localhost:%s
                • 프로필: %s
-               • API 문서: http://localhost:%s/swagger-ui.html
+               • API 문서: http://localhost:%s/api/docs
                • 헬스체크: http://localhost:%s/actuator/health
             ✨ 모든 준비가 완료되었습니다. 행운을 빕니다! ✨
             """.formatted(port, profile, port, port));

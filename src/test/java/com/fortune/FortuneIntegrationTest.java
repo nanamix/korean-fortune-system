@@ -1,6 +1,5 @@
 package com.fortune;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fortune.config.TestConfig;
 import com.fortune.dto.*;
 import org.junit.jupiter.api.Test;
@@ -8,14 +7,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 
@@ -432,12 +432,14 @@ class FortuneIntegrationTest {
     @DisplayName("🔧 에러 처리 및 복구 테스트")
     @Tag("error-handling")
     void testErrorHandling() throws Exception {
-        // 잘못된 JSON 형식 (500 오류가 정상)
+        // 잘못된 JSON 형식
         mockMvc.perform(post("/api/fortune/saju/calculate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"invalid\" \"json\"}"))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("INVALID_REQUEST_BODY"));
 
         // 빈 요청 본문
         mockMvc.perform(post("/api/fortune/saju/calculate")
@@ -447,15 +449,17 @@ class FortuneIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
 
-        // 존재하지 않는 엔드포인트 (500 오류가 정상)
+        // 존재하지 않는 엔드포인트
         mockMvc.perform(get("/api/fortune/nonexistent"))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isNotFound());
 
-        // 잘못된 HTTP 메서드 (500 오류가 정상)
+        // 잘못된 HTTP 메서드
         mockMvc.perform(put("/api/fortune/health"))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.errorCode").value("METHOD_NOT_ALLOWED"));
     }
 
     /**

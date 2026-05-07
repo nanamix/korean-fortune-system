@@ -235,6 +235,15 @@ public class FortuneController {
 
         log.info("📆 간지달력 조회 요청: {}년 {}월", year, month);
 
+        if (year < 1900 || year > 2100) {
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("연도는 1900-2100 사이여야 합니다.", "INVALID_YEAR"));
+        }
+        if (month < 1 || month > 12) {
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("월은 1-12 사이여야 합니다.", "INVALID_MONTH"));
+        }
+
         try {
             GanjiCalendarResponse result = ganjiCalendarService.generateMonthlyCalendar(year, month);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));

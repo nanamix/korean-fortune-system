@@ -1,5 +1,7 @@
 package com.fortune.config;
+import com.fortune.ai.AiFortuneProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 /**
@@ -12,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 2025-06-24
  */
 @Configuration
+@EnableConfigurationProperties(AiFortuneProperties.class)
 public class AIConfig {
     /**
      * 🔧 AI 서비스 상태 확인용 Bean

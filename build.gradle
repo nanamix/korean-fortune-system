@@ -1,12 +1,12 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.3'
+    id 'org.springframework.boot' version '4.0.6'
     id 'org.graalvm.buildtools.native' version '0.10.4'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.fortune'
-version = '2.6.0'
+version = findProperty('fortune.version') ?: '3.0.0-modernization'
 
 java {
     toolchain {
@@ -24,10 +24,6 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    set ('springAIVersion', "1.0.0-M3")
-}
-
 dependencies {
     // ✅ Spring Boot 기본 스타터
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -39,23 +35,10 @@ dependencies {
     // ✅ 데이터베이스 관련
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'com.h2database:h2'
-    // MySQL 커넥터는 필요시에만 추가 (버전 명시)
-    // runtimeOnly 'mysql:mysql-connector-j'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'org.postgresql:postgresql'
 
-//    // ✅ Spring AI 관련 (올바른 버전으로 수정)
-//    // Spring AI BOM 최신 안정 버전
-//    implementation platform('org.springframework.ai:spring-ai-bom:1.0.0')
-//    // Spring AI OpenAI Starter
-//    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
-//    // Netty 충돌 방지를 위해 필요 시 제외
-//    implementation('org.springframework.ai:spring-ai-openai-spring-boot-starter') {
-//        exclude group: 'io.netty', module: 'netty-all'
-//    }
-
-
-    // ✅ Spring AI 관련 (OPENAI API 사용) - 주석 처리
-    // implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+    // ✅ AI 연동은 Spring AI 의존성 대신 OpenAI-compatible 포트로 격리
 
     // ✅ OAuth2 (선택적)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
@@ -103,9 +86,10 @@ dependencies {
 
     // ✅ 테스트 의존성
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
+    testImplementation 'org.testcontainers:mysql:1.21.4'
 
     // ✅ 모니터링 및 추적 (OpenTelemetry / Micrometer Tracing)
     implementation 'io.micrometer:micrometer-registry-prometheus'
@@ -128,7 +112,7 @@ tasks.named('test') {
     // 테스트 결과 상세 출력
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
         showStandardStreams = false
     }
 
@@ -263,9 +247,6 @@ jar {
 bootJar {
     archiveFileName = 'korean-fortune-app.jar'
 
-    // 실행 가능한 JAR 생성
-    launchScript()
-
     // 빌드 정보 포함
     manifest {
         attributes(
@@ -323,7 +304,7 @@ tasks.register('runLocalJar') {
         println '📁 JAR 파일 위치: build/libs/korean-fortune-app.jar'
         println '🌐 애플리케이션 접속: http://localhost:8080'
         println '📊 Actuator: http://localhost:8080/actuator'
-        println '📚 API 문서: http://localhost:8080/swagger-ui.html'
+        println '📚 API 문서: http://localhost:8080/api/docs'
         println ''
         println '실행 명령어: java -jar build/libs/korean-fortune-app.jar'
         println '또는: java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev'
@@ -514,7 +495,7 @@ tasks.register('setupApiDocumentation') {
 }
 
 wrapper {
-    gradleVersion = '8.4'
+    gradleVersion = '9.4.1'
     distributionType = Wrapper.DistributionType.ALL
 }
 
@@ -554,10 +535,10 @@ println """
   ./gradlew addStaticResources   - 정적 리소스 파일 추가
 
 ⚠️  의존성 문제 해결:
-  - Spring AI 버전을 1.0.0-M3 으로 (스프링부트 3.5.3)
-  - Spring Release 저장소 제거 (Maven Central만 사용)
-  - Prometheus 버전 고정 (1.12.4)
-  - Netty 버전 충돌 해결
+  - Java 25 / Gradle 9.4.1 / Spring Boot 4.0.x 기준으로 전환
+  - Spring AI 의존성 대신 OpenAI-compatible 포트로 AI 격리
+  - Maven Central만 사용
+  - Prometheus/Micrometer 의존성은 Spring Boot BOM 기준 사용
   - Redis 의존성 제거 (필요시 별도 추가)
   - AI 기능은 선택적으로 활성화
 
