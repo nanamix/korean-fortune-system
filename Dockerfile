@@ -1,9 +1,9 @@
 # 🔮 한국형 만세력 운세 시스템 - Dockerfile
 # 멀티 스테이지 빌드를 사용하여 최적화된 프로덕션 이미지를 생성합니다.
-# Amazon Corretto 25 (Amazon Linux 2023 기반) 사용
+# Amazon Corretto 17 (Java LTS, Amazon Linux 2023 기반) 사용
 
 # ==================== 빌드 스테이지 ====================
-FROM amazoncorretto:25 AS builder
+FROM amazoncorretto:17 AS builder
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
@@ -39,7 +39,7 @@ RUN ls -la build/libs/ && \
     mv build/libs/*.jar build/libs/app.jar
 
 # ==================== 런타임 스테이지 ====================
-FROM amazoncorretto:25 AS runtime
+FROM amazoncorretto:17 AS runtime
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
@@ -69,7 +69,7 @@ COPY --from=builder --chown=fortune:fortune /build/build/libs/app.jar /app/app.j
 RUN mkdir -p /app/config /app/logs && \
     chown -R fortune:fortune /app/config /app/logs
 
-# JVM 최적화 설정 (Amazon Corretto JDK 25 최적화)
+# JVM 최적화 설정 (Amazon Corretto JDK 17 최적화)
 ENV JAVA_OPTS="-XX:+UseZGC \
                -XX:+UseContainerSupport \
                -XX:MaxRAMPercentage=75.0 \

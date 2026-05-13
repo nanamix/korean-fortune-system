@@ -10,13 +10,25 @@ version = findProperty('fortune.version') ?: '3.0.0-modernization'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
+    }
+    all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            if (details.requested.group == 'io.prometheus') {
+                details.useVersion '1.3.6'
+                details.because 'Pin prometheus client to version available in Maven Central'
+            }
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                details.useVersion '2.0.21'
+                details.because 'Pin kotlin stdlib to version available in Maven Central'
+            }
+        }
     }
 }
 
@@ -94,7 +106,8 @@ dependencies {
     // ✅ 모니터링 및 추적 (OpenTelemetry / Micrometer Tracing)
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-    runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
+    // OTLP exporter only needed when OTEL_EXPORTER_OTLP_ENDPOINT is configured
+    // runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 }
 
 tasks.named('test') {

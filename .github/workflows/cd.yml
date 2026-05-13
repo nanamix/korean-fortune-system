@@ -1,0 +1,172 @@
+# 🔮 한국형 만세력 운세 시스템 - CD 워크플로우
+# master 브랜치에 push될 때 Docker 이미지를 빌드하고
+# GitHub Container Registry(GHCR)에 게시합니다.
+
+name: CD
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '배포 환경 선택'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - dev
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up Amazon Corretto 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '25'
+          cache: 'gradle'
+
+      - name: 🔑 Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: 🔨 Build JAR
+        run: ./gradlew bootJar --no-daemon -x test
+
+      - name: 🔐 Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏷️ Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🏗️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          target: runtime
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.repository.updated_at }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+      - name: 🖨️ Print image digest
+        run: echo "Image digest ${{ steps.build.outputs.digest }}"
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/master'
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        if: ${{ vars.DEPLOY_HOST != '' }}
+        with:
+          host: ${{ vars.DEPLOY_HOST }}
+          username: ${{ vars.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ vars.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+
+            echo "🔐 Logging in to GitHub Container Registry..."
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "📥 Pulling latest image..."
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+            echo "🛑 Stopping existing containers..."
+            cd ${{ vars.DEPLOY_PATH || '/opt/korean-fortune' }}
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml down --remove-orphans || true
+
+            echo "🚀 Starting updated containers..."
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+
+            echo "⏳ Waiting for application to become healthy..."
+            HEALTH_URL="http://localhost:8080/actuator/health"
+            MAX_RETRIES=20
+            RETRY_INTERVAL=10
+            for i in $(seq 1 $MAX_RETRIES); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || true)
+              if [ "$STATUS" = "200" ]; then
+                echo "✅ Application is healthy (attempt $i/$MAX_RETRIES)"
+                break
+              fi
+              echo "⏳ Attempt $i/$MAX_RETRIES: status=$STATUS — retrying in ${RETRY_INTERVAL}s..."
+              sleep $RETRY_INTERVAL
+              if [ $i -eq $MAX_RETRIES ]; then
+                echo "❌ Health check failed after $MAX_RETRIES attempts"
+                docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml logs --tail=50 app
+                exit 1
+              fi
+            done
+
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml ps
+            echo "✅ Deployment complete!"
+
+      - name: 📢 Deployment skipped (no DEPLOY_HOST configured)
+        if: ${{ vars.DEPLOY_HOST == '' }}
+        run: |
+          echo "⚠️  DEPLOY_HOST variable is not set."
+          echo "Docker image has been built and pushed to GHCR successfully."
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          echo ""
+          echo "To enable automatic deployment, set the following GitHub repository variables:"
+          echo "  - DEPLOY_HOST: SSH hostname or IP of your server"
+          echo "  - DEPLOY_USER: SSH username (e.g. ubuntu, ec2-user)"
+          echo "  - DEPLOY_PORT: SSH port (default: 22)"
+          echo "  - DEPLOY_PATH: Deployment directory (default: /opt/korean-fortune)"
+          echo "  - APP_URL: Public URL of your application"
+          echo ""
+          echo "And the following secrets:"
+          echo "  - DEPLOY_SSH_KEY: SSH private key for server access"
+          echo "  - GHCR_PAT: GitHub Personal Access Token with read:packages scope (for docker login on the server)"

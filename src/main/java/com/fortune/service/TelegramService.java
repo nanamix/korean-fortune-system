@@ -11,10 +11,10 @@ import java.util.Map;
 @Slf4j
 @Service
 public class TelegramService {
-    @Value("${app.fortune.telegram.bot-token}")
+    @Value("${app.fortune.telegram.bot-token:}")
     private String botToken;
 
-    @Value("${app.fortune.telegram.chat-id}")
+    @Value("${app.fortune.telegram.chat-id:}")
     private String chatId;
 
     private final RestTemplate restTemplate = new RestTemplate();

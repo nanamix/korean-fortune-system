@@ -371,7 +371,7 @@ public class FortuneController {
     @GetMapping("/health")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> healthCheck() {
         log.info("🔍 시스템 상태 확인 요청");
-        return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("운세 시스템이 정상적으로 작동 중입니다."));
+        return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("운세 시스템이 정상적으로 동작 중입니다."));
     }
 
     /**
