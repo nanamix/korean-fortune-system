@@ -6,6 +6,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import com.fortune.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 /**
@@ -43,24 +45,24 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(errorMessage, "입력 검증 오류"));
     }
     /**
-     * 잘못된 HTTP 메서드 예외 처리 (405 Method Not Allowed)
-     */
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupportedException(
-            HttpRequestMethodNotSupportedException e) {
-        log.warn("지원하지 않는 HTTP 메서드: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(ApiResponse.error("지원하지 않는 HTTP 메서드입니다: " + e.getMethod(), "메서드 오류"));
-    }
-    /**
-     * JSON 파싱 오류 처리 (400 Bad Request)
+     * JSON 요청 본문 파싱 오류 처리
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException e) {
-        log.warn("JSON 파싱 오류: {}", e.getMessage());
+        log.warn("요청 본문 파싱 실패: {}", e.getMessage());
         return ResponseEntity.badRequest()
-                .body(ApiResponse.error("요청 데이터 형식이 올바르지 않습니다.", "파싱 오류"));
+                .body(ApiResponse.error("요청 본문 형식이 올바르지 않습니다.", "INVALID_REQUEST_BODY"));
+    }
+    /**
+     * 지원하지 않는 HTTP 메서드 처리
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException e) {
+        log.warn("지원하지 않는 HTTP 메서드: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error("지원하지 않는 HTTP 메서드입니다.", "METHOD_NOT_ALLOWED"));
     }
     /**
      * 정적 리소스 없음 예외 처리

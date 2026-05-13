@@ -24,6 +24,12 @@ app:
   fortune:
     ai:
       enabled: false # 테스트에서는 AI 비활성화
+      provider: fallback
+      model: gpt-5.4-mini
+      base-url: https://api.openai.com/v1
+      api-key: ""
+      timeout: 30s
+      fallback-enabled: true
     cache:
       enabled: false # 테스트에서는 캐시 비활성화
     security:
@@ -34,7 +40,7 @@ logging:
     com.fortune: WARN
     org.springframework.web: WARN
     org.hibernate.SQL: WARN
-    org.springframework.ai: ERROR
+    com.fortune.ai: ERROR
 
 # 테스트 환경에서 SpringDoc 비활성화 (성능 향상)
 springdoc:

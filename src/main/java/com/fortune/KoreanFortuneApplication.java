@@ -29,17 +29,18 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  *
  * <h3>기술 스택</h3>
  * <ul>
- *   <li>Java 17 (Eclipse Temurin)</li>
- *   <li>Spring Boot 3.4.x</li>
+ *   <li>Java 25 (Amazon Corretto)</li>
+ *   <li>Spring Boot 4.0.x</li>
  *   <li>Spring Data JPA</li>
  *   <li>Spring Security</li>
- *   <li>H2 / PostgreSQL Database</li>
- *   <li>Caffeine 캐시</li>
+ *   <li>OpenAI-compatible AI 연동</li>
+ *   <li>PostgreSQL / H2 Database</li>
+ *   <li>Caffeine Cache</li>
  *   <li>Docker &amp; Docker Compose</li>
  * </ul>
  *
  * @author 하진영
- * @version 2.6.0
+ * @version 3.0.0-modernization
  * @since 2025-06-24
  */
 @SpringBootApplication

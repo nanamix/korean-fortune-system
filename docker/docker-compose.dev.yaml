@@ -11,7 +11,7 @@ services:
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: true
       DB_USERNAME: fortune_user
       DB_PASSWORD: fortune_dev_2025!
-      AI_ENABLED: false
+      APP_FORTUNE_AI_ENABLED: false
       LOGGING_LEVEL_COM_FORTUNE: DEBUG
       TZ: Asia/Seoul
     volumes:

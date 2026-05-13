@@ -218,6 +218,14 @@ Apache License 2.0
 **🔮 한국형 만세력 운세 시스템** - 전통과 현대가 만나는 운세 서비스
 
 
+## 현재 기준
+
+- **JDK**: Java 25 (Amazon Corretto 기준)
+- **Spring**: Spring Boot 4.0.6
+- **Build**: Gradle 9.4.1 Wrapper
+- **AI**: Spring AI 의존성을 제거하고 OpenAI-compatible 포트 + 로컬 fallback 구조로 전환
+- **기본 정책**: AI는 기본 비활성화, `ai` 프로파일과 `OPENAI_API_KEY`가 있을 때만 외부 모델 호출
+
 ## ✨ 주요 기능
 
 - **📊 사주팔자 계산**: 전통 사주팔자 계산 및 분석
@@ -227,7 +235,7 @@ Apache License 2.0
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
 - **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
-- **🤖 AI 운세**: OpenAI 기반 AI 운세 해석
+- **🤖 AI 운세**: OpenAI-compatible API 기반 AI 운세 해석 및 로컬 fallback
 - **🔍 시스템 모니터링**: Spring Boot Actuator 기반 모니터링
 
 ## 🚀 빠른 시작
@@ -385,10 +393,20 @@ export TELEGRAM_CHAT_ID=your-telegram-chat-id
    ```
 
 ### AI 기능 설정
-AI 기능을 사용하려면 OpenAI API 키를 설정하세요:
+AI 기능은 기본적으로 꺼져 있습니다. 외부 모델 호출을 사용하려면 `ai` 프로파일과 API 키를 함께 설정하세요:
 
 ```bash
 export OPENAI_API_KEY=your-api-key
+./gradlew runWithAI
+```
+
+OpenAI-compatible 서버를 바꾸고 싶다면 다음 환경변수를 사용합니다:
+
+```bash
+export APP_FORTUNE_AI_PROVIDER=openai
+export APP_FORTUNE_AI_MODEL=gpt-5.4-mini
+export APP_FORTUNE_AI_BASE_URL=https://api.openai.com/v1
+export APP_FORTUNE_AI_TIMEOUT=30s
 ```
 
 ### 이메일 발송 설정
@@ -504,7 +522,7 @@ app:
 
 3. **Gradle Wrapper 업데이트**:
    ```bash
-   ./gradlew wrapper --gradle-version 8.4
+   ./gradlew wrapper --gradle-version 9.4.1 --distribution-type all
    ```
 
 ### SpringDoc 관련 문제
@@ -548,14 +566,14 @@ korean-fortune-system/
 ## 🛠️ 기술 스택
 
 ### Backend
-- **Framework**: Spring Boot 3.5.3
+- **Framework**: Spring Boot 4.0.6
 - **Language**: Java 25 (Amazon Corretto)
-- **Build Tool**: Gradle 8.12
+- **Build Tool**: Gradle 9.4.1
 - **Security**: Spring Security, JWT
-- **Database**: H2 (개발), PostgreSQL (운영)
+- **Database**: H2 (개발/테스트), MySQL (Docker/운영), PostgreSQL 드라이버 포함
 - **ORM**: Spring Data JPA
 - **Cache**: Caffeine
-- **AI**: Spring AI (OpenAI 연동)
+- **AI**: OpenAI-compatible API 포트, deterministic fallback
 
 ### Documentation & Testing
 - **API Documentation**: Spring REST Docs, 자체 API 문서화
@@ -567,6 +585,14 @@ korean-fortune-system/
 - **CI/CD**: Gradle 태스크 기반 자동화
 
 ## 🔄 최근 변경사항
+
+### v3.0.0-modernization (2026-05-07)
+- ✅ Java 25 환경에서 Gradle 9.4.1 Wrapper로 빌드 체계 전환
+- ✅ Spring Boot 4.0.6 업그레이드 및 Boot 4 패키지 변경 대응
+- ✅ Spring AI 의존성 제거, OpenAI-compatible AI 포트/Facade/fallback 구조 도입
+- ✅ AI 기능을 기본 비활성화하고 `ai` 프로파일에서만 외부 모델 호출
+- ✅ 컨트롤러 입력 검증과 전역 오류 응답 보강
+- ✅ 테스트 스위트와 실행 가능한 JAR 빌드 검증
 
 ### v2.6.0~1 (2025-07-06)
 - ✅ 개발 환경에서 이메일 발송 기능 활성화

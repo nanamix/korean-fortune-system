@@ -237,11 +237,11 @@ public class FortuneController {
 
         if (year < 1900 || year > 2100) {
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("유효하지 않은 연도입니다: " + year, "INVALID_YEAR"));
+                    .body(com.fortune.dto.ApiResponse.error("연도는 1900-2100 사이여야 합니다.", "INVALID_YEAR"));
         }
         if (month < 1 || month > 12) {
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("유효하지 않은 월입니다: " + month, "INVALID_MONTH"));
+                    .body(com.fortune.dto.ApiResponse.error("월은 1-12 사이여야 합니다.", "INVALID_MONTH"));
         }
 
         try {
