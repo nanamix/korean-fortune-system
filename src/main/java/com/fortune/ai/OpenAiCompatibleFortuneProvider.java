@@ -56,7 +56,7 @@ public class OpenAiCompatibleFortuneProvider implements AiProviderPort {
         if (!(choicesValue instanceof List<?> choices) || choices.isEmpty()) {
             return "";
         }
-        Object firstChoice = choices.getFirst();
+        Object firstChoice = choices.get(0);
         if (!(firstChoice instanceof Map<?, ?> choice)) {
             return "";
         }
