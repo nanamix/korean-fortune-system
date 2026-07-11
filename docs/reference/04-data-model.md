@@ -70,7 +70,9 @@
 
 ### 4.2.4 `TojeongGwaEntity` (`entity/TojeongGwaEntity.java`)
 
-토정비결 64괘 마스터. `@Table(name = "tojeong_gwa")`.
+토정비결 64괘 마스터 테이블. `@Table(name = "tojeong_gwa")`.
+
+> ⚠️ **레거시**: 현재 `TojeongBigyeolService`는 144괘(상8×중6×하3) 산식을 **코드 내에서 결정론적으로 계산**하며(DTO `com.fortune.dto.TojeongGwa`), 이 엔티티·`TojeongGwaRepository`·`data.sql`의 64괘 시드는 런타임 계산에 **사용되지 않는다**. 스키마·시드는 과거 구현의 잔재다.
 
 | 필드 | 컬럼 | 제약 |
 |------|------|------|

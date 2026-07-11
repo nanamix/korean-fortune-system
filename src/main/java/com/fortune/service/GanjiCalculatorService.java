@@ -206,7 +206,11 @@ public class GanjiCalculatorService {
         return STEMS[s] + BRANCHES[b];
     }
 
-    /** 월주 — lunar-java (해당일 정오 기준). */
+    /**
+     * 월주 — lunar-java (해당일 정오 기준).
+     * @param yearPillar 하위호환용 파라미터. 월간은 lunar-java 가 연간을 자체 산출하므로 <b>사용하지 않는다</b>.
+     */
+    @SuppressWarnings("unused")
     public String calculateMonthPillar(LocalDate date, String yearPillar) {
         return pillarKr(eightChar(date.atTime(12, 0)).getMonth());
     }

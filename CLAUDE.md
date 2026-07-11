@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-한국형 만세력 운세 시스템 — Spring Boot 4.0.x REST API 서비스로 사주팔자·오늘의 운세·토정비결(64괘)·별자리 운세·간지달력을 계산하고, 결과를 이메일/텔레그램으로 발송하며 선택적으로 AI 해석을 붙인다. 프론트엔드는 `src/main/resources/static/fortune-app.html` 단일 페이지.
+한국형 만세력 운세 시스템 — Spring Boot 4.0.x REST API 서비스로 사주팔자·오늘의 운세·토정비결(144괘)·별자리 운세·간지달력을 계산하고, 결과를 이메일/텔레그램으로 발송하며 선택적으로 AI 해석을 붙인다. 프론트엔드는 `src/main/resources/static/fortune-app.html` 단일 페이지.
 
 ## Build & Run
 

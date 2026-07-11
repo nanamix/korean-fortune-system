@@ -21,7 +21,7 @@ class TojeongBigyeolServiceTest {
 
     @BeforeEach
     void setUp() {
-        tojeongService = new TojeongBigyeolService();
+        tojeongService = new TojeongBigyeolService(new GanjiCalculatorService());
     }
 
     /**

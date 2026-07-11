@@ -17,8 +17,12 @@ import java.util.*;
 @Slf4j
 @Service
 public class SinsalService {
-    /** 간지 계산기(순수 계산 — 율리우스일 기반, Spring 불필요). */
-    private final GanjiCalculatorService ganji = new GanjiCalculatorService();
+    /** 간지 계산기 (Spring 빈 주입 — @Cacheable 등 프록시 유지). */
+    private final GanjiCalculatorService ganji;
+
+    public SinsalService(GanjiCalculatorService ganji) {
+        this.ganji = ganji;
+    }
 
     /**
      * 신살 설명 매핑

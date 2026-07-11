@@ -15,7 +15,7 @@
 |------|------|-------------|
 | 사주팔자 계산 | 4주(연·월·일·시) 간지 + 십신·지장간·12운성·대운 파생 | `GanjiCalculatorService` |
 | 오늘의 운세 / 일일 운세 | 사주 기반 일일 점수·카테고리(연애/직업/건강/재물)·조언 | `DailyFortuneService` |
-| 토정비결 | 64괘 기반 연간 운세 | `TojeongBigyeolService` |
+| 토정비결 | 144괘(상8×중6×하3) 기반 연간 운세 | `TojeongBigyeolService` |
 | 별자리 운세 | 서양 별자리 일일/월간 운세 | `ZodiacFortuneService` |
 | 간지달력 | 월별 간지 달력 + 길일/절기 (JSON API + HTML 뷰) | `GanjiCalendarService` |
 | 이메일 / 텔레그램 발송 | 계산 결과 알림 발송 | `EmailService`, `TelegramService` |

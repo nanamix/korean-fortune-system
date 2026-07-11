@@ -38,8 +38,12 @@ import java.util.*;
 @Service
 public class TojeongBigyeolService {
 
-    /** 간지 계산기(순수 계산 — 절기/율리우스일 기반, Spring 불필요). */
-    private final GanjiCalculatorService ganji = new GanjiCalculatorService();
+    /** 간지 계산기 (Spring 빈 주입 — @Cacheable 등 프록시 유지). */
+    private final GanjiCalculatorService ganji;
+
+    public TojeongBigyeolService(GanjiCalculatorService ganji) {
+        this.ganji = ganji;
+    }
 
     /** 천간 (0=갑 … 9=계). 순서수 = index+1. */
     private static final String[] STEMS = {"갑","을","병","정","무","기","경","신","임","계"};

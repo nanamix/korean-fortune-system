@@ -92,7 +92,7 @@ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml 
 | 사주팔자 발송 | POST | `/api/fortune/saju/calculate-and-send` | 계산 후 이메일/텔레그램 발송 |
 | 오늘의 운세 | POST | `/api/fortune/daily/today` | 오늘의 운세 |
 | 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 계산 후 발송 |
-| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 64괘 운세 |
+| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 144괘 운세 |
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 계산 후 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 계산 후 발송 |
@@ -245,7 +245,7 @@ Apache License 2.0
 
 - **📊 사주팔자 계산**: 전통 사주팔자 계산 및 분석
 - **📅 일일/월별 운세**: 개인별 맞춤 운세 제공
-- **📜 토정비결**: 64괘 기반 토정비결 운세
+- **📜 토정비결**: 144괘(상8×중6×하3) 기반 토정비결 운세
 - **⭐ 별자리 운세**: 서양 별자리 운세
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
@@ -332,7 +332,7 @@ open http://localhost:8080/api/docs/test
 | 사주팔자 발송 | POST | `/api/fortune/saju/calculate-and-send` | 사주팔자 계산 후 이메일/텔레그램 발송 |
 | 오늘의 운세 | POST | `/api/fortune/daily/today` | 오늘의 운세 |
 | 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 오늘의 운세 계산 후 이메일/텔레그램 발송 |
-| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 64괘 운세 |
+| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 144괘 운세 |
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 토정비결 계산 후 이메일/텔레그램 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 별자리 운세 계산 후 이메일/텔레그램 발송 |
