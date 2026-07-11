@@ -78,7 +78,7 @@ korean-fortune-system/
 ├── src/main/resources/
 │   ├── static/fortune-app.html   # 단일 페이지 프론트엔드
 │   ├── application*.yml           # 프로필별 설정
-│   └── data.sql / indexes.sql     # 토정비결 64괘 등 초기 데이터
+│   └── data.sql / indexes.sql     # 토정비결 64괘 레거시 시드(런타임 미사용) 등
 ├── database/         # schema.sql / init.sql / data.sql (MySQL 운영용)
 └── docs/             # 문서 (본 reference/ 포함)
 ```

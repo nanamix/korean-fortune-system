@@ -147,7 +147,8 @@ public class GanjiCalculatorService {
     /** 입력 → 양력 LocalDateTime (음력이면 한국 정합 변환). */
     private LocalDateTime toSolarDateTime(SajuRequest request) {
         LocalDate date = "LUNAR".equals(request.getCalendarType())
-                ? LunarSolarConverter.lunarToSolar(request.getBirthYear(), request.getBirthMonth(), request.getBirthDay(), false)
+                ? LunarSolarConverter.lunarToSolar(request.getBirthYear(), request.getBirthMonth(),
+                        request.getBirthDay(), Boolean.TRUE.equals(request.getLeapMonth()))
                 : LocalDate.of(request.getBirthYear(), request.getBirthMonth(), request.getBirthDay());
         return LocalDateTime.of(date, java.time.LocalTime.of(request.getBirthHour(), request.getBirthMinute()));
     }
@@ -206,13 +207,19 @@ public class GanjiCalculatorService {
         return STEMS[s] + BRANCHES[b];
     }
 
-    /**
-     * 월주 — lunar-java (해당일 정오 기준).
-     * @param yearPillar 하위호환용 파라미터. 월간은 lunar-java 가 연간을 자체 산출하므로 <b>사용하지 않는다</b>.
-     */
-    @SuppressWarnings("unused")
-    public String calculateMonthPillar(LocalDate date, String yearPillar) {
+    /** 월주 — lunar-java (해당일 정오 기준). */
+    public String calculateMonthPillar(LocalDate date) {
         return pillarKr(eightChar(date.atTime(12, 0)).getMonth());
+    }
+
+    /**
+     * 월주 (하위호환 오버로드). {@code yearPillar}는 소스 호환용으로만 유지되며 사용하지 않는다
+     * (월간은 lunar-java 가 연간을 자체 산출).
+     * @deprecated {@link #calculateMonthPillar(LocalDate)} 사용.
+     */
+    @Deprecated
+    public String calculateMonthPillar(LocalDate date, String yearPillar) {
+        return calculateMonthPillar(date);
     }
 
     /** 일주 — lunar-java (해당일 정오 기준, 자시 경계 회피). */

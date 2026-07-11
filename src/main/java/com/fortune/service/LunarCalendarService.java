@@ -38,7 +38,9 @@ public class LunarCalendarService {
         LunarSolarConverter.LunarInfo info = LunarSolarConverter.solarToLunar(solarDate);
         // 음력 연도는 양력 연도 근사(정월 이전이면 -1). 월/일/윤달은 정확.
         int lunarYear = solarDate.getYear();
-        if (solarDate.getMonthValue() == 1 || (solarDate.getMonthValue() == 2 && info.month() >= 11)) {
+        // 설날 이전(양력 1~2월이면서 음력 월이 11·12월)일 때만 전년으로 롤백.
+        // 양력 1월이라도 설날 이후면 이미 새 음력 연도이므로 롤백하지 않는다.
+        if (info.month() >= 11 && solarDate.getMonthValue() <= 2) {
             lunarYear -= 1;
         }
         return LunarDate.builder()

@@ -112,8 +112,7 @@ public class TojeongBigyeolService {
 
             /* 2. 간지: 태세(대상년) / 생월 월건 / 생일 일진 */
             int taeseoNum = ganjiNumber(ganji.calculateYearPillar(request.getTargetYear()));
-            String birthYearPillar = ganji.calculateYearPillar(request.getBirthYear());
-            int monthGeonNum = ganjiNumber(ganji.calculateMonthPillar(birth, birthYearPillar));
+            int monthGeonNum = ganjiNumber(ganji.calculateMonthPillar(birth));
             int iljinNum = ganjiNumber(ganji.calculateDayPillar(birth));
 
             /* 3. 음력 생일/생월 일수 */
@@ -239,11 +238,10 @@ public class TojeongBigyeolService {
     private List<MonthlyFortune> generateMonthlyFortune(int upper, int guaScore, int targetYear) {
         List<MonthlyFortune> monthlyList = new ArrayList<>();
         int upperElem = UPPER_ELEM[upper];
-        String targetYearPillar = ganji.calculateYearPillar(targetYear);
         for (int month = 1; month <= 12; month++) {
             /* 해당 월의 월지(절기 기준) 오행을 상괘 오행과 대조 */
             LocalDate rep = LocalDate.of(targetYear, month, 15);
-            String monthPillar = ganji.calculateMonthPillar(rep, targetYearPillar);
+            String monthPillar = ganji.calculateMonthPillar(rep);
             int monthElem = branchElement(monthPillar.substring(1, 2));
             int monthScore = clamp(guaScore + relationDelta(upperElem, monthElem));
             monthlyList.add(MonthlyFortune.builder()

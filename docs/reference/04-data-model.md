@@ -134,12 +134,12 @@
 | `database/schema.sql` | MySQL 운영 | `users`, `user_roles`, `saju_data`, `security_audit_log`, `sinsal_master`, `tojeong_gwa`, 운세 캐시 테이블 (`schema.sql:8-120`) |
 | `database/init.sql` | MySQL 초기화 | DB/계정 생성 + 간이 `users`/`saju_data`/`fortune_history` (스키마가 `schema.sql`과 다른 축소판) |
 | `database/data.sql` | MySQL | 신살 마스터 + 토정괘 3개 샘플 |
-| `src/main/resources/data.sql` | H2/JPA 초기 로드 | `tojeong_gwa` 및 월별·계절별·사용자 기록 테이블 생성 + **토정 64괘 전체 MERGE** (`data.sql:1-187`) |
+| `src/main/resources/data.sql` | H2/JPA 초기 로드 | `tojeong_gwa` 및 월별·계절별·사용자 기록 테이블 생성 + **토정 64괘 전체 MERGE (레거시, 런타임 미사용)** (`data.sql:1-187`) |
 | `src/main/resources/indexes.sql` | 운영 인덱스 | 토정 관련 인덱스 (별도 실행) |
 
 주의사항:
 - 엔티티(`User`/`SajuData` 등)의 실제 컬럼은 JPA `ddl-auto` 로 생성되며, `database/*.sql` 은 MySQL 운영 참고용입니다. `database/init.sql` 의 `saju_data` 는 엔티티와 컬럼 구성이 다른 옛 버전이므로 실제 스키마 기준은 엔티티 + `database/schema.sql` 입니다.
-- `src/main/resources/data.sql` 은 H2에서 토정 64괘 데이터를 채우는 실질 시드입니다(`MERGE INTO tojeong_gwa`). `overall_score` 구간별로 상상괘~하괘가 분류됩니다.
+- `src/main/resources/data.sql` 은 H2에서 `tojeong_gwa`에 64괘 데이터를 채우는 시드이나, 현재 `TojeongBigyeolService`(144괘 산식)는 이 테이블을 읽지 않으므로 **레거시**입니다(런타임 미사용).
 
 ## 4.5 ERD
 
