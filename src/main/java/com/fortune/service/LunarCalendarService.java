@@ -2,61 +2,50 @@ package com.fortune.service;
 import com.fortune.dto.LunarDate;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 /**
- * 음력 변환 서비스
- * 
+ * 음력 변환 서비스 — 천문 기반 {@link LunarSolarConverter}(Time4J KoreanCalendar) 위임.
+ *
  * @author 하진영
- * @version 2.5.0
+ * @version 3.0.0
  * @since 2025-06-24
  */
 @Service
 public class LunarCalendarService {
     /**
-     * 음력-양력 변환 테이블 (1900-2100년, 실제로는 더 정밀한 천문 계산 필요)
-     */
-    private static final Map<String, LocalDate> LUNAR_TO_SOLAR_MAP = new HashMap<>();
-    static {
-        /* 주요 음력-양력 변환 데이터 (예시 - 실제로는 천문대 데이터 사용) */
-        /* 1981년 음력 3월 20일 = 양력 1981년 3월 20일 */
-        LUNAR_TO_SOLAR_MAP.put("1981-02-15", LocalDate.of(1981, 3, 20));
-        /* 더 많은 변환 데이터가 필요함... */
-    }
-    /**
-     * 음력을 양력으로 변환
+     * 음력을 양력으로 변환 (평달 기준).
      * @param lunarYear 음력 년도
      * @param lunarMonth 음력 월
      * @param lunarDay 음력 일
      * @return 양력 날짜
      */
     public LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay) {
-        String lunarKey = String.format("%d-%02d-%02d", lunarYear, lunarMonth, lunarDay);
-        /* 실제로는 복잡한 천문학 계산이 필요하지만, 여기서는 간단한 근사치 사용 */
-        if (LUNAR_TO_SOLAR_MAP.containsKey(lunarKey)) {
-            return LUNAR_TO_SOLAR_MAP.get(lunarKey);
-        }
-        /* 근사 변환 (음력이 양력보다 약 19-50일 늦음) */
-        LocalDate approximateSolar = LocalDate.of(lunarYear, lunarMonth, lunarDay).plusDays(30);
-        /* 월이 넘어가는 경우 처리 */
-        if (approximateSolar.getMonthValue() > 12) {
-            approximateSolar = LocalDate.of(lunarYear + 1, 1, approximateSolar.getDayOfMonth());
-        }
-        return approximateSolar;
+        return LunarSolarConverter.lunarToSolar(lunarYear, lunarMonth, lunarDay, false);
     }
+
     /**
-     * 양력을 음력으로 변환 (근사치)
+     * 음력을 양력으로 변환 (윤달 지정).
+     */
+    public LocalDate convertLunarToSolar(int lunarYear, int lunarMonth, int lunarDay, boolean leapMonth) {
+        return LunarSolarConverter.lunarToSolar(lunarYear, lunarMonth, lunarDay, leapMonth);
+    }
+
+    /**
+     * 양력을 음력으로 변환.
      * @param solarDate 양력 날짜
      * @return 음력 날짜
      */
     public LunarDate convertSolarToLunar(LocalDate solarDate) {
-        /* 역변환 로직 (실제로는 천문 계산 필요) */
-        LocalDate approximateLunar = solarDate.minusDays(30);
+        LunarSolarConverter.LunarInfo info = LunarSolarConverter.solarToLunar(solarDate);
+        // 음력 연도는 양력 연도 근사(정월 이전이면 -1). 월/일/윤달은 정확.
+        int lunarYear = solarDate.getYear();
+        if (solarDate.getMonthValue() == 1 || (solarDate.getMonthValue() == 2 && info.month() >= 11)) {
+            lunarYear -= 1;
+        }
         return LunarDate.builder()
-                .year(approximateLunar.getYear())
-                .month(approximateLunar.getMonthValue())
-                .day(approximateLunar.getDayOfMonth())
-                .isLeapMonth(false)
+                .year(lunarYear)
+                .month(info.month())
+                .day(info.day())
+                .isLeapMonth(info.leapMonth())
                 .build();
     }
 }

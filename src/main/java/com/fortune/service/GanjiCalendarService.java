@@ -178,10 +178,9 @@ public class GanjiCalendarService {
      * @return 운세 점수 (0-100)
      */
     private int calculateDayFortuneScore(LocalDate date, String dayPillar) {
-        /* 날짜별 랜덤 시드 생성 */
-        Random random = new Random(date.toEpochDay());
-        /* 기본 점수 (30-80점) */
-        int baseScore = 30 + random.nextInt(51);
+        /* 기본 점수: 그날 일진 간지의 천간·지지 오행 관계로 결정 (결정론적, 난수 제거).
+         * 지지가 천간을 생하면 후하고, 천간이 지지를 극하거나 지지가 천간을 극하면 박하다. */
+        int baseScore = baseScoreFromPillar(dayPillar);
         /* 날짜별 보정 */
         int dayOfMonth = date.getDayOfMonth();
         /* 초하루, 보름 */
@@ -225,6 +224,36 @@ public class GanjiCalendarService {
             case "임", "계" -> baseScore += 2; // 수의 기운
         }
         return Math.max(0, Math.min(100, baseScore));
+    }
+    /**
+     * 일진 간지의 오행 균형 기반 기본 점수 (난수 대체, 결정론적).
+     *
+     * @param dayPillar 일진 간지 (예: "갑자")
+     * @return 기본 점수
+     */
+    private int baseScoreFromPillar(String dayPillar) {
+        int stemElem = stemElement(dayPillar.substring(0, 1));
+        int branchElem = branchElement(dayPillar.substring(1, 2));
+        if (stemElem == branchElem) return 62;          // 간지동기(비화)
+        if ((branchElem + 1) % 5 == stemElem) return 68; // 지지생천간(생조)
+        if ((stemElem + 1) % 5 == branchElem) return 55; // 천간생지지(설기)
+        if ((stemElem + 2) % 5 == branchElem) return 52; // 천간극지지
+        return 45;                                       // 지지극천간
+    }
+    /** 천간 → 오행 index (0목 1화 2토 3금 4수). */
+    private int stemElement(String stem) {
+        return switch (stem) {
+            case "갑", "을" -> 0; case "병", "정" -> 1; case "무", "기" -> 2;
+            case "경", "신" -> 3; case "임", "계" -> 4; default -> 2;
+        };
+    }
+    /** 지지 → 오행 index (0목 1화 2토 3금 4수). */
+    private int branchElement(String branch) {
+        return switch (branch) {
+            case "인", "묘" -> 0; case "사", "오" -> 1;
+            case "진", "술", "축", "미" -> 2; case "신", "유" -> 3;
+            case "해", "자" -> 4; default -> 2;
+        };
     }
     /**
      * 길일 여부 판단

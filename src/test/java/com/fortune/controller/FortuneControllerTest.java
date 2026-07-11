@@ -122,9 +122,11 @@ class FortuneControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.yearPillar").value("계유"))
-                .andExpect(jsonPath("$.data.dayMaster").value("병"))
-                .andExpect(jsonPath("$.data.wuxingAnalysis.balance").value(86));
+                // 정통 만세력 정답: 1990-05-15 → 연 경오(庚午)·일간 경(庚辰일)
+                .andExpect(jsonPath("$.data.yearPillar").value("경오"))
+                .andExpect(jsonPath("$.data.monthPillar").value("신사"))
+                .andExpect(jsonPath("$.data.dayPillar").value("경진"))
+                .andExpect(jsonPath("$.data.dayMaster").value("경"));
     }
 
     /**
@@ -252,8 +254,9 @@ class FortuneControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.gwaName").value("천풍구"))
-                .andExpect(jsonPath("$.data.overallScore").value(39));
+                // 정통 144괘 산식(상8×중6×하3) 결정론적 결과: 1990-05-15생 → 2025년 상4중1하3 = 진괘
+                .andExpect(jsonPath("$.data.gwaName").value("진괘 [413]"))
+                .andExpect(jsonPath("$.data.overallScore").value(72));
     }
 
     /**
