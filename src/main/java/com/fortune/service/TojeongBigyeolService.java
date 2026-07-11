@@ -3,57 +3,135 @@ import com.fortune.dto.TojeongGwa;
 import com.fortune.dto.TojeongRequest;
 import com.fortune.dto.TojeongResult;
 import com.fortune.dto.MonthlyFortune;
+import com.fortune.service.LunarSolarConverter.LunarInfo;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 /**
- * 토정비결 서비스
+ * 토정비결 서비스 (정통 144괘 산식)
  *
- * <p>전통 토정비결 64괘를 계산하고 해석하는 서비스입니다.</p>
+ * <p>정통 토정비결은 <b>상괘(8) × 중괘(6) × 하괘(3) = 144괘</b>로 구성된다.
+ * 세 자리(상·중·하)를 결정론적으로 산출하고, 팔괘(건태리진손감간곤)·중괘·하괘의 의미
+ * 상수를 조합해 괘사·점수·행운달/주의달을 규칙 기반으로 생성한다. Random 은 사용하지 않는다.</p>
+ *
+ * <p><b>산식</b> (같은 입력 → 항상 같은 결과)
+ * <ul>
+ *   <li>상괘 = (그 해 세는나이 + 태세수) mod 8, 0이면 8</li>
+ *   <li>중괘 = (음력 생월 일수[평달29/큰달30] + 월건수) mod 6, 0이면 6</li>
+ *   <li>하괘 = (음력 생일 + 일진수) mod 3, 0이면 3</li>
+ * </ul>
+ * 태세수 = 그 해(대상년) 간지의 수, 월건수 = 생월 간지의 수, 일진수 = 생일 간지의 수.
+ * 간지→수 조견표는 유파별로 상이하므로, 여기서는 널리 쓰이는
+ * <b>천간 순서수(갑1…계10) + 지지 순서수(자1…해12)</b> 합을 채택한다(코드 상수).
+ * 간지는 {@link GanjiCalculatorService}(절기 기반 정통 계산)로 구한다.</p>
+ *
+ * <p>괘사(summary/detailedFortune)는 완역 고전 원문이 아니라 상·중·하 의미 상수를 조합한
+ * <b>대표 해석(알고리즘 생성)</b>이다.</p>
  *
  * @author 하진영
- * @version 2.5.0
+ * @version 3.0.0
  * @since 2025-06-24
  */
 @Slf4j
 @Service
 public class TojeongBigyeolService {
-    /**
-     * 토정비결 괘 정보 맵
-     */
-    private static final Map<Integer, TojeongGwa> TOJEONG_GWA_MAP = new HashMap<>();
-    /**
-     * 정적 초기화 메서드들
-     */
-    static {
-        initializeAllGwa();
+
+    /** 간지 계산기 (Spring 빈 주입 — @Cacheable 등 프록시 유지). */
+    private final GanjiCalculatorService ganji;
+
+    public TojeongBigyeolService(GanjiCalculatorService ganji) {
+        this.ganji = ganji;
     }
+
+    /** 천간 (0=갑 … 9=계). 순서수 = index+1. */
+    private static final String[] STEMS = {"갑","을","병","정","무","기","경","신","임","계"};
+    /** 지지 (0=자 … 11=해). 순서수 = index+1. */
+    private static final String[] BRANCHES = {"자","축","인","묘","진","사","오","미","신","유","술","해"};
+
+    /** 상괘(팔괘) 이름. index 1..8 = 건태리진손감간곤 (선천 팔괘 순서). */
+    private static final String[] UPPER_NAME = {"", "건", "태", "리", "진", "손", "감", "간", "곤"};
+    /** 상괘 기호(유니코드 팔괘). */
+    private static final String[] UPPER_SYMBOL = {"", "☰", "☱", "☲", "☳", "☴", "☵", "☶", "☷"};
+    /** 상괘 오행 (0목 1화 2토 3금 4수). 건금 태금 리화 진목 손목 감수 간토 곤토. */
+    private static final int[] UPPER_ELEM = {-1, 3, 3, 1, 0, 0, 4, 2, 2};
+    /** 상괘 기본 점수. */
+    private static final int[] UPPER_BASE = {0, 85, 75, 78, 72, 68, 55, 62, 66};
+    /** 상괘 대표 해석(핵심 구절). */
+    private static final String[] UPPER_MEANING = {"",
+            "강건한 하늘의 기운이 크게 형통하니 뜻을 세워 나아갈 때입니다.",
+            "연못처럼 기쁨과 소통이 따르나 구설과 말조심이 필요합니다.",
+            "밝은 불의 기운으로 명예와 문서가 빛나는 해입니다.",
+            "우레처럼 움직임이 크니 놀라움 뒤에 성취가 따릅니다.",
+            "바람처럼 두루 통하나 흔들림 속에 중심을 지켜야 합니다.",
+            "험한 물을 건너는 형국이니 인내로 위기를 넘겨야 합니다.",
+            "산처럼 멈추어 때를 기다리면 안정 속에 발전이 있습니다.",
+            "대지처럼 포용하고 순응하면 결실이 따르는 해입니다."};
+
+    /** 중괘(1..6) 전개 뉘앙스. */
+    private static final String[] MIDDLE_NUANCE = {"",
+            "기초가 굳건하여",
+            "귀인의 도움을 받아",
+            "노력한 만큼",
+            "변화의 흐름 속에서",
+            "구설과 시비를 다스리면",
+            "때를 기다린 끝에"};
+    /** 중괘 점수 가감. */
+    private static final int[] MIDDLE_DELTA = {0, 6, 8, 2, 0, -4, -2};
+
+    /** 하괘(1..3) 결말 구절. */
+    private static final String[] LOWER_CLAUSE = {"",
+            "매사가 순조롭게 풀립니다.",
+            "굴곡은 있으나 무난히 넘깁니다.",
+            "조심하면 큰 탈은 없습니다."};
+    /** 하괘 점수 가감. */
+    private static final int[] LOWER_DELTA = {0, 6, 0, -6};
+
+    /** 상괘 오행별 행운달(자기 계절 + 생조하는 달). */
+    private static final String[] LUCKY_BY_ELEM =
+            {"2,3,11,12월", "5,6,2,3월", "5,6,9월", "8,9,4,10월", "11,12,8,9월"};
+    /** 상괘 오행별 주의달(극을 받는 달). */
+    private static final String[] CAUTION_BY_ELEM =
+            {"8,9월", "11,12월", "2,3월", "5,6월", "4,10월"};
+
     /**
      * 토정비결 계산 메인 메서드
-     * SQL: SELECT * FROM tojeong_gwa;
-     * @param request 토정비결 요청 정보
+     *
+     * @param request 토정비결 요청 정보(생년월일 + 대상년)
      * @return 토정비결 결과
      */
     public TojeongResult calculateTojeong(TojeongRequest request) {
         log.info("📜 토정비결 계산 시작: {}년생 -> {}년 운세",
                 request.getBirthYear(), request.getTargetYear());
         try {
-            /* 1. 기본 계산 */
-            int sum = request.getBirthYear() + request.getBirthMonth() +
-                    request.getBirthDay() + request.getTargetYear();
-            /* 2. 토정비결 공식 적용 */
-            int step1 = (sum % 60) + 1;
-            int step2 = (step1 * 20) % 100;
-            int step3 = (step2 + request.getBirthMonth()) % 64;
-            if (step3 == 0) step3 = 64;
-            /* 3. 해당 괘 조회 */
-            TojeongGwa gwa = TOJEONG_GWA_MAP.get(step3);
-            if (gwa == null) {
-                throw new RuntimeException("토정비결 괘를 찾을 수 없습니다: " + step3);
-            }
-            /* 4. 월별 운세 생성 */
-            List<MonthlyFortune> monthlyFortune = generateMonthlyFortune(gwa, request.getTargetYear());
-            /* 5. 결과 생성 */
+            /* 1. 생일(양력 입력 가정) — 존재하지 않는 일자는 그 달 말일로 클램프 */
+            int clampedDay = Math.min(request.getBirthDay(),
+                    YearMonth.of(request.getBirthYear(), request.getBirthMonth()).lengthOfMonth());
+            LocalDate birth = LocalDate.of(request.getBirthYear(), request.getBirthMonth(), clampedDay);
+
+            /* 2. 간지: 태세(대상년) / 생월 월건 / 생일 일진 */
+            int taeseoNum = ganjiNumber(ganji.calculateYearPillar(request.getTargetYear()));
+            int monthGeonNum = ganjiNumber(ganji.calculateMonthPillar(birth));
+            int iljinNum = ganjiNumber(ganji.calculateDayPillar(birth));
+
+            /* 3. 음력 생일/생월 일수 */
+            LunarInfo lunar = LunarSolarConverter.solarToLunar(birth);
+            int lunarMonthDays = lunarMonthLength(birth, lunar.day());
+
+            /* 4. 상·중·하 괘 (결정론적) */
+            int age = request.getTargetYear() - request.getBirthYear() + 1; // 세는나이
+            int upper = mod(age + taeseoNum, 8);
+            int middle = mod(lunarMonthDays + monthGeonNum, 6);
+            int lower = mod(lunar.day() + iljinNum, 3);
+
+            /* 5. 괘 구성 */
+            TojeongGwa gwa = buildGwa(upper, middle, lower);
+
+            /* 6. 월별 운세 (월지 오행 vs 상괘 오행 상생상극) */
+            List<MonthlyFortune> monthlyFortune =
+                    generateMonthlyFortune(upper, gwa.getScore(), request.getTargetYear());
+
             TojeongResult result = TojeongResult.builder()
                     .targetYear(request.getTargetYear())
                     .gwaNumber(gwa.getNumber())
@@ -67,23 +145,72 @@ public class TojeongBigyeolService {
                     .cautionMonths(gwa.getCautionMonths())
                     .monthlyFortune(monthlyFortune)
                     .build();
-            log.info("✅ 토정비결 계산 완료: {} 괘 ({}점)", gwa.getName(), gwa.getScore());
+            log.info("✅ 토정비결 계산 완료: {} ({}점, 상{}중{}하{})",
+                    gwa.getName(), gwa.getScore(), upper, middle, lower);
             return result;
         } catch (Exception e) {
             log.error("❌ 토정비결 계산 중 오류가 발생했습니다: {}", e.getMessage(), e);
             throw new RuntimeException("토정비결 계산 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
     }
+
+    /** 상·중·하 괘 코드 → 144괘 정보 조립. */
+    private TojeongGwa buildGwa(int upper, int middle, int lower) {
+        int number = (upper - 1) * 18 + (middle - 1) * 3 + lower; // 1..144
+        int elem = UPPER_ELEM[upper];
+        int score = clamp(UPPER_BASE[upper] + MIDDLE_DELTA[middle] + LOWER_DELTA[lower]);
+        String name = UPPER_NAME[upper] + "괘 [" + upper + middle + lower + "]";
+        String summary = UPPER_NAME[upper] + "괘: " + UPPER_MEANING[upper];
+        String detailed = UPPER_MEANING[upper] + " " + MIDDLE_NUANCE[middle] + " "
+                + LOWER_CLAUSE[lower] + " (상·중·하 괘 의미를 조합한 대표 해석)";
+        return TojeongGwa.builder()
+                .number(number)
+                .name(name)
+                .symbol(UPPER_SYMBOL[upper])
+                .summary(summary)
+                .detailedFortune(detailed)
+                .score(score)
+                .luckyMonths(LUCKY_BY_ELEM[elem])
+                .cautionMonths(CAUTION_BY_ELEM[elem])
+                .build();
+    }
+
+    /** 간지(2글자) → 수 = 천간 순서수(1..10) + 지지 순서수(1..12). */
+    private int ganjiNumber(String pillar) {
+        return (indexOf(STEMS, pillar.substring(0, 1)) + 1)
+                + (indexOf(BRANCHES, pillar.substring(1, 2)) + 1);
+    }
+
+    /** x mod n, 0이면 n (1..n). */
+    private int mod(int x, int n) {
+        int r = Math.floorMod(x, n);
+        return r == 0 ? n : r;
+    }
+
+    /** 음력 월의 대소(평달 29 / 큰달 30) 판정. */
+    private int lunarMonthLength(LocalDate solarOfLunarDay, int lunarDay) {
+        LocalDate firstOfMonth = solarOfLunarDay.minusDays(lunarDay - 1L); // 그 음력월 1일의 양력
+        // 1일 + 29일이 다음달 1일이면 작은달(29), 아니면 큰달(30)
+        return LunarSolarConverter.solarToLunar(firstOfMonth.plusDays(29)).day() == 1 ? 29 : 30;
+    }
+
+    private int indexOf(String[] arr, String v) {
+        for (int i = 0; i < arr.length; i++) if (arr[i].equals(v)) return i;
+        return 0;
+    }
+
+    private int clamp(int s) {
+        return Math.max(0, Math.min(100, s));
+    }
+
     /**
      * 점수대별 조언 생성
-     * SQL: SELECT * FROM tojeong_gwa;
+     *
      * @param gwa 토정비결 괘
      * @return 점수대별 조언
      */
     private String generateAdvice(TojeongGwa gwa) {
-        /* 점수대별 조언 생성 */
-        String advice = "올해 당신의 운세는 '" + gwa.getName() + "'괘입니다. ";
-        /* 점수대별 조언 생성 */
+        String advice = "올해 당신의 운세는 '" + gwa.getName() + "'입니다. ";
         if (gwa.getScore() >= 90) {
             advice += "매우 좋은 운세입니다. 적극적으로 행동하세요.";
         } else if (gwa.getScore() >= 80) {
@@ -99,56 +226,75 @@ public class TojeongBigyeolService {
         }
         return advice;
     }
+
     /**
-     * 월별 상세 운세 생성
-     * SQL: SELECT * FROM tojeong_gwa;
-     * @param gwa 토정비결 괘
-     * @param targetYear 년도
+     * 월별 상세 운세 생성 (월지 오행 vs 상괘 오행 상생상극 — 결정론적)
+     *
+     * @param upper 상괘 index(1..8)
+     * @param guaScore 괘 종합 점수
+     * @param targetYear 대상년
      * @return 월별 상세 운세 리스트
      */
-    private List<MonthlyFortune> generateMonthlyFortune(TojeongGwa gwa, int targetYear) {
-        /* 월별 상세 운세 생성 */
+    private List<MonthlyFortune> generateMonthlyFortune(int upper, int guaScore, int targetYear) {
         List<MonthlyFortune> monthlyList = new ArrayList<>();
-        /* 랜덤 객체 생성 */
-        Random random = new Random(gwa.getNumber() + targetYear);
-        /* 월별 상세 운세 생성 */
+        int upperElem = UPPER_ELEM[upper];
         for (int month = 1; month <= 12; month++) {
-            int baseScore = gwa.getScore();
-            int variation = random.nextInt(21) - 10;
-            int monthScore = Math.max(0, Math.min(100, baseScore + variation));
-            /* 월별 키워드 생성 */
-            List<String> keywords = generateMonthlyKeywords(month, monthScore);
-            /* 월별 메시지 생성 */
-            String message = generateMonthlyMessage(month, monthScore);
-            /* 월별 상세 운세 생성 */
-            MonthlyFortune monthlyFortune = MonthlyFortune.builder()
+            /* 해당 월의 월지(절기 기준) 오행을 상괘 오행과 대조 */
+            LocalDate rep = LocalDate.of(targetYear, month, 15);
+            String monthPillar = ganji.calculateMonthPillar(rep);
+            int monthElem = branchElement(monthPillar.substring(1, 2));
+            int monthScore = clamp(guaScore + relationDelta(upperElem, monthElem));
+            monthlyList.add(MonthlyFortune.builder()
                     .month(month)
                     .score(monthScore)
-                    .message(message)
-                    .keywords(keywords)
-                    .build();
-            monthlyList.add(monthlyFortune);
+                    .message(generateMonthlyMessage(month, monthScore))
+                    .keywords(generateMonthlyKeywords(month, monthScore))
+                    .build());
         }
         return monthlyList;
     }
+
+    /** 상괘 오행(u)과 월 오행(m)의 관계 점수 가감. */
+    private int relationDelta(int u, int m) {
+        if (u == m) return 8;              // 비화
+        if (gen(m) == u) return 12;        // 월이 상괘를 생 (생입)
+        if (gen(u) == m) return -6;        // 상괘가 월을 생 (설기)
+        if (overcome(m) == u) return -12;  // 월이 상괘를 극 (극입)
+        return 4;                          // 상괘가 월을 극 (재/극출)
+    }
+
+    /** 오행 상생: 목0→화1→토2→금3→수4→목0. */
+    private int gen(int e) { return (e + 1) % 5; }
+    /** 오행 상극: 목0→토2→수4→화1→금3→목0. */
+    private int overcome(int e) { return (e + 2) % 5; }
+
+    /** 지지 → 오행 index (0목 1화 2토 3금 4수). */
+    private int branchElement(String branch) {
+        return switch (branch) {
+            case "인", "묘" -> 0;
+            case "사", "오" -> 1;
+            case "진", "술", "축", "미" -> 2;
+            case "신", "유" -> 3;
+            case "해", "자" -> 4;
+            default -> 2;
+        };
+    }
+
     /**
-     * 월별 키워드 생성
-     * SQL: SELECT * FROM tojeong_gwa;
-     * 메서드는 각 월별 운세에 맞는 키워드를 생성합니다.
+     * 월별 키워드 생성 (계절 + 점수대)
+     *
      * @param month 월 번호 (1-12)
      * @param score 월별 점수 (0-100)
      * @return 월별 키워드 리스트
      */
     private List<String> generateMonthlyKeywords(int month, int score) {
         List<String> keywords = new ArrayList<>();
-        /* 계절별 기본 키워드 */
         switch ((month - 1) / 3) {
             case 0 -> keywords.addAll(Arrays.asList("새시작", "희망", "성장")); // 봄
             case 1 -> keywords.addAll(Arrays.asList("활동", "에너지", "도전")); // 여름
             case 2 -> keywords.addAll(Arrays.asList("수확", "성과", "감사")); // 가을
             case 3 -> keywords.addAll(Arrays.asList("정리", "휴식", "계획")); // 겨울
         }
-        /* 점수별 추가 키워드 */
         if (score >= 80) {
             keywords.addAll(Arrays.asList("행운", "성공", "기회"));
         } else if (score >= 60) {
@@ -160,18 +306,16 @@ public class TojeongBigyeolService {
         }
         return keywords;
     }
+
     /**
      * 월별 메시지 생성
-     * SQL: SELECT * FROM tojeong_gwa;
-     * 이 메서드는 각 월별 운세 메시지를 생성합니다.
+     *
      * @param month 월 번호 (1-12)
      * @param score 월별 점수 (0-100)
-     *@return 월별 운세 메시지
+     * @return 월별 운세 메시지
      */
     private String generateMonthlyMessage(int month, int score) {
-        /* 월별 메시지 생성 */
         String monthName = month + "월";
-        /* 월별 메시지 생성 */
         if (score >= 80) {
             return monthName + "은 매우 좋은 운세입니다. 새로운 도전을 해보세요.";
         } else if (score >= 60) {
@@ -181,122 +325,5 @@ public class TojeongBigyeolService {
         } else {
             return monthName + "은 조심스러운 운세입니다. 신중하게 행동하세요.";
         }
-    }
-    /**
-     * 모든 괘 정보 초기화
-     * SQL: SELECT * FROM tojeong_gwa;
-     * 이 메서드는 토정비결의 모든 괘 정보를 초기화합니다.
-     * @param
-     * @return void
-     */
-    private static void initializeAllGwa() {
-        /* 1-16번 괘 */
-        TOJEONG_GWA_MAP.put(1, createGwa(1, "건위천", "☰☰", "창조와 리더십의 해",
-                "강건하고 창조적인 기운이 넘치는 해입니다. 새로운 일을 시작하기에 매우 좋은 시기입니다.",
-                85, "1,6,11월", "3,9월"));
-        /* 2번 괘 생성 */
-        TOJEONG_GWA_MAP.put(2, createGwa(2, "곤위지", "☷☷", "포용과 인내의 해",
-                "인내심을 갖고 기다리는 것이 중요한 해입니다. 서두르지 말고 차근차근 준비하세요.",
-                65, "2,7,12월", "4,10월"));
-        /* 3번 괘 생성 */
-        TOJEONG_GWA_MAP.put(3, createGwa(3, "수뢰둔", "☵☳", "어려움 속의 성장",
-                "초기에는 어려움이 있지만 점차 상황이 좋아질 것입니다. 포기하지 마세요.",
-                55, "5,8월", "1,6월"));
-        /* 4번 괘 생성 */
-        TOJEONG_GWA_MAP.put(4, createGwa(4, "산수몽", "☶☵", "학습과 깨달음의 해",
-                "배움과 깨달음을 통해 성장하는 해입니다. 겸손한 마음으로 임하세요.",
-                70, "3,9월", "7,11월"));
-        /* 5번 괘 생성 */
-        TOJEONG_GWA_MAP.put(5, createGwa(5, "수천수", "☵☰", "기다림의 지혜",
-                "때를 기다리는 지혜가 필요한 해입니다. 급하게 서두르지 마세요.",
-                60, "4,10월", "2,8월"));
-        /* 6-10번 괘 */
-        TOJEONG_GWA_MAP.put(6, createGwa(6, "천수송", "☰☵", "갈등과 해결",
-                "갈등이 있을 수 있지만 지혜롭게 해결할 수 있는 해입니다.",
-                50, "6,12월", "3,9월"));
-        /* 7번 괘 생성 */
-        TOJEONG_GWA_MAP.put(7, createGwa(7, "지수사", "☷☵", "조직과 협력",
-                "많은 사람들과 협력하여 큰 일을 이룰 수 있는 해입니다.",
-                75, "1,7월", "4,10월"));
-        /* 8번 괘 생성 */
-        TOJEONG_GWA_MAP.put(8, createGwa(8, "수지비", "☵☷", "화합과 단결",
-                "주변 사람들과의 화합이 중요한 해입니다. 서로 도우며 나아가세요.",
-                80, "2,8월", "5,11월"));
-        /* 9번 괘 생성 */
-        TOJEONG_GWA_MAP.put(9, createGwa(9, "풍천소축", "☴☰", "작은 성과의 축적",
-                "작은 것부터 차근차근 쌓아가는 것이 중요한 해입니다.",
-                65, "3,9월", "6,12월"));
-        /* 10번 괘 생성 */
-        TOJEONG_GWA_MAP.put(10, createGwa(10, "천택리", "☰☱", "예의와 도리",
-                "예의와 도리를 지키며 행동하면 좋은 결과가 있을 것입니다.",
-                70, "4,10월", "1,7월"));
-        /* 11-20번 괘 (간략화) */
-        for (int i = 11; i <= 20; i++) {
-            TOJEONG_GWA_MAP.put(i, createDefaultGwa(i));
-        }
-        /* 21-64번 괘도 유사하게 초기화 (간략화) */
-        for (int i = 21; i <= 64; i++) {
-            TOJEONG_GWA_MAP.put(i, createDefaultGwa(i));
-        }
-    }
-    /**
-     * 기본 괘 생성
-     * SQL: SELECT * FROM tojeong_gwa;
-     * 이 메서드는 기본 괘 정보를 생성합니다.
-     * @param number 괘 번호
-     * @return TojeongGwa 객체
-     */
-    private static TojeongGwa createDefaultGwa(int number) {
-        String[] gwaNames = {
-                "지천태", "천지비", "천화동인", "화천대유", "지산겸", "뢰지예", "택지수", "풍지관", "화뢰서합",
-                "산지박", "지뢰복", "천뢰무망", "산천대축", "지산이", "택뢰수", "산택손", "택풍대과", "감위수",
-                "이위화", "산택손", "뢰화풍", "산화비", "지풍승", "택천쾌", "천풍구", "산지박", "뢰지예",
-                "대과", "감위수", "이위화", "택산함", "뢰풍항", "천산둔", "뢰천대장", "화지진", "지화명이",
-                "풍화가인", "화택규", "수산건", "뢰수해", "산풍고", "풍산점", "뢰택귀매", "택천쾌", "천풍구",
-                "택지취", "지풍승", "수풍정", "풍수환", "택산함", "뢰풍항", "산화비", "뢰화풍", "산택손",
-                "손위풍", "택뢰수", "뢰산소과", "감위수", "산택손", "중뢰진", "산뢰이", "풍택중부", "뢰화풍",
-                "화택규", "풍화가인", "택화혁", "화풍정", "뢰산소과", "산지박"
-        };
-        /* 괘 이름 생성 */
-        String name = (number <= gwaNames.length) ? gwaNames[number - 1] : "미정의괘" + number;
-        /* 랜덤 객체 생성 */
-        Random random = new Random(number);
-        return TojeongGwa.builder()
-                .number(number)
-                .name(name)
-                .symbol(String.valueOf(random.nextInt(10) + 1))
-                .summary(random.nextInt(10) + 1 + "년의 성장을 기록한 괘입니다.")
-                .detailedFortune(random.nextInt(10) + 1 + "년의 성장을 기록한 괘입니다.")
-                .score(random.nextInt(100) + 1)
-                .luckyMonths("1,2,3,4,5,6,7,8,9,10,11,12")
-                .cautionMonths("1,3,5,7,8,10,12")
-                .build();
-    }
-    /**
-     * 상세 괘 생성
-     * SQL: SELECT * FROM tojeong_gwa;
-     * 이 메서드는 각 괘의 상세 정보를 생성합니다.
-     * @param number 괘 번호
-     * @param name 괘 이름
-     * @param symbol 괘 기호
-     * @param summary 괘 요약
-     * @param detailedFortune 괘 상세 운세
-     * @param score 괘 점수
-     * @param luckyMonths 행운의 달
-     * @param cautionMonths 주의해야 할 달
-     * @return TojeongGwa 객체
-     */
-    private static TojeongGwa createGwa(int number, String name, String symbol, String summary,
-                                        String detailedFortune, int score, String luckyMonths, String cautionMonths) {
-        return TojeongGwa.builder()
-                .number(number)
-                .name(name)
-                .symbol(symbol)
-                .summary(summary)
-                .detailedFortune(detailedFortune)
-                .score(score)
-                .luckyMonths(luckyMonths)
-                .cautionMonths(cautionMonths)
-                .build();
     }
 } // END TojeongBigyeolService

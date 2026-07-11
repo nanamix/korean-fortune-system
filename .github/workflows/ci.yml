@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  JAVA_VERSION: '25'
+  JAVA_VERSION: '21'
   APP_VERSION: '2.6.0'
 
 jobs:

@@ -21,7 +21,7 @@ class TojeongBigyeolServiceTest {
 
     @BeforeEach
     void setUp() {
-        tojeongService = new TojeongBigyeolService();
+        tojeongService = new TojeongBigyeolService(new GanjiCalculatorService());
     }
 
     /**
@@ -52,7 +52,8 @@ class TojeongBigyeolServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(2025, result.getTargetYear());
-        assertTrue(result.getGwaNumber() >= 1 && result.getGwaNumber() <= 64);
+        // 정통 토정비결 = 144괘 (상8 × 중6 × 하3)
+        assertTrue(result.getGwaNumber() >= 1 && result.getGwaNumber() <= 144);
         assertNotNull(result.getGwaName());
         assertNotNull(result.getAdvice());
         assertTrue(result.getOverallScore() >= 0 && result.getOverallScore() <= 100);
@@ -84,9 +85,13 @@ class TojeongBigyeolServiceTest {
         TojeongResult result1 = tojeongService.calculateTojeong(request);
         TojeongResult result2 = tojeongService.calculateTojeong(request);
 
-        // 결과가 일관되어야 함
+        // 결과가 일관되어야 함 (결정론성: 같은 입력 = 같은 출력)
         assertEquals(result1.getGwaNumber(), result2.getGwaNumber());
         assertEquals(result1.getGwaName(), result2.getGwaName());
         assertEquals(result1.getOverallScore(), result2.getOverallScore());
+        // 월별 운세까지 완전 결정론적이어야 함
+        assertEquals(result1.getMonthlyFortune().get(0).getScore(),
+                result2.getMonthlyFortune().get(0).getScore());
+        assertEquals(result1.getLuckyMonths(), result2.getLuckyMonths());
     }
 }

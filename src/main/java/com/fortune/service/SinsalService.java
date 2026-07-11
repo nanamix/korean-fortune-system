@@ -17,24 +17,49 @@ import java.util.*;
 @Slf4j
 @Service
 public class SinsalService {
-    /**
-     * 천간별 길신 매핑
-     */
-    private static final Map<String, List<String>> LUCKY_SINSALS = new HashMap<>();
-    /**
-     * 천간별 흉신 매핑
-     */
-    private static final Map<String, List<String>> UNLUCKY_SINSALS = new HashMap<>();
+    /** 간지 계산기 (Spring 빈 주입 — @Cacheable 등 프록시 유지). */
+    private final GanjiCalculatorService ganji;
+
+    public SinsalService(GanjiCalculatorService ganji) {
+        this.ganji = ganji;
+    }
+
     /**
      * 신살 설명 매핑
      */
     private static final Map<String, String> SINSAL_DESCRIPTIONS = new HashMap<>();
+
+    /* ── 지지 삼합국 기반 신살 조견표 ────────────────────────────────
+     * 삼합국 index: 0=신자진(水), 1=해묘미(木), 2=인오술(火), 3=사유축(金).
+     * 일지(또는 년지)의 삼합국으로 해당 신살의 성립 지지를 결정한다.
+     * (통용되는 신살 정위 조견표) */
+    private static final String[] DOHWA   = {"유", "자", "묘", "오"}; // 도화(년살)
+    private static final String[] YEOKMA  = {"인", "사", "신", "해"}; // 역마
+    private static final String[] HWAGAE  = {"진", "미", "술", "축"}; // 화개
+    private static final String[] GEOPSAL = {"사", "신", "해", "인"}; // 겁살
+    private static final String[] MANGSIN = {"해", "인", "사", "신"}; // 망신
+    private static final String[] JAESAL  = {"오", "유", "자", "묘"}; // 재살(수옥살)
+
+    /* ── 일간(천간) 기반 신살 조견표 ─────────────────────────────── */
+    /** 천을귀인: 일간 → 성립 지지 2개. (갑무경-축미 / 을기-자신 / 병정-해유 / 임계-사묘 / 신-인오) */
+    private static final Map<String, String[]> CHEONEUL = Map.ofEntries(
+            Map.entry("갑", new String[]{"축", "미"}), Map.entry("무", new String[]{"축", "미"}),
+            Map.entry("경", new String[]{"축", "미"}), Map.entry("을", new String[]{"자", "신"}),
+            Map.entry("기", new String[]{"자", "신"}), Map.entry("병", new String[]{"해", "유"}),
+            Map.entry("정", new String[]{"해", "유"}), Map.entry("임", new String[]{"사", "묘"}),
+            Map.entry("계", new String[]{"사", "묘"}), Map.entry("신", new String[]{"인", "오"})
+    );
+    /** 문창귀인: 일간 → 성립 지지. */
+    private static final Map<String, String> MUNCHANG = Map.ofEntries(
+            Map.entry("갑", "사"), Map.entry("을", "오"), Map.entry("병", "신"),
+            Map.entry("정", "유"), Map.entry("무", "신"), Map.entry("기", "유"),
+            Map.entry("경", "해"), Map.entry("신", "자"), Map.entry("임", "인"), Map.entry("계", "묘")
+    );
+
     /**
      * 정적 초기화 메서드들
      */
     static {
-        initializeLuckySinsals();
-        initializeUnluckySinsals();
         initializeSinsalDescriptions();
     }
     /**
@@ -45,42 +70,35 @@ public class SinsalService {
      * @return 신살 정보 리스트
      */
     public List<SinsalInfo> calculateDailySinsals(LocalDate targetDate, SajuResult saju) {
-        /* 신살 정보 리스트 생성 */
+        /* 신살은 사주 일간(천간)·일지(지지)를 기준으로, 해당일 일진의 지지가
+         * 조견표상 성립 지지와 일치할 때 성립한다. 근거 없는 해시 판정은 제거. */
         List<SinsalInfo> sinsals = new ArrayList<>();
-        /* 예외 처리 */
         try {
-            String dayMaster = saju.getDayMaster();
-            /* 1. 일간 기반 길신 계산 */
-            List<String> luckySinsalNames = LUCKY_SINSALS.getOrDefault(dayMaster, new ArrayList<>());
-            /* 길신 계산 */
-            for (String sinsalName : luckySinsalNames) {
-                /* 신살 활성화 여부 확인 */
-                if (isActiveSinsal(sinsalName, targetDate, saju)) {
-                    /* 신살 정보 추가 */
-                    sinsals.add(new SinsalInfo(
-                            sinsalName,
-                            SINSAL_DESCRIPTIONS.getOrDefault(sinsalName, sinsalName + " 신살"),
-                            true,
-                            calculateInfluence(sinsalName, true)
-                    ));
+            String dayStem = saju.getDayMaster();
+            String dayBranch = (saju.getDayPillar() != null && saju.getDayPillar().length() >= 2)
+                    ? saju.getDayPillar().substring(1, 2) : null;
+            String targetBranch = ganji.calculateDayPillar(targetDate).substring(1, 2);
+
+            /* 1. 지지 삼합국 기반 신살 (일지 기준) */
+            if (dayBranch != null) {
+                int g = branchGroup(dayBranch);
+                if (g >= 0) {
+                    addIf(sinsals, "역마", true, 12, targetBranch, YEOKMA[g]);
+                    addIf(sinsals, "화개", true, 10, targetBranch, HWAGAE[g]);
+                    addIf(sinsals, "도화", false, 12, targetBranch, DOHWA[g]);
+                    addIf(sinsals, "겁살", false, 12, targetBranch, GEOPSAL[g]);
+                    addIf(sinsals, "망신", false, 10, targetBranch, MANGSIN[g]);
+                    addIf(sinsals, "재살", false, 11, targetBranch, JAESAL[g]);
                 }
             }
-            /* 2. 일간 기반 흉신 계산 */
-            List<String> unluckySinsalNames = UNLUCKY_SINSALS.getOrDefault(dayMaster, new ArrayList<>());
-            /* 흉신 계산 */
-            for (String sinsalName : unluckySinsalNames) {
-                /* 신살 활성화 여부 확인 */
-                if (isActiveSinsal(sinsalName, targetDate, saju)) {
-                    /* 신살 정보 추가 */
-                    sinsals.add(new SinsalInfo(
-                            sinsalName,
-                            SINSAL_DESCRIPTIONS.getOrDefault(sinsalName, sinsalName + " 신살"),
-                            false,
-                            calculateInfluence(sinsalName, false)
-                    ));
-                }
+            /* 2. 일간(천간) 기반 길신 */
+            String[] cheoneul = CHEONEUL.get(dayStem);
+            if (cheoneul != null) {
+                addIf(sinsals, "천을귀인", true, 18, targetBranch, cheoneul);
             }
-            /* 3. 특수 신살 계산 (날짜 기반) */
+            addIf(sinsals, "문창귀인", true, 15, targetBranch, MUNCHANG.get(dayStem));
+
+            /* 3. 특수 신살 계산 (날짜 기반, 결정론적) */
             addDateBasedSinsals(sinsals, targetDate);
             log.info("✅ 신살 계산 완료: {} 개 발견", sinsals.size());
             return sinsals;
@@ -90,36 +108,33 @@ public class SinsalService {
         }
     }
     /**
-     * 신살 활성화 여부 확인
-     * SQL: SELECT * FROM sinsals WHERE name = ? AND date = ?;
-     * @param sinsalName 신살 이름
-     * @param targetDate 날짜
-     * @param saju 사주 결과
-     * @return 신살 활성화 여부
+     * 일지의 삼합국 index 반환. 0=신자진 1=해묘미 2=인오술 3=사유축, 미매칭 -1.
      */
-    private boolean isActiveSinsal(String sinsalName, LocalDate targetDate, SajuResult saju) {
-        /* 간단한 활성화 로직 (실제로는 더 복잡한 계산 필요) */
-        int dayOfYear = targetDate.getDayOfYear();
-        /* 해시 계산 */
-        int hash = (sinsalName.hashCode() + saju.getDayMaster().hashCode()) % 100;
-        /* 대략 1/3 확률로 활성화 */
-        return (dayOfYear + hash) % 3 == 0;
+    private int branchGroup(String branch) {
+        return switch (branch) {
+            case "신", "자", "진" -> 0;
+            case "해", "묘", "미" -> 1;
+            case "인", "오", "술" -> 2;
+            case "사", "유", "축" -> 3;
+            default -> -1;
+        };
     }
     /**
-     * 신살 영향도 계산
-     * SQL: SELECT * FROM sinsals WHERE name = ? AND is_lucky = ?;
-     * @param sinsalName 신살 이름
-     * @param isLucky 길신 여부
-     * @return 신살 영향도
+     * 대상일 지지가 성립 지지 중 하나면 신살 추가.
+     * @param targets 가변 성립 지지 목록(1개 이상), null 이면 미추가
      */
-    private int calculateInfluence(String sinsalName, boolean isLucky) {
-        /* 기본 영향도 */
-        int baseInfluence = sinsalName.length() * 2;
-        /* 길신 여부에 따라 영향도 조정 */
-        if (isLucky) {
-            return Math.min(20, baseInfluence + 5);
-        } else {
-            return Math.max(1, baseInfluence);
+    private void addIf(List<SinsalInfo> sinsals, String name, boolean lucky, int influence,
+                       String targetBranch, String... targets) {
+        if (targets == null || targetBranch == null) return;
+        for (String t : targets) {
+            if (targetBranch.equals(t)) {
+                sinsals.add(new SinsalInfo(
+                        name,
+                        SINSAL_DESCRIPTIONS.getOrDefault(name, name + " 신살"),
+                        lucky,
+                        influence));
+                return;
+            }
         }
     }
     /**
@@ -145,44 +160,6 @@ public class SinsalService {
             case FRIDAY -> sinsals.add(new SinsalInfo("금요복신", "금요일의 복된 기운", true, 10));
             default -> {} // 다른 요일은 특별한 신살 없음
         }
-    }
-    /**
-     * 길신 초기화
-     * SQL: SELECT * FROM sinsals WHERE is_lucky = true;
-     * @param LUCKY_SINSALS 길신 매핑
-     * @param UNLUCKY_SINSALS 흉신 매핑
-     * @param SINSAL_DESCRIPTIONS 신살 설명 매핑
-     */
-    private static void initializeLuckySinsals() {
-        LUCKY_SINSALS.put("갑", Arrays.asList("천을귀인", "월덕합", "복성귀인"));
-        LUCKY_SINSALS.put("을", Arrays.asList("천을귀인", "문창귀인", "학당"));
-        LUCKY_SINSALS.put("병", Arrays.asList("천을귀인", "금여", "옥당"));
-        LUCKY_SINSALS.put("정", Arrays.asList("천을귀인", "홍란", "함지"));
-        LUCKY_SINSALS.put("무", Arrays.asList("천을귀인", "국인", "건록"));
-        LUCKY_SINSALS.put("기", Arrays.asList("천을귀인", "태극", "화개"));
-        LUCKY_SINSALS.put("경", Arrays.asList("천을귀인", "학당", "진신"));
-        LUCKY_SINSALS.put("신", Arrays.asList("천을귀인", "문창", "역마"));
-        LUCKY_SINSALS.put("임", Arrays.asList("천을귀인", "천의", "천덕"));
-        LUCKY_SINSALS.put("계", Arrays.asList("천을귀인", "괴강", "양인"));
-    }
-    /**
-     * 흉신 초기화
-     * SQL: SELECT * FROM sinsals WHERE is_lucky = false;
-     * @param LUCKY_SINSALS 길신 매핑
-     * @param UNLUCKY_SINSALS 흉신 매핑
-     * @param SINSAL_DESCRIPTIONS 신살 설명 매핑
-     */
-    private static void initializeUnluckySinsals() {
-        UNLUCKY_SINSALS.put("갑", Arrays.asList("겁살", "망신", "재살"));
-        UNLUCKY_SINSALS.put("을", Arrays.asList("겫인", "고신", "혈인"));
-        UNLUCKY_SINSALS.put("병", Arrays.asList("백호", "상문", "육해"));
-        UNLUCKY_SINSALS.put("정", Arrays.asList("현침", "구신", "조신"));
-        UNLUCKY_SINSALS.put("무", Arrays.asList("토귀", "월형", "일파"));
-        UNLUCKY_SINSALS.put("기", Arrays.asList("고란", "재앙", "삼형"));
-        UNLUCKY_SINSALS.put("경", Arrays.asList("백호", "금신", "철마"));
-        UNLUCKY_SINSALS.put("신", Arrays.asList("현침", "도화", "음차"));
-        UNLUCKY_SINSALS.put("임", Arrays.asList("천라", "지망", "원진"));
-        UNLUCKY_SINSALS.put("계", Arrays.asList("고신", "혈광", "삼재"));
     }
     /**
      * 신살 설명 초기화

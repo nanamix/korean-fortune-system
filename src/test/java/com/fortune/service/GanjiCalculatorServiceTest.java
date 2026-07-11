@@ -52,19 +52,25 @@ class GanjiCalculatorServiceTest {
         // When
         SajuResult result = ganjiCalculatorService.calculateSaju(request);
 
-        // Then
+        // Then — 정통 만세력 정답(척척사주): 년 신유(辛酉)·월 신묘(辛卯)·일 정유(丁酉)·시 신축(辛丑)
         assertNotNull(result);
-        // 1981년 3월 20일의 실제 연주는 "갑자"임
-        assertEquals("갑자", result.getYearPillar());
-        assertNotNull(result.getMonthPillar());
-        assertNotNull(result.getDayPillar());
-        assertNotNull(result.getTimePillar());
-        assertNotNull(result.getDayMaster());
+        assertEquals("신유", result.getYearPillar(), "연주(입춘 기준) = 辛酉");
+        assertEquals("신묘", result.getMonthPillar(), "월주(경칩=卯월, 오호둔) = 辛卯");
+        assertEquals("정유", result.getDayPillar(), "일주(율리우스일 60갑자) = 丁酉");
+        assertEquals("신축", result.getTimePillar(), "시주(오서둔, 丑시) = 辛丑");
+        assertEquals("정", result.getDayMaster(), "일간 = 丁");
+
+        // 대운: 음남(辛=음간, 남자) → 역행, 대운수 5, 첫 대운 경인(庚寅)
+        assertFalse(result.isDaeunForward(), "음남 → 대운 역행");
+        assertEquals(5, result.getDaeunNumber(), "대운수 5");
+        assertEquals("경인", result.getDaeun().get(0).getGanji(), "첫 대운 庚寅");
+
+        // 십신/12운성 파생 검증 (연주 辛=편재, 일지 酉=장생)
+        assertEquals("편재", result.getYearDetail().getStemSipsin(), "辛(년간)=편재");
+        assertEquals("장생", result.getDayDetail().getTwelveStage(), "丁일간 酉=장생");
 
         System.out.println("계산 결과: " + result.getFormattedSaju());
-        System.out.println("계산 결과(요약): " + result.getFortuneSummary());
-        System.out.println("연주: " + result.getYearPillar());
-        System.out.println("일간: " + result.getDayMaster());
+        System.out.println("일간: " + result.getDayMaster() + " / 대운수: " + result.getDaeunNumber());
     }
 
     /**

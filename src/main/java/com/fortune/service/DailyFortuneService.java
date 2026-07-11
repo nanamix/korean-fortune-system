@@ -50,6 +50,24 @@ public class DailyFortuneService {
      */
     private static final Map<String, Integer> BASE_FORTUNE_SCORES = new HashMap<>();
     /**
+     * 십신별 분야 가중 [연애, 직장, 건강, 재물].
+     * 재성→재물·연애, 관성→직장, 인성→건강/문서, 식상→활동/건강, 비겁→탈재.
+     * 통용되는 십신-십성 성정을 근거로 한 결정론적 가중치(대표값).
+     */
+    private static final Map<String, int[]> SIPSIN_WEIGHTS = Map.ofEntries(
+            Map.entry("비견", new int[]{ 0, -3,  5, -5}),
+            Map.entry("겁재", new int[]{-3, -3,  3, -8}),
+            Map.entry("식신", new int[]{ 5,  2,  8,  5}),
+            Map.entry("상관", new int[]{ 6, -5,  3,  4}),
+            Map.entry("편재", new int[]{ 8,  5, -3, 12}),
+            Map.entry("정재", new int[]{ 6,  5, -3, 14}),
+            Map.entry("편관", new int[]{ 3, 10, -8, -3}),
+            Map.entry("정관", new int[]{ 6, 14, -5,  2}),
+            Map.entry("편인", new int[]{-3,  4,  8, -4}),
+            Map.entry("정인", new int[]{-2,  6, 12, -3})
+    );
+    private static final int[] NEUTRAL_WEIGHT = {0, 0, 0, 0};
+    /**
      * 초기화 메서드
      * - 오행 색상 매핑, 길방위 매핑, 일간별 기본 운세 점수를 초기화합니다.
      */
@@ -237,18 +255,26 @@ public class DailyFortuneService {
      * @return 분야별 운세 결과
      */
     private FortuneByCategory calculateCategoryFortune(SajuResult saju, String dayPillar, int totalScore) {
-        /* 랜덤 시드 설정 */
-        Random random = new Random(dayPillar.hashCode() + saju.getDayMaster().hashCode());
-        /* 기본 점수에 변동 추가 (15점) */
-        int baseVariation = 15;
-        /* 분야별 운세 점수 계산 */
-        int loveScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
-        /* 직장 운세 점수 계산 */
-        int careerScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
-        /* 건강 운세 점수 계산 */
-        int healthScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
-        /* 재물 운세 점수 계산 */
-        int wealthScore = Math.max(0, Math.min(100, totalScore + random.nextInt(baseVariation) - baseVariation/2));
+        /* 오늘 일진 간지와 사주 일간의 십신 관계로 분야별 점수를 결정론적으로 산출.
+         * 천간 십신은 전체 가중, 지지 본기 십신은 절반 가중. 십신별 분야 가중은 SIPSIN_WEIGHTS 참고. */
+        String dayMaster = saju.getDayMaster();
+        String todayStem = dayPillar.substring(0, 1);
+        String todayBranch = dayPillar.substring(1, 2);
+        int[] stemW = weightOf(ganjiCalculatorService.sipsinOf(dayMaster, todayStem));
+        int[] branchW = weightOf(ganjiCalculatorService.branchMainSipsin(dayMaster, todayBranch));
+        /* [연애, 직장, 건강, 재물] */
+        int loveScore   = Math.max(0, Math.min(100, totalScore + stemW[0] + branchW[0] / 2));
+        int careerScore = Math.max(0, Math.min(100, totalScore + stemW[1] + branchW[1] / 2));
+        int healthScore = Math.max(0, Math.min(100, totalScore + stemW[2] + branchW[2] / 2));
+        int wealthScore = Math.max(0, Math.min(100, totalScore + stemW[3] + branchW[3] / 2));
+        return buildCategory(loveScore, careerScore, healthScore, wealthScore);
+    }
+    /** 십신 이름 → 분야 가중치 (null·미정의는 중립). 불변맵 null 키 조회 회피. */
+    private int[] weightOf(String sipsin) {
+        int[] w = sipsin == null ? null : SIPSIN_WEIGHTS.get(sipsin);
+        return w != null ? w : NEUTRAL_WEIGHT;
+    }
+    private FortuneByCategory buildCategory(int loveScore, int careerScore, int healthScore, int wealthScore) {
         return FortuneByCategory.builder()
                 .loveScore(loveScore)
                 .loveMessage(generateCategoryMessage("연애", loveScore))

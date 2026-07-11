@@ -2,11 +2,24 @@
 
 전통 사주팔자와 토정비결을 AI와 함께 제공하는 한국형 운세 시스템입니다.
 
+## 📖 문서
+
+개발자·사용자 가이드는 [`docs/reference/`](docs/reference/README.md)에 정리되어 있습니다.
+
+| 문서 | 내용 |
+|------|------|
+| [설치 가이드](docs/reference/08-installation-guide.md) | JDK 21 설치·빌드·실행·트러블슈팅 |
+| [사용자 가이드](docs/reference/09-user-guide.md) | 웹 UI로 사주·운세·토정비결 사용법 |
+| [아키텍처](docs/reference/02-architecture.md) | 레이어 구조·요청 흐름·컴포넌트 |
+| [사주 계산 방법론](docs/reference/03-saju-calculation-methodology.md) | 4주·십신·대운 산출 알고리즘과 검증 |
+| [API 레퍼런스](docs/reference/05-api-reference.md) | REST 엔드포인트 전수 |
+| [전체 문서 인덱스](docs/reference/README.md) | 01~12 목록 |
+
 ## ✨ 주요 기능
 
-- **🔮 사주팔자 계산**: 전통 사주팔자 계산 및 오행 분석
+- **🔮 사주팔자 계산**: 전통 사주팔자 계산 및 오행 분석 (십신·지장간·12운성·대운 포함)
 - **📅 오늘의 운세**: 생년월일 기반 맞춤 일일 운세
-- **📜 토정비결**: 64괘 기반 연간 토정비결 운세
+- **📜 토정비결**: 144괘(상8×중6×하3) 기반 연간 토정비결 운세
 - **⭐ 별자리 운세**: 서양 별자리 운세
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
@@ -79,7 +92,7 @@ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml 
 | 사주팔자 발송 | POST | `/api/fortune/saju/calculate-and-send` | 계산 후 이메일/텔레그램 발송 |
 | 오늘의 운세 | POST | `/api/fortune/daily/today` | 오늘의 운세 |
 | 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 계산 후 발송 |
-| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 64괘 운세 |
+| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 144괘 운세 |
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 계산 후 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 계산 후 발송 |
@@ -142,13 +155,15 @@ MAIL_PASSWORD=app_password
 
 | 분류 | 기술 |
 |------|------|
-| **Framework** | Spring Boot 3.4.5 |
-| **Language** | Java 17 (Amazon Corretto) |
-| **Build** | Gradle 8.12 |
+| **Framework** | Spring Boot 4.0.6 |
+| **Language** | Java 21 (Amazon Corretto) |
+| **Build** | Gradle 9.4.1 |
 | **Security** | Spring Security, JWT |
 | **Database** | H2 (개발), MySQL 8.0 (운영) |
 | **ORM** | Spring Data JPA |
 | **Cache** | Caffeine |
+| **사주 엔진** | lunar-java (cn.6tail:lunar) |
+| **음양력(한국)** | Time4J KoreanCalendar |
 | **AI** | Spring AI (OpenAI) |
 | **Monitoring** | Spring Boot Actuator, Prometheus, Grafana |
 | **Container** | Docker, Docker Compose |
@@ -220,7 +235,7 @@ Apache License 2.0
 
 ## 현재 기준
 
-- **JDK**: Java 25 (Amazon Corretto 기준)
+- **JDK**: Java 21 (Amazon Corretto 기준)
 - **Spring**: Spring Boot 4.0.6
 - **Build**: Gradle 9.4.1 Wrapper
 - **AI**: Spring AI 의존성을 제거하고 OpenAI-compatible 포트 + 로컬 fallback 구조로 전환
@@ -230,7 +245,7 @@ Apache License 2.0
 
 - **📊 사주팔자 계산**: 전통 사주팔자 계산 및 분석
 - **📅 일일/월별 운세**: 개인별 맞춤 운세 제공
-- **📜 토정비결**: 64괘 기반 토정비결 운세
+- **📜 토정비결**: 144괘(상8×중6×하3) 기반 토정비결 운세
 - **⭐ 별자리 운세**: 서양 별자리 운세
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
@@ -317,7 +332,7 @@ open http://localhost:8080/api/docs/test
 | 사주팔자 발송 | POST | `/api/fortune/saju/calculate-and-send` | 사주팔자 계산 후 이메일/텔레그램 발송 |
 | 오늘의 운세 | POST | `/api/fortune/daily/today` | 오늘의 운세 |
 | 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 오늘의 운세 계산 후 이메일/텔레그램 발송 |
-| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 64괘 운세 |
+| 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 144괘 운세 |
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 토정비결 계산 후 이메일/텔레그램 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 별자리 운세 계산 후 이메일/텔레그램 발송 |
@@ -567,7 +582,7 @@ korean-fortune-system/
 
 ### Backend
 - **Framework**: Spring Boot 4.0.6
-- **Language**: Java 25 (Amazon Corretto)
+- **Language**: Java 21 (Amazon Corretto)
 - **Build Tool**: Gradle 9.4.1
 - **Security**: Spring Security, JWT
 - **Database**: H2 (개발/테스트), MySQL (Docker/운영), PostgreSQL 드라이버 포함
@@ -587,7 +602,7 @@ korean-fortune-system/
 ## 🔄 최근 변경사항
 
 ### v3.0.0-modernization (2026-05-07)
-- ✅ Java 25 환경에서 Gradle 9.4.1 Wrapper로 빌드 체계 전환
+- ✅ Java 21 환경에서 Gradle 9.4.1 Wrapper로 빌드 체계 전환
 - ✅ Spring Boot 4.0.6 업그레이드 및 Boot 4 패키지 변경 대응
 - ✅ Spring AI 의존성 제거, OpenAI-compatible AI 포트/Facade/fallback 구조 도입
 - ✅ AI 기능을 기본 비활성화하고 `ai` 프로파일에서만 외부 모델 호출
@@ -612,7 +627,7 @@ korean-fortune-system/
 
 ### v2.4.0 (2025-06-24)
 - ✅ AI 기반 운세 해석 기능 추가
-- ✅ 토정비결 64괘 운세 구현
+- ✅ 토정비결 144괘(상8×중6×하3) 운세 구현
 - ✅ 별자리 운세 기능 추가
 - ✅ 간지달력 조회 기능 구현
 

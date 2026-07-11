@@ -10,7 +10,7 @@ version = findProperty('fortune.version') ?: '3.0.0-modernization'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -59,6 +59,12 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // ✅ 음양력 변환 (KoreanCalendar, 천문 기반) — 한국 음력 입력 처리
+    implementation 'net.time4j:time4j-base:5.9.4'
+
+    // ✅ 사주 팔자 엔진 (lunar-java) — 4주·십신·12운성·지장간·대운·절기 표준 계산
+    implementation 'cn.6tail:lunar:1.7.4'
 
     // ✅ 캐시 구현체 (Redis 제거하여 의존성 충돌 해결)
     implementation 'com.github.ben-manes.caffeine:caffeine'
@@ -548,7 +554,7 @@ println """
   ./gradlew addStaticResources   - 정적 리소스 파일 추가
 
 ⚠️  의존성 문제 해결:
-  - Java 25 / Gradle 9.4.1 / Spring Boot 4.0.x 기준으로 전환
+  - Java 21 / Gradle 9.4.1 / Spring Boot 4.0.x 기준으로 전환
   - Spring AI 의존성 대신 OpenAI-compatible 포트로 AI 격리
   - Maven Central만 사용
   - Prometheus/Micrometer 의존성은 Spring Boot BOM 기준 사용

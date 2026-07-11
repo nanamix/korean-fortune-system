@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * <ul>
  *   <li>📊 사주팔자 계산 및 분석</li>
  *   <li>📅 일일/월별 운세 제공</li>
- *   <li>📜 토정비결 64괘 운세</li>
+ *   <li>📜 토정비결 144괘 운세</li>
  *   <li>⭐ 서양 별자리 운세</li>
  *   <li>📆 간지달력 및 길일 조회</li>
  *   <li>📧 이메일 발송</li>

@@ -53,6 +53,9 @@ public class SajuRequest {
     @Pattern(regexp = "^(SOLAR|LUNAR)$", message = "달력 타입은 SOLAR(양력) 또는 LUNAR(음력)이어야 합니다")
     private String calendarType;
 
+    /** 음력 윤달 여부 (LUNAR 입력에서만 의미). 미지정 시 평달. */
+    private Boolean leapMonth;
+
     // 알림 발송 관련 필드 (선택적)
     @Valid
     private NotificationRequest notification;

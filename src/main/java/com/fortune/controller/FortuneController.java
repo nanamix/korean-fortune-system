@@ -342,7 +342,15 @@ public class FortuneController {
             @Valid @RequestBody SajuRequest sajuRequest,
             @RequestParam String question) {
 
-        log.info("🤖 AI 운세 질문 요청: {} 질문: {}", sajuRequest.getBirthYear(), question);
+        log.info("🤖 AI 운세 질문 요청: {} 질문(len): {}", sajuRequest.getBirthYear(),
+                question == null ? 0 : question.length());
+
+        // 트러스트 경계 검증: question 은 LLM 프롬프트로 삽입되는 신뢰 불가 입력.
+        // 공백·과도 길이를 거부해 프롬프트 인젝션 표면을 축소한다. (심화 방어는 프롬프트 계층에서 구분자 처리)
+        if (question == null || question.isBlank() || question.length() > 500) {
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("질문은 1~500자여야 합니다.", "INVALID_QUESTION"));
+        }
 
         if (aiFortuneService == null) {
             return ResponseEntity.badRequest()
