@@ -1,0 +1,19 @@
+# ==============================================
+# PostgreSQL 설정 (application-postgres.yml)
+# 활성화: --spring.profiles.active=postgres
+# ==============================================
+spring:
+  config:
+    activate:
+      on-profile: postgres
+
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/korean_fortune}
+    username: ${POSTGRES_USER:fortune_user}
+    password: ${POSTGRES_PASSWORD:fortune_secure_2025!}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

@@ -41,6 +41,7 @@ public class FortuneController {
     // 알림 발송 서비스
     private final EmailService emailService;
     private final TelegramService telegramService;
+    private final DiscordService discordService;
 
     @Autowired
     public FortuneController(
@@ -51,7 +52,8 @@ public class FortuneController {
             GanjiCalendarService ganjiCalendarService,
             @Autowired(required = false) AIFortuneService aiFortuneService,
             EmailService emailService,
-            TelegramService telegramService) {
+            TelegramService telegramService,
+            DiscordService discordService) {
         this.ganjiCalculatorService = ganjiCalculatorService;
         this.dailyFortuneService = dailyFortuneService;
         this.tojeongBigyeolService = tojeongBigyeolService;
@@ -60,6 +62,7 @@ public class FortuneController {
         this.aiFortuneService = aiFortuneService;
         this.emailService = emailService;
         this.telegramService = telegramService;
+        this.discordService = discordService;
     }
 
     /**
@@ -534,6 +537,24 @@ public class FortuneController {
     }
 
     /**
+     * Discord 발송 테스트 (API 문서/테스트용)
+     */
+    @PostMapping("/discord/test")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> testDiscordSend(
+            @RequestBody com.fortune.dto.DiscordTestRequest request) {
+        try {
+            log.info("📢 Discord 발송 테스트: webhook={}",
+                    request.getWebhookUrl() != null && !request.getWebhookUrl().isBlank() ? "지정" : "기본값");
+            discordService.sendMessage(request.getMessage(), request.getWebhookUrl());
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("Discord 메시지 발송을 시도했습니다."));
+        } catch (Exception e) {
+            log.error("❌ Discord 발송 테스트 실패", e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("Discord 발송 실패: " + e.getMessage(), "DISCORD_TEST_ERROR"));
+        }
+    }
+
+    /**
      * 알림 발송 처리
      * 
      * @param notificationRequest 알림 요청
@@ -565,6 +586,10 @@ public class FortuneController {
                                            sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 }
                 break;
+            case "discord":
+                sendDiscordNotification(notificationRequest.getDiscordWebhookUrl(), recipientName,
+                                        sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                break;
             case "both":
                 if (notificationRequest.getEmail() != null) {
                     sendEmailNotification(notificationRequest.getEmail(), recipientName,
@@ -574,6 +599,18 @@ public class FortuneController {
                     sendTelegramNotification(notificationRequest.getTelegramChatId(), recipientName,
                                            sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 }
+                break;
+            case "all":
+                if (notificationRequest.getEmail() != null) {
+                    sendEmailNotification(notificationRequest.getEmail(), recipientName,
+                                        sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                }
+                if (notificationRequest.getTelegramChatId() != null) {
+                    sendTelegramNotification(notificationRequest.getTelegramChatId(), recipientName,
+                                           sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+                }
+                sendDiscordNotification(notificationRequest.getDiscordWebhookUrl(), recipientName,
+                                        sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 break;
         }
     }
@@ -627,6 +664,26 @@ public class FortuneController {
         
         if (!message.isEmpty()) {
             telegramService.sendMessage(message);
+        }
+    }
+
+    /**
+     * Discord 알림 발송 (텔레그램용 메시지 생성기를 재사용 — 평문 content).
+     * webhookUrl 이 비면 서버 기본 webhook 사용.
+     */
+    private void sendDiscordNotification(String webhookUrl, String recipientName,
+                                         SajuResult sajuResult, DailyFortuneResult dailyResult,
+                                         TojeongResult tojeongResult, ZodiacFortuneResult zodiacResult,
+                                         String type) {
+        String message = switch (type) {
+            case "saju" -> generateSajuTelegramMessage(sajuResult, recipientName);
+            case "daily" -> generateDailyFortuneTelegramMessage(dailyResult, recipientName);
+            case "tojeong" -> generateTojeongTelegramMessage(tojeongResult, recipientName);
+            case "zodiac" -> generateZodiacTelegramMessage(zodiacResult, recipientName);
+            default -> "";
+        };
+        if (!message.isEmpty()) {
+            discordService.sendMessage(message, webhookUrl);
         }
     }
 

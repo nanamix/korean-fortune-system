@@ -115,6 +115,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 |--------|--------------|------|----|------|
 | `dev` (기본) | H2 인메모리 (`jdbc:h2:mem:devdb`) | 비활성 | 비활성 | 로컬 개발, 이메일/텔레그램 발송 활성 |
 | `mysql` | 로컬 MySQL (`localhost:3306`) | - | - | 로컬 MySQL 연동 개발 |
+| `postgres` | PostgreSQL (`localhost:5432`, `POSTGRES_URL`로 override) | - | - | PostgreSQL 연동 개발/운영 |
 | `docker` | MySQL 컨테이너 (`mysql:3306`) | - | 환경변수 제어 | Docker Compose 실행 |
 | `prod` | MySQL (`localhost:3306`) | 활성 | 환경변수 제어 | 운영 |
 | `ai` | (병행 프로필) | - | 활성 | `dev,ai` 처럼 AI 강제 활성화 |
@@ -141,8 +142,10 @@ cp .env.example .env
 | `SPRING_PROFILES_ACTIVE` | `docker` | 활성 프로필 |
 | `AI_ENABLED` | `false` | AI 기능 스위치 |
 | `OPENAI_API_KEY` | (빈 값) | OpenAI 호환 API 키 |
+| `POSTGRES_URL` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | `localhost:5432` 기본 | PostgreSQL 프로필(`postgres`) 연결 |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | (빈 값) | 텔레그램 발송 |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM` | Gmail SMTP 기본 | 이메일 발송 |
+| `DISCORD_WEBHOOK_URL` | (빈 값) | Discord 발송 webhook |
+| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM` | Gmail SMTP 기본 | 이메일 발송 ([13. 알림 가이드](13-notifications-guide.md) 참조) |
 | `GRAFANA_PASSWORD` | `admin123` | 모니터링 Grafana 관리자 비밀번호 |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | (주석) | OTLP 트레이스 수집기 |
 
