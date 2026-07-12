@@ -166,10 +166,86 @@ MAIL_PASSWORD=app_password
 | **Cache** | Caffeine (기본) · Redis/Valkey (`valkey` 프로파일) |
 | **사주 엔진** | lunar-java (cn.6tail:lunar) |
 | **음양력(한국)** | Time4J KoreanCalendar |
-| **AI** | Spring AI (OpenAI) |
+| **AI** | OpenAI 호환 provider (Ports & Adapters + 폴백) |
 | **Monitoring** | Spring Boot Actuator, Prometheus, Grafana |
 | **Container** | Docker, Docker Compose |
 | **CI/CD** | GitHub Actions |
+
+## 🏗️ 시스템 아키텍처
+
+```mermaid
+flowchart TB
+    subgraph client["클라이언트"]
+        UI["웹 SPA<br/>fortune-app.html · PWA"]
+        REST["REST 클라이언트"]
+    end
+
+    subgraph ctrl["Controller · com.fortune.controller"]
+        FC["FortuneController<br/>(파사드: 계산 · 계산+발송)"]
+        ETC["CalendarView · System · ApiDocs"]
+    end
+
+    subgraph svc["도메인 서비스 · com.fortune.service"]
+        GANJI["GanjiCalculatorService<br/>4주 · 십신 · 12운성 · 대운"]
+        OTHER["DailyFortune · TojeongBigyeol(144괘)<br/>Zodiac · Sinsal · GanjiCalendar"]
+    end
+
+    subgraph eng["계산 엔진 (라이브러리)"]
+        LJ["lunar-java<br/>사주 EightChar · 절기"]
+        T4J["Time4J KoreanCalendar<br/>음양력(윤달)"]
+    end
+
+    subgraph ai["AI · Ports & Adapters · com.fortune.ai"]
+        FACADE["AiFortuneFacade"]
+        PROV["OpenAiCompatibleFortuneProvider"]
+        FB["FallbackFortuneInterpreter<br/>(규칙 기반)"]
+    end
+
+    subgraph notify["알림 서비스"]
+        NOTI["Email · Telegram · Discord"]
+    end
+
+    subgraph data["데이터 · 캐시"]
+        JPA["Spring Data JPA"]
+        DB[("H2 / MySQL / PostgreSQL")]
+        CACHE["CacheManager<br/>Caffeine(기본) / Redis·Valkey"]
+    end
+
+    subgraph ext["외부 서비스"]
+        OPENAI(["OpenAI 호환 API"])
+        SMTP(["SMTP · Gmail / AWS SES"])
+        TG(["Telegram Bot"])
+        DC(["Discord Webhook"])
+    end
+
+    UI --> FC
+    REST --> FC
+    REST --> ETC
+    FC --> GANJI
+    FC --> OTHER
+    FC --> FACADE
+    FC --> NOTI
+    OTHER --> GANJI
+    GANJI --> LJ
+    GANJI --> T4J
+    FACADE --> PROV
+    FACADE -.->|비활성·실패 시| FB
+    PROV --> OPENAI
+    NOTI --> SMTP
+    NOTI --> TG
+    NOTI --> DC
+    GANJI -.->|캐시| CACHE
+    FACADE -.->|캐시| CACHE
+    ETC --> JPA
+    JPA --> DB
+```
+
+**횡단 관심사(cross-cutting)**
+
+- **보안**: JWT (Spring Security), `app.fortune.security.enabled` 토글
+- **관측성**: Micrometer + OpenTelemetry, Prometheus(`/actuator/prometheus`), 로그에 `traceId`/`spanId`
+- **배포**: GitHub Actions 단일 파이프라인(`build-and-test → docker → deploy`) → GHCR 이미지 → SSH 배포
+- 상세: [docs/reference/02-architecture](docs/reference/02-architecture.md) · [03-계산 방법론](docs/reference/03-saju-calculation-methodology.md)
 
 ## 📁 프로젝트 구조
 
