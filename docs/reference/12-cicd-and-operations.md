@@ -1,49 +1,35 @@
 # 12. CI/CD 및 운영
 
-> GitHub Actions CI(`ci.yml`)·CD(`cd.yml`) 파이프라인 단계, 배포 흐름, 운영 점검(actuator/health, 로그)을 정리합니다.
+> GitHub Actions 통합 CI/CD 파이프라인(`ci.yml`), 배포 흐름, 운영 점검(actuator/health, 로그)을 정리합니다.
 > 관련 문서: [11. Docker 배포](./11-deployment-docker.md) · [07. 보안 및 관측성](./07-security-and-observability.md) · [README 인덱스](./README.md)
 
 ---
 
-## 12.1 CI 파이프라인 (`.github/workflows/ci.yml`)
+## 12.1 통합 CI/CD 파이프라인 (`.github/workflows/ci.yml`)
 
-워크플로우 이름: `CI/CD Pipeline`. Java 21(Corretto), 앱 버전 env `2.6.0`, 레지스트리 `ghcr.io`.
+워크플로우 이름: `CI/CD`. **단일 파일**에 `build-and-test → docker → deploy` 3개 잡을 `needs` 로 연결한다. Java 21(Corretto), 레지스트리 `ghcr.io`.
+
+> 이전에는 `ci.yml`·`cd.yml` 두 파일이 모두 master push 에서 Docker 이미지를 GHCR 에 빌드·푸시해 **중복·경쟁**이 있었다. 이를 이 단일 파이프라인으로 통합하고 `cd.yml` 은 제거했다. Docker·배포는 `build-and-test` 통과 후에만 실행되어 품질 게이트가 보장된다.
 
 트리거:
 
-- `push` → `master`, `develop` 브랜치
-- `pull_request` → `master` 브랜치
+- `push` → `master`, `develop`
+- `pull_request` → `master`
+- `workflow_dispatch` (입력: `environment` = `prod` | `dev`)
 
 잡 구성 (순차 의존):
 
 | 잡 | 실행 조건 | 단계 요약 |
 |----|-----------|-----------|
-| **build-and-test** | 항상 | ① checkout ② JDK 21(corretto, gradle 캐시) ③ `chmod +x gradlew` ④ `./gradlew bootJar --no-daemon -x test` ⑤ `./gradlew test --no-daemon` ⑥ 테스트 결과 업로드(`build/reports/tests/`, 7일) ⑦ JAR 업로드(`korean-fortune-app.jar`, 1일) |
-| **docker** | `master` push 시에만 | Buildx 셋업 → GHCR 로그인 → 메타데이터 태그 추출 → `Dockerfile` `runtime` 타깃 빌드·푸시 (GHA 캐시), 태그 `latest` / `sha-<short>` / semver |
-| **notify** | `master` push 시 | docker 잡 성공/실패 알림 출력 |
+| **build-and-test** | 모든 push / PR | ① checkout ② JDK 21(corretto, gradle 캐시) ③ `chmod +x gradlew` ④ `./gradlew build --no-daemon`(테스트 포함, JAR 생성) ⑤ 테스트 결과 업로드(`build/reports/tests/`, 7일) ⑥ JAR 업로드(`korean-fortune-app.jar`, 1일) |
+| **docker** | `master` push/dispatch · `build-and-test` 성공 후 | Buildx → GHCR 로그인 → 메타데이터 태그 → `Dockerfile` `runtime` 타깃 빌드·푸시(GHA 캐시). 태그 `latest`(기본 브랜치) / `sha-<short>` |
+| **deploy** | `master` push/dispatch · `docker` 성공 후 | environment `production`, SSH 배포(§12.2) |
 
-이미지 태그 정책(docker 잡): `latest`(기본 브랜치), `sha-<short>`, `semver`.
+`pull_request` 에서는 **build-and-test 만** 실행되고 docker·deploy 는 건너뛴다.
 
 ---
 
-## 12.2 CD 파이프라인 (`.github/workflows/cd.yml`)
-
-워크플로우 이름: `CD`. 레지스트리 `ghcr.io`.
-
-트리거:
-
-- `push` → `master`
-- `workflow_dispatch` (입력: `environment` = `prod` | `dev`)
-
-잡 구성:
-
-### build-and-push
-
-① checkout ② Amazon Corretto 21 셋업 ③ `chmod +x gradlew` ④ `./gradlew bootJar --no-daemon -x test` ⑤ GHCR 로그인 ⑥ 메타데이터 태그 추출(`branch` / `sha-` / `latest`) ⑦ Buildx ⑧ `Dockerfile` `runtime` 타깃 빌드·푸시(GHA 캐시, build-args: `BUILD_DATE`, `VCS_REF`, `VERSION`) ⑨ 이미지 digest 출력.
-
-출력: `image-tag`, `image-digest`.
-
-### deploy (`master` 한정, environment: production)
+## 12.2 배포 (deploy 잡, environment: production)
 
 `vars.DEPLOY_HOST` 가 설정된 경우 `appleboy/ssh-action` 으로 원격 서버에 SSH 배포:
 
@@ -69,11 +55,9 @@
 ## 12.3 배포 흐름 요약
 
 ```
-개발자 push (master)
-   │
-   ├─ ci.yml: build-and-test → docker(빌드·푸시 latest/sha) → notify
-   │
-   └─ cd.yml: build-and-push(GHCR) → deploy(SSH pull & compose up → 헬스체크)
+push (master)                → ci.yml: build-and-test → docker(GHCR: latest/sha) → deploy(SSH pull & compose up → 헬스체크)
+pull_request (→ master)      → ci.yml: build-and-test 만
+push (develop)               → ci.yml: build-and-test 만
 ```
 
 수동 배포(서버에서 직접):
