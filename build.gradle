@@ -51,6 +51,8 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     // ✅ AI 연동은 Spring AI 의존성 대신 OpenAI-compatible 포트로 격리
+    // (Spring AI 1.0.0 GA 는 Spring Boot 4.0/Spring 7 과 바이너리 비호환 — HttpHeaders.addAll 변경.
+    //  Boot 4 호환 GA 출시 전까지 커스텀 OpenAI-compatible provider 를 사용한다.)
 
     // ✅ OAuth2 (선택적)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
@@ -69,7 +71,8 @@ dependencies {
     // ✅ 캐시 구현체 (Redis 제거하여 의존성 충돌 해결)
     implementation 'com.github.ben-manes.caffeine:caffeine'
     // Redis는 필요시에만 추가
-    // implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // ✅ Redis/Valkey 캐시 (spring.cache.type=redis 일 때 사용, Valkey 와이어 호환)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // ✅ API 문서화 (SpringDoc 대신 Spring REST Docs 사용)
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'

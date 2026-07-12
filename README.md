@@ -10,6 +10,7 @@
 |------|------|
 | [설치 가이드](docs/reference/08-installation-guide.md) | JDK 21 설치·빌드·실행·트러블슈팅 |
 | [사용자 가이드](docs/reference/09-user-guide.md) | 웹 UI로 사주·운세·토정비결 사용법 |
+| [알림 연동 가이드](docs/reference/13-notifications-guide.md) | 이메일(Gmail·AWS SES)·텔레그램·Discord 설정 |
 | [아키텍처](docs/reference/02-architecture.md) | 레이어 구조·요청 흐름·컴포넌트 |
 | [사주 계산 방법론](docs/reference/03-saju-calculation-methodology.md) | 4주·십신·대운 산출 알고리즘과 검증 |
 | [API 레퍼런스](docs/reference/05-api-reference.md) | REST 엔드포인트 전수 |
@@ -24,6 +25,7 @@
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
 - **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
+- **📢 Discord 발송**: 운세 결과를 Discord 웹후크로 채널에 발송
 - **🤖 AI 운세**: OpenAI 기반 AI 운세 해석
 - **🔍 시스템 모니터링**: Spring Boot Actuator 기반 모니터링
 
@@ -159,9 +161,9 @@ MAIL_PASSWORD=app_password
 | **Language** | Java 21 (Amazon Corretto) |
 | **Build** | Gradle 9.4.1 |
 | **Security** | Spring Security, JWT |
-| **Database** | H2 (개발), MySQL 8.0 (운영) |
+| **Database** | H2 (개발), MySQL 8.0 · PostgreSQL (운영) |
 | **ORM** | Spring Data JPA |
-| **Cache** | Caffeine |
+| **Cache** | Caffeine (기본) · Redis/Valkey (`valkey` 프로파일) |
 | **사주 엔진** | lunar-java (cn.6tail:lunar) |
 | **음양력(한국)** | Time4J KoreanCalendar |
 | **AI** | Spring AI (OpenAI) |

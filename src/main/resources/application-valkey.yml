@@ -1,0 +1,19 @@
+# ==============================================
+# Valkey/Redis 캐시 프로파일 (application-valkey.yml)
+# 활성화: --spring.profiles.active=valkey
+# Valkey 는 Redis 프로토콜 호환이라 동일 설정으로 동작한다.
+# ==============================================
+spring:
+  config:
+    activate:
+      on-profile: valkey
+
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms

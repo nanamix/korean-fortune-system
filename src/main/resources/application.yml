@@ -62,6 +62,8 @@ app:
     telegram:
       bot-token: ${TELEGRAM_BOT_TOKEN:}
       chat-id: ${TELEGRAM_CHAT_ID:}
+    discord:
+      webhook-url: ${DISCORD_WEBHOOK_URL:}
 
 # 로깅 설정 (traceId / spanId 포함)
 logging:

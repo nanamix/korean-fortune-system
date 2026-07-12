@@ -30,7 +30,13 @@ public class NotificationRequest {
     @Pattern(regexp = "^[0-9]+$", message = "텔레그램 채팅 ID는 숫자만 입력 가능합니다")
     private String telegramChatId;
 
-    @NotBlank(message = "발송 방법을 선택해주세요 (email, telegram, both)")
-    @Pattern(regexp = "^(email|telegram|both)$", message = "발송 방법은 email, telegram, both 중 하나여야 합니다")
+    // Discord 공식 webhook URL만 허용(SSRF 방지). 미지정 시 서버 기본 webhook 사용.
+    @Pattern(regexp = "^$|^https://(discord\\.com|discordapp\\.com|canary\\.discord\\.com|ptb\\.discord\\.com)/api/webhooks/.+$",
+            message = "Discord webhook URL 형식이 올바르지 않습니다")
+    private String discordWebhookUrl;
+
+    @NotBlank(message = "발송 방법을 선택해주세요 (email, telegram, discord, both, all)")
+    @Pattern(regexp = "^(email|telegram|discord|both|all)$",
+            message = "발송 방법은 email, telegram, discord, both(email+telegram), all(전체) 중 하나여야 합니다")
     private String notificationType;
 } 
