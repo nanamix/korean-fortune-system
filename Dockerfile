@@ -13,9 +13,9 @@ LABEL description="Korean Traditional Fortune Telling System"
 # 작업 디렉토리 설정
 WORKDIR /build
 
-# 시스템 의존성 설치 (Amazon Linux 2023)
-RUN dnf install -y curl git && \
-    dnf clean all
+# 시스템 의존성 설치 (Amazon Linux 2 베이스, yum)
+RUN yum install -y curl git && \
+    yum clean all
 
 # Gradle Wrapper 파일들 먼저 복사
 COPY gradlew ./
@@ -46,13 +46,14 @@ LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
 LABEL version="3.0.0-modernization"
 LABEL description="Korean Traditional Fortune Telling System - Runtime"
 
-# 보안을 위한 비특권 사용자 생성 (Amazon Linux 2023)
+# 필수 런타임 도구 설치 (amazoncorretto:21 = Amazon Linux 2 베이스, yum)
+# shadow-utils = groupadd/useradd 제공 (AL2 베이스에는 기본 미포함)
+RUN yum install -y shadow-utils curl tzdata && \
+    yum clean all
+
+# 보안을 위한 비특권 사용자 생성
 RUN groupadd -g 1001 fortune && \
     useradd -u 1001 -g fortune -m fortune
-
-# 필수 런타임 도구 설치 (Amazon Linux 2023)
-RUN dnf install -y curl tzdata dumb-init && \
-    dnf clean all
 
 # 타임존 설정
 ENV TZ=Asia/Seoul
@@ -93,17 +94,17 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
 # 사용자 전환
 USER fortune
 
-# 실행 명령 (dumb-init를 사용하여 PID 1 문제 해결)
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
+# 실행 명령 — exec 로 JVM 을 PID 1 로 두어 SIGTERM(graceful shutdown) 직접 수신.
+# (dumb-init 은 AL2 repo 미제공. 단일 JVM 프로세스라 별도 init 불요.)
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
 
 # ==================== 개발 스테이지 (선택적) ====================
 FROM runtime AS development
 
-# 개발 도구 추가 설치 (Amazon Linux 2023)
+# 개발 도구 추가 설치 (Amazon Linux 2 베이스, yum)
 USER root
-RUN dnf install -y vim-enhanced htop procps-ng && \
-    dnf clean all
+RUN yum install -y vim-enhanced procps-ng && \
+    yum clean all
 
 # 개발용 환경 변수
 ENV SPRING_PROFILES_ACTIVE=dev
