@@ -10,13 +10,11 @@ on:
   pull_request:
     branches: [ master ]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: '배포 환경'
-        required: true
-        default: 'prod'
-        type: choice
-        options: [ prod, dev ]
+
+# 같은 ref 의 동시 실행 직렬화 — latest 태그 푸시/배포 경쟁 방지.
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io

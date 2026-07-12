@@ -541,7 +541,7 @@ public class FortuneController {
      */
     @PostMapping("/discord/test")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> testDiscordSend(
-            @RequestBody com.fortune.dto.DiscordTestRequest request) {
+            @Valid @RequestBody com.fortune.dto.DiscordTestRequest request) {
         try {
             log.info("📢 Discord 발송 테스트: webhook={}",
                     request.getWebhookUrl() != null && !request.getWebhookUrl().isBlank() ? "지정" : "기본값");

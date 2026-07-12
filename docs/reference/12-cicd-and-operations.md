@@ -15,7 +15,7 @@
 
 - `push` → `master`, `develop`
 - `pull_request` → `master`
-- `workflow_dispatch` (입력: `environment` = `prod` | `dev`)
+- `workflow_dispatch` (수동 실행)
 
 잡 구성 (순차 의존):
 
