@@ -203,6 +203,15 @@ korean-fortune-system/
 
 ## 🔄 최근 변경사항
 
+### v3.1.0 (2026-07-12)
+- ✅ **Discord 알림 연동** — 채널 웹후크 발송(SSRF 방지 allowlist), `notificationType` `discord`·`all`, `POST /api/fortune/discord/test`
+- ✅ **PostgreSQL 지원** — `postgres` 프로파일(비밀번호 env 필수, `ddl-auto`/`show-sql` override)
+- ✅ **Redis/Valkey 캐시** — `spring.cache.type` 으로 Caffeine(기본)↔Redis/Valkey 선택(`valkey` 프로파일)
+- ✅ **이메일 가이드** — Gmail 앱 비밀번호·AWS SES SMTP (`docs/reference/13-notifications-guide`)
+- ✅ **CI/CD 통합** — `ci.yml`·`cd.yml` 중복 Docker 빌드를 단일 파이프라인(`build-and-test → docker → deploy`)으로 통합, `concurrency`, prod compose GHCR `image:`
+- ✅ 코드리뷰(Copilot) 반영 — NPE 가드·HTTP 타임아웃·입력검증·자격증명 하드닝
+- ⏸️ Spring AI 는 Spring Boot 4.0 호환 GA 부재로 보류(기존 OpenAI-compatible provider 유지)
+
 ### v3.0.0 (2026-07-12)
 - ✅ 사주 계산 엔진을 `lunar-java`(cn.6tail:lunar) 위임으로 재작성 — 기존 4주(년·월·일·시) 오답을 정통 기준으로 정정 (검증: 1981-03-20 → 신유/신묘/정유/신축)
 - ✅ 십신·지장간·12운성·대운 산출 추가, `Time4J KoreanCalendar` 음양력 변환(윤달 지원) 도입
