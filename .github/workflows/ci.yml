@@ -1,46 +1,53 @@
-name: CI/CD Pipeline
+# 🔮 한국형 만세력 운세 시스템 — 통합 CI/CD 파이프라인
+# build-and-test → docker → deploy 를 needs 로 연결한 단일 파이프라인.
+#   - PR / develop·master push : build-and-test
+#   - master push (또는 workflow_dispatch) : docker(GHCR) → deploy(SSH)
+name: CI/CD
 
 on:
   push:
     branches: [ master, develop ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        default: 'prod'
+        type: choice
+        options: [ prod, dev ]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   JAVA_VERSION: '21'
-  APP_VERSION: '2.6.0'
 
 jobs:
   # ──────────────────────────────────────────────────────────────
-  # 1. BUILD & TEST
+  # 1. BUILD & TEST — 모든 push / PR
   # ──────────────────────────────────────────────────────────────
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
-          distribution: 'corretto'
+          distribution: corretto
           cache: gradle
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew bootJar --no-daemon -x test
-
-      - name: Run tests
-        run: ./gradlew test --no-daemon
+      - name: Build & test
+        run: ./gradlew build --no-daemon
 
       - name: Upload test results
         if: always()
@@ -58,25 +65,26 @@ jobs:
           retention-days: 1
 
   # ──────────────────────────────────────────────────────────────
-  # 2. DOCKER BUILD & PUSH (master branch only)
+  # 2. DOCKER BUILD & PUSH — master push / dispatch (테스트 통과 후)
   # ──────────────────────────────────────────────────────────────
   docker:
     name: Docker Build & Push
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     permissions:
       contents: read
       packages: write
-
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -91,10 +99,10 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-,format=short
-            type=semver,pattern={{version}}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
@@ -107,27 +115,75 @@ jobs:
           build-args: |
             BUILD_DATE=${{ github.event.repository.updated_at }}
             VCS_REF=${{ github.sha }}
-            VERSION=${{ env.APP_VERSION }}
+            VERSION=${{ github.ref_name }}
+
+      - name: Print image digest
+        run: echo "Image digest ${{ steps.build.outputs.digest }}"
 
   # ──────────────────────────────────────────────────────────────
-  # 3. DEPLOYMENT NOTIFICATION (master branch only)
+  # 3. DEPLOY — master push / dispatch (Docker 게시 후, SSH)
   # ──────────────────────────────────────────────────────────────
-  notify:
-    name: Deployment Notification
+  deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
     needs: docker
-    if: always() && github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    environment:
+      name: production
+      url: ${{ vars.APP_URL }}
     permissions:
       contents: read
     steps:
-      - name: Notify success
-        if: needs.docker.result == 'success'
-        run: |
-          echo "✅ Docker image published to ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          echo "🚀 Deploy with: docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml pull && docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d"
+      - name: Deploy via SSH
+        if: ${{ vars.DEPLOY_HOST != '' }}
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ vars.DEPLOY_HOST }}
+          username: ${{ vars.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ vars.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+            echo "🔐 Logging in to GitHub Container Registry..."
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Notify failure
-        if: needs.docker.result != 'success'
+            echo "📥 Pulling latest image..."
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+            cd ${{ vars.DEPLOY_PATH || '/opt/korean-fortune' }}
+            echo "🛑 Stopping existing containers..."
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml down --remove-orphans || true
+
+            echo "🚀 Starting updated containers..."
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+
+            echo "⏳ Waiting for application to become healthy..."
+            HEALTH_URL="http://localhost:8080/actuator/health"
+            MAX_RETRIES=20
+            RETRY_INTERVAL=10
+            for i in $(seq 1 $MAX_RETRIES); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || true)
+              if [ "$STATUS" = "200" ]; then
+                echo "✅ Application is healthy (attempt $i/$MAX_RETRIES)"
+                break
+              fi
+              echo "⏳ Attempt $i/$MAX_RETRIES: status=$STATUS — retrying in ${RETRY_INTERVAL}s..."
+              sleep $RETRY_INTERVAL
+              if [ $i -eq $MAX_RETRIES ]; then
+                echo "❌ Health check failed after $MAX_RETRIES attempts"
+                docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml logs --tail=50 app
+                exit 1
+              fi
+            done
+
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml ps
+            echo "✅ Deployment complete!"
+
+      - name: Deployment skipped (no DEPLOY_HOST configured)
+        if: ${{ vars.DEPLOY_HOST == '' }}
         run: |
-          echo "❌ CI/CD pipeline failed"
-          exit 1
+          echo "⚠️  DEPLOY_HOST 미설정 — Docker 이미지는 GHCR 에 게시되었습니다."
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          echo "자동 배포하려면 리포지토리 변수/시크릿을 설정하세요:"
+          echo "  vars:    DEPLOY_HOST, DEPLOY_USER, DEPLOY_PORT, DEPLOY_PATH, APP_URL"
+          echo "  secrets: DEPLOY_SSH_KEY, GHCR_PAT(read:packages)"
