@@ -89,6 +89,13 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    # 선택적 외부 의존성은 앱 liveness 를 가로막지 않도록 기본 비활성.
+    # 메일(SMTP)은 옵션 기능, Redis 는 valkey 프로파일에서만 사용(거기서 재활성).
+    mail:
+      enabled: false
+    redis:
+      enabled: false
   info:
     env:
       enabled: true
