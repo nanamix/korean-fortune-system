@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   app:
+    # 운영은 CI 가 GHCR 에 게시한 이미지를 사용(로컬 빌드 대신). 배포 스크립트가 pull 후 up.
+    image: ${APP_IMAGE:-ghcr.io/nanamix/korean-fortune-system:latest}
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError

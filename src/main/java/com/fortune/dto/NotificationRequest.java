@@ -31,7 +31,7 @@ public class NotificationRequest {
     private String telegramChatId;
 
     // Discord 공식 webhook URL만 허용(SSRF 방지). 미지정 시 서버 기본 webhook 사용.
-    @Pattern(regexp = "^$|^https://(discord\\.com|discordapp\\.com|canary\\.discord\\.com|ptb\\.discord\\.com)/api/webhooks/.+$",
+    @Pattern(regexp = "^$|^https://(discord\\.com|discordapp\\.com|canary\\.discord\\.com|ptb\\.discord\\.com)(:\\d+)?/api/webhooks/.+$",
             message = "Discord webhook URL 형식이 올바르지 않습니다")
     private String discordWebhookUrl;
 

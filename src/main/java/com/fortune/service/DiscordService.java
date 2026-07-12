@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,9 +33,14 @@ public class DiscordService {
     @Value("${app.fortune.discord.webhook-url:}")
     private String webhookUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     public DiscordService() {
+        // 외부 webhook 호출 — connect/read 타임아웃 지정(무제한 블로킹 방지).
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(3));
+        factory.setReadTimeout(Duration.ofSeconds(5));
+        this.restTemplate = new RestTemplate(factory);
         log.info("📢 DiscordService 초기화");
     }
 
@@ -47,6 +54,10 @@ public class DiscordService {
      * 실패는 로깅만 하고 예외를 던지지 않는다(알림은 부가 기능).
      */
     public void sendMessage(String message, String url) {
+        if (message == null || message.isBlank()) {
+            log.warn("⚠️ Discord 메시지가 비어 있음 — 전송 건너뜀");
+            return;
+        }
         String target = (url == null || url.isBlank()) ? webhookUrl : url;
         if (target == null || target.isBlank()) {
             log.warn("⚠️ Discord webhook URL 미설정 — 전송 건너뜀");

@@ -10,10 +10,12 @@ spring:
   datasource:
     url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/korean_fortune}
     username: ${POSTGRES_USER:fortune_user}
-    password: ${POSTGRES_PASSWORD:fortune_secure_2025!}
+    # 비밀번호는 반드시 환경변수로 주입(고정 기본값 미제공 — 취약 자격증명 방지).
+    password: ${POSTGRES_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      # 운영에서는 JPA_DDL_AUTO=validate 권장. 스키마 자동변경/SQL 로그 노출 방지.
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
