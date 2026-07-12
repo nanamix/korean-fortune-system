@@ -163,7 +163,7 @@ MAIL_PASSWORD=app_password
 | **Security** | Spring Security, JWT |
 | **Database** | H2 (개발), MySQL 8.0 · PostgreSQL (운영) |
 | **ORM** | Spring Data JPA |
-| **Cache** | Caffeine |
+| **Cache** | Caffeine (기본) · Redis/Valkey (`valkey` 프로파일) |
 | **사주 엔진** | lunar-java (cn.6tail:lunar) |
 | **음양력(한국)** | Time4J KoreanCalendar |
 | **AI** | Spring AI (OpenAI) |

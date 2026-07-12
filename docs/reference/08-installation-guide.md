@@ -116,6 +116,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 | `dev` (기본) | H2 인메모리 (`jdbc:h2:mem:devdb`) | 비활성 | 비활성 | 로컬 개발, 이메일/텔레그램 발송 활성 |
 | `mysql` | 로컬 MySQL (`localhost:3306`) | - | - | 로컬 MySQL 연동 개발 |
 | `postgres` | PostgreSQL (`localhost:5432`, `POSTGRES_URL`로 override) | - | - | PostgreSQL 연동 개발/운영 |
+| `valkey` | (DB는 별도 프로필) | - | - | 캐시를 Redis/Valkey로 전환(`spring.cache.type=redis`). 다른 프로필과 조합: `dev,valkey` |
 | `docker` | MySQL 컨테이너 (`mysql:3306`) | - | 환경변수 제어 | Docker Compose 실행 |
 | `prod` | MySQL (`localhost:3306`) | 활성 | 환경변수 제어 | 운영 |
 | `ai` | (병행 프로필) | - | 활성 | `dev,ai` 처럼 AI 강제 활성화 |
