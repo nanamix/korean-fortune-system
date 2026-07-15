@@ -37,7 +37,7 @@
 2. `docker pull ...:latest`
 3. 배포 디렉토리(`vars.DEPLOY_PATH`, 기본 `/opt/korean-fortune`)에서 기존 컨테이너 down
 4. `docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d`
-5. 헬스체크 폴링: `http://localhost:8080/actuator/health` 를 최대 20회(10초 간격) 재시도, 200이면 성공, 실패 시 앱 로그 출력 후 종료
+5. 헬스체크 폴링: `http://localhost:18080/actuator/health` 를 최대 20회(10초 간격) 재시도, 200이면 성공, 실패 시 앱 로그 출력 후 종료
 6. `docker compose ps` 로 상태 확인
 
 `DEPLOY_HOST` 미설정 시 배포는 스킵되고, 이미지는 GHCR에 푸시된 상태로 남습니다.
@@ -74,9 +74,9 @@ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml 
 ### 헬스체크 / 상태
 
 ```bash
-curl -f http://localhost:8080/actuator/health      # 시스템 상태
-curl http://localhost:8080/actuator/info           # 빌드 정보
-curl http://localhost:8080/api/system/status       # 애플리케이션 상태 API
+curl -f http://localhost:18080/actuator/health      # 시스템 상태
+curl http://localhost:18080/actuator/info           # 빌드 정보
+curl http://localhost:18080/api/system/status       # 애플리케이션 상태 API
 ```
 
 노출된 Actuator 엔드포인트: `health`, `info`, `metrics`, `prometheus`, `caches` (운영 프로필 기준). 상세는 [07. 보안 및 관측성](./07-security-and-observability.md) 참고.
@@ -101,7 +101,7 @@ docker compose -f docker/docker-compose.yaml logs -f app
 
 ### 메트릭 / 대시보드
 
-- Prometheus: `http://localhost:8080/actuator/prometheus` (Compose Prometheus가 5초 간격 스크레이프, job `korean-fortune-app`)
+- Prometheus: `http://localhost:18080/actuator/prometheus` (Compose Prometheus가 5초 간격 스크레이프, job `korean-fortune-app`)
 - Grafana: `http://localhost:3000` (기본 비밀번호 `GRAFANA_PASSWORD`, 기본 `admin123`)
 
 ### 배포 롤백 참고

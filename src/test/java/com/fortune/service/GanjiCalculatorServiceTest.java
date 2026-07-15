@@ -68,6 +68,13 @@ class GanjiCalculatorServiceTest {
         // 십신/12운성 파생 검증 (연주 辛=편재, 일지 酉=장생)
         assertEquals("편재", result.getYearDetail().getStemSipsin(), "辛(년간)=편재");
         assertEquals("장생", result.getDayDetail().getTwelveStage(), "丁일간 酉=장생");
+        assertEquals(10, result.getSipsinDistribution().size(), "십신 10종 분포 제공");
+        assertEquals(7, result.getSipsinDistribution().values().stream().mapToInt(Integer::intValue).sum(),
+                "일간 본원을 제외한 원국 표면 7자리 집계");
+        assertEquals(10, result.getAnnualFlows().size(), "현재부터 10년 세운 제공");
+        assertEquals(12, result.getMonthlyFlows().size(), "올해 12개월 월운 제공");
+        assertNotNull(result.getPersonalityAnalysis());
+        assertFalse(result.getPersonalityAnalysis().getStrengths().isEmpty());
 
         System.out.println("계산 결과: " + result.getFormattedSaju());
         System.out.println("일간: " + result.getDayMaster() + " / 대운수: " + result.getDaeunNumber());

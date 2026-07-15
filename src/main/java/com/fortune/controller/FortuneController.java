@@ -14,6 +14,7 @@ import com.fortune.dto.TelegramTestRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import com.fortune.ai.AiProviderStatus;
 
 /**
  * 🔮 운세 관련 API 컨트롤러
@@ -372,6 +373,11 @@ public class FortuneController {
             return ResponseEntity.badRequest()
                     .body(com.fortune.dto.ApiResponse.error("AI 운세 질문 답변에 실패했습니다: " + e.getMessage(), "AI_QUESTION_ERROR"));
         }
+    }
+
+    @GetMapping("/ai/status")
+    public ResponseEntity<com.fortune.dto.ApiResponse<AiProviderStatus>> getAiProviderStatus() {
+        return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(aiFortuneService.providerStatus()));
     }
 
     /**

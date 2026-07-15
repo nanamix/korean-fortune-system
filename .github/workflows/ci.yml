@@ -156,7 +156,7 @@ jobs:
             docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
 
             echo "⏳ Waiting for application to become healthy..."
-            HEALTH_URL="http://localhost:8080/actuator/health"
+            HEALTH_URL="http://localhost:18080/actuator/health"
             MAX_RETRIES=20
             RETRY_INTERVAL=10
             for i in $(seq 1 $MAX_RETRIES); do

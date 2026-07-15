@@ -18,13 +18,13 @@ services:
       - .:/app/src:cached  # 소스 코드 실시간 반영
       - logs:/app/logs
     ports:
-      - "8080:8080"   # 애플리케이션
+      - "18080:18080"   # 애플리케이션
       - "5005:5005"   # 디버깅 포트
     command: >
       sh -c "cd /app/src && 
              ./gradlew bootRun 
              --args='--spring.profiles.active=dev 
-                     --server.port=8080
+                     --server.port=18080
                      --management.endpoints.web.exposure.include=*'"
 
   # 🗄️ MySQL (개발 설정)

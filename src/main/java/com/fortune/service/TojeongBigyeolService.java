@@ -88,13 +88,6 @@ public class TojeongBigyeolService {
     /** 하괘 점수 가감. */
     private static final int[] LOWER_DELTA = {0, 6, 0, -6};
 
-    /** 상괘 오행별 행운달(자기 계절 + 생조하는 달). */
-    private static final String[] LUCKY_BY_ELEM =
-            {"2,3,11,12월", "5,6,2,3월", "5,6,9월", "8,9,4,10월", "11,12,8,9월"};
-    /** 상괘 오행별 주의달(극을 받는 달). */
-    private static final String[] CAUTION_BY_ELEM =
-            {"8,9월", "11,12월", "2,3월", "5,6월", "4,10월"};
-
     /**
      * 토정비결 계산 메인 메서드
      *
@@ -141,8 +134,8 @@ public class TojeongBigyeolService {
                     .detailedFortune(gwa.getDetailedFortune())
                     .overallScore(gwa.getScore())
                     .advice(generateAdvice(gwa))
-                    .luckyMonths(gwa.getLuckyMonths())
-                    .cautionMonths(gwa.getCautionMonths())
+                    .luckyMonths(summarizeMonths(monthlyFortune, 70, true, "뚜렷한 길월 없음"))
+                    .cautionMonths(summarizeMonths(monthlyFortune, 50, false, "특별 주의월 없음"))
                     .monthlyFortune(monthlyFortune)
                     .build();
             log.info("✅ 토정비결 계산 완료: {} ({}점, 상{}중{}하{})",
@@ -157,7 +150,6 @@ public class TojeongBigyeolService {
     /** 상·중·하 괘 코드 → 144괘 정보 조립. */
     private TojeongGwa buildGwa(int upper, int middle, int lower) {
         int number = (upper - 1) * 18 + (middle - 1) * 3 + lower; // 1..144
-        int elem = UPPER_ELEM[upper];
         int score = clamp(UPPER_BASE[upper] + MIDDLE_DELTA[middle] + LOWER_DELTA[lower]);
         String name = UPPER_NAME[upper] + "괘 [" + upper + middle + lower + "]";
         String summary = UPPER_NAME[upper] + "괘: " + UPPER_MEANING[upper];
@@ -170,9 +162,17 @@ public class TojeongBigyeolService {
                 .summary(summary)
                 .detailedFortune(detailed)
                 .score(score)
-                .luckyMonths(LUCKY_BY_ELEM[elem])
-                .cautionMonths(CAUTION_BY_ELEM[elem])
                 .build();
+    }
+
+    /** 실제 월별 점수를 기준으로 기준점 이상/미만인 달을 표시한다. */
+    private String summarizeMonths(List<MonthlyFortune> months, int threshold,
+                                   boolean atLeast, String emptyMessage) {
+        String joined = months.stream()
+                .filter(month -> atLeast ? month.getScore() >= threshold : month.getScore() < threshold)
+                .map(month -> month.getMonth() + "월(" + month.getScore() + "점)")
+                .collect(java.util.stream.Collectors.joining(", "));
+        return joined.isEmpty() ? emptyMessage : joined;
     }
 
     /** 간지(2글자) → 수 = 천간 순서수(1..10) + 지지 순서수(1..12). */

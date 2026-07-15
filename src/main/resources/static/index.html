@@ -57,7 +57,10 @@
             font-size: 0.82rem;
             color: #5a67d8;
             font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
+        .feature:hover, .feature:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(90,103,216,.2); }
         .feature .emoji { font-size: 1.4rem; display: block; margin-bottom: 0.25rem; }
         .links {
             display: flex;
@@ -104,27 +107,27 @@
 
         <div class="status">✅ 서버가 정상적으로 실행 중입니다</div>
 
-        <a href="/fortune-app.html" class="main-cta">🔮 운세 서비스 시작하기</a>
+        <a href="/fortune-app.html#saju" class="main-cta">🔮 운세 서비스 시작하기</a>
 
         <div class="features">
-            <div class="feature"><span class="emoji">🔮</span>사주팔자</div>
-            <div class="feature"><span class="emoji">📅</span>오늘운세</div>
-            <div class="feature"><span class="emoji">📜</span>토정비결</div>
-            <div class="feature"><span class="emoji">⭐</span>별자리운세</div>
-            <div class="feature"><span class="emoji">📆</span>간지달력</div>
-            <div class="feature"><span class="emoji">🤖</span>AI운세</div>
+            <a class="feature" href="/fortune-app.html#saju"><span class="emoji" aria-hidden="true">🔮</span>사주팔자</a>
+            <a class="feature" href="/fortune-app.html#daily"><span class="emoji" aria-hidden="true">📅</span>오늘운세</a>
+            <a class="feature" href="/fortune-app.html#tojeong"><span class="emoji" aria-hidden="true">📜</span>토정비결</a>
+            <a class="feature" href="/fortune-app.html#zodiac"><span class="emoji" aria-hidden="true">⭐</span>별자리운세</a>
+            <a class="feature" href="/fortune-app.html#calendar"><span class="emoji" aria-hidden="true">📆</span>간지달력</a>
+            <a class="feature" href="/fortune-app.html#ai"><span class="emoji" aria-hidden="true">🤖</span>AI운세</a>
         </div>
 
         <div class="links">
             <a href="/fortune-app.html" class="link">🚀 운세 앱 바로가기</a>
-            <a href="/api/calendar/view/current" class="link">📅 간지달력 보기</a>
-            <a href="/actuator/health" class="link">🔍 시스템 헬스체크</a>
-            <a href="/api/docs" class="link">📚 API 문서</a>
+            <a href="/fortune-app.html#calendar" class="link">📅 간지달력 보기</a>
+            <a href="/fortune-app.html#system" class="link">🔍 시스템 상태 보기</a>
+            <a href="/api-docs.html" class="link">📚 API 문서 보기</a>
             <a href="/api/docs/test" class="link">🧪 API 개발자 테스트</a>
         </div>
         <div style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
-            <p>버전: 3.0.0-modernization | Spring Boot 4.0.6</p>
-            <p>© 2025 Korean Fortune Team</p>
+            <p>버전 3.0.0 · 2026년 7월 업데이트</p>
+            <p>© 2026 한국형 만세력 운세</p>
         </div>
     </div>
 </body>

@@ -14,7 +14,7 @@
 | Git | 최신 | 필수 | 소스 클론 |
 | Docker / Docker Compose | 최신 | 선택 | 컨테이너 실행·통합 테스트 시에만 |
 
-빌드 산출물은 `build/libs/korean-fortune-app.jar` 이며, 기본 접속 주소는 `http://localhost:8080/fortune-app.html` 입니다.
+빌드 산출물은 `build/libs/korean-fortune-app.jar` 이며, 기본 접속 주소는 `http://localhost:18080/fortune-app.html` 입니다.
 
 ### JDK 21 설치
 
@@ -103,7 +103,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 - `runDev` / `runWithoutAI` : `--spring.profiles.active=dev --app.fortune.ai.enabled=false` 로 실행합니다.
 - `runWithAI` : `OPENAI_API_KEY` 가 없으면 빌드가 즉시 실패하며, `dev,ai` 프로필로 실행합니다.
 
-실행 후 브라우저에서 `http://localhost:8080/fortune-app.html` 로 접속합니다.
+실행 후 브라우저에서 `http://localhost:18080/fortune-app.html` 로 접속합니다.
 
 ---
 
@@ -191,26 +191,26 @@ export APP_FORTUNE_AI_TIMEOUT=30s
 
 | 서비스 | URL | 설명 |
 |--------|-----|------|
-| 운세 앱 (메인 GUI) | `http://localhost:8080/fortune-app.html` | 사주팔자·운세·토정비결·별자리·간지달력 탭 UI |
-| 홈페이지 | `http://localhost:8080` | 랜딩 페이지 |
-| API 문서 | `http://localhost:8080/api/docs` | 자체 REST API 문서 (SpringDoc 아님) |
-| API 테스트 | `http://localhost:8080/api/docs/test` | 인터랙티브 테스트 페이지 |
-| 간지달력 (이번 달) | `http://localhost:8080/api/calendar/view/current` | 간지달력 HTML 뷰 |
-| 헬스체크 | `http://localhost:8080/actuator/health` | 시스템 상태 |
-| Actuator | `http://localhost:8080/actuator` | 관리 엔드포인트 |
-| H2 콘솔 (dev) | `http://localhost:8080/h2-console` | 인메모리 DB 콘솔 |
+| 운세 앱 (메인 GUI) | `http://localhost:18080/fortune-app.html` | 사주팔자·운세·토정비결·별자리·간지달력 탭 UI |
+| 홈페이지 | `http://localhost:18080` | 랜딩 페이지 |
+| API 문서 | `http://localhost:18080/api/docs` | 자체 REST API 문서 (SpringDoc 아님) |
+| API 테스트 | `http://localhost:18080/api/docs/test` | 인터랙티브 테스트 페이지 |
+| 간지달력 (이번 달) | `http://localhost:18080/api/calendar/view/current` | 간지달력 HTML 뷰 |
+| 헬스체크 | `http://localhost:18080/actuator/health` | 시스템 상태 |
+| Actuator | `http://localhost:18080/actuator` | 관리 엔드포인트 |
+| H2 콘솔 (dev) | `http://localhost:18080/h2-console` | 인메모리 DB 콘솔 |
 
 ---
 
 ## 8.6 트러블슈팅
 
-### 포트 8080 충돌
+### 포트 18080 충돌
 
-`Web server failed to start. Port 8080 was already in use.` 오류 시:
+`Web server failed to start. Port 18080 was already in use.` 오류 시:
 
 ```bash
-# 8080 점유 프로세스 확인 (macOS/Linux)
-lsof -i :8080
+# 18080 점유 프로세스 확인 (macOS/Linux)
+lsof -i :18080
 
 # 다른 포트로 실행
 java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev --server.port=8090

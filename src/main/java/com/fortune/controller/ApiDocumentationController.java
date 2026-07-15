@@ -37,7 +37,7 @@ public class ApiDocumentationController {
         docs.put("title", "🔮 한국형 만세력 운세 시스템 API 문서");
         docs.put("version", "2.6.0");
         docs.put("description", "전통 사주팔자와 토정비결을 제공하는 한국형 운세 시스템의 REST API 문서");
-        docs.put("baseUrl", "http://localhost:8080");
+        docs.put("baseUrl", "http://localhost:18080");
         
         // API 엔드포인트 목록
         Map<String, Object> endpoints = new HashMap<>();
@@ -237,6 +237,7 @@ public class ApiDocumentationController {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta http-equiv="refresh" content="0;url=/api-test.html">
                 <title>🔮 한국형 만세력 운세 시스템 API 테스트</title>
                 <style>
                     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
@@ -1122,4 +1123,4 @@ public class ApiDocumentationController {
                 .header("Content-Type", "text/html; charset=utf-8")
                 .body(html);
     }
-} 
+}

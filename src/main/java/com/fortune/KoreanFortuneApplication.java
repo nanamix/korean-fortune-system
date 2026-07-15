@@ -72,7 +72,7 @@ public class KoreanFortuneApplication {
         var context = app.run(args);
         /* 시작 완료 로그 */
         var environment = context.getEnvironment();
-        var port = environment.getProperty("server.port", "8080");
+        var port = environment.getProperty("server.port", "18080");
         var profile = String.join(",", environment.getActiveProfiles());
         log.info("""
             🔮 한국형 만세력 운세 시스템이 성공적으로 시작되었습니다!

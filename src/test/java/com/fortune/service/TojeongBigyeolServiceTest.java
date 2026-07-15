@@ -57,6 +57,18 @@ class TojeongBigyeolServiceTest {
         assertNotNull(result.getGwaName());
         assertNotNull(result.getAdvice());
         assertTrue(result.getOverallScore() >= 0 && result.getOverallScore() <= 100);
+        String expectedLuckyMonths = result.getMonthlyFortune().stream()
+                .filter(month -> month.getScore() >= 70)
+                .map(month -> month.getMonth() + "월(" + month.getScore() + "점)")
+                .collect(java.util.stream.Collectors.joining(", "));
+        String expectedCautionMonths = result.getMonthlyFortune().stream()
+                .filter(month -> month.getScore() < 50)
+                .map(month -> month.getMonth() + "월(" + month.getScore() + "점)")
+                .collect(java.util.stream.Collectors.joining(", "));
+        assertEquals(expectedLuckyMonths.isEmpty() ? "뚜렷한 길월 없음" : expectedLuckyMonths,
+                result.getLuckyMonths());
+        assertEquals(expectedCautionMonths.isEmpty() ? "특별 주의월 없음" : expectedCautionMonths,
+                result.getCautionMonths());
 
         System.out.println("토정비결 결과:");
         System.out.println("괘: " + result.getGwaNumber() + "번 " + result.getGwaName());

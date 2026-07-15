@@ -3,6 +3,7 @@ package com.fortune.ai;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -18,8 +19,13 @@ public class OpenAiCompatibleFortuneProvider implements AiProviderPort {
     private final RestClient restClient;
     private final AiFortuneProperties properties;
 
-    public OpenAiCompatibleFortuneProvider(RestClient.Builder restClientBuilder, AiFortuneProperties properties) {
-        this.restClient = restClientBuilder.baseUrl(properties.baseUrl()).build();
+    @Autowired
+    public OpenAiCompatibleFortuneProvider(AiFortuneProperties properties) {
+        this(RestClient.builder(), properties);
+    }
+
+    OpenAiCompatibleFortuneProvider(RestClient.Builder builder, AiFortuneProperties properties) {
+        this.restClient = builder.baseUrl(properties.baseUrl()).build();
         this.properties = properties;
     }
 

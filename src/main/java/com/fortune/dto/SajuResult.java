@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 /**
  * 사주팔자 계산 결과 DTO
  *
@@ -44,6 +45,14 @@ public class SajuResult {
     private boolean daeunForward;
     /** 대운수(대운 시작 나이) */
     private int daeunNumber;
+    /** 원국 천간·지지 본기 기준 십신 분포(일간 본원 제외). */
+    private Map<String, Integer> sipsinDistribution;
+    /** 조회 시점부터 10년간의 세운. */
+    private List<AnnualFlow> annualFlows;
+    /** 조회 연도의 양력 월별 흐름(각 월 15일 기준 월주). */
+    private List<MonthlyFlow> monthlyFlows;
+    /** 일간과 오행 균형을 바탕으로 한 성향 요약. */
+    private PersonalityAnalysis personalityAnalysis;
 
     /**
      * 사주팔자를 문자열로 포맷팅
@@ -113,5 +122,44 @@ public class SajuResult {
         private String stemSipsin;   // 천간 십신
         private String branchSipsin; // 지지 십신
         private String twelveStage;  // 12운성
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnnualFlow {
+        private int year;
+        private int age;
+        private String ganji;
+        private String ganjiHanja;
+        private String stemSipsin;
+        private String branchSipsin;
+        private String twelveStage;
+        private String theme;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MonthlyFlow {
+        private int year;
+        private int month;
+        private String ganji;
+        private String stemSipsin;
+        private String branchSipsin;
+        private String theme;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PersonalityAnalysis {
+        private String core;
+        private List<String> strengths;
+        private List<String> cautions;
+        private String growthTip;
     }
 }

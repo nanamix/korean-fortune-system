@@ -21,6 +21,8 @@ public class GanjiCalendarResponse {
     private int year;
     private int month;
     private String monthName;
+    private String calendarBasis;
+    private String solarTermsBasis;
     private List<GanjiCalendarDay> days;
     private List<String> solarTerms;
     private String monthlyTheme;

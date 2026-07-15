@@ -4,7 +4,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=test
     ports:
-      - "18080:8080"
+      - "18080:18080"
     volumes:
       - ./src:/app/src
       - ./build:/app/build

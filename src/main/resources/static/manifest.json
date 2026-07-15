@@ -1,6 +1,6 @@
 {
   "name": "한국형 만세력 운세 시스템",
-  "short_name": "만세력 운세",
+  "short_name": "한국형 만세력 운세",
   "description": "사주팔자, 토정비결, 별자리 운세를 AI와 함께 제공하는 정통 운세 서비스",
   "start_url": "/fortune-app.html",
   "display": "standalone",

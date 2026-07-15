@@ -17,7 +17,7 @@ Gradle wrapper 사용. 툴체인은 **Java 21** (`build.gradle`의 `JavaLanguage
 java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 ```
 
-접속: `http://localhost:8080/fortune-app.html` (메인 GUI), `/api/docs` (자체 API 문서), `/actuator/health`.
+접속: `http://localhost:18080/fortune-app.html` (메인 GUI), `/api/docs` (자체 API 문서), `/actuator/health`.
 
 ## Test
 

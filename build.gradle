@@ -324,9 +324,9 @@ tasks.register('runLocalJar') {
     doLast {
         println '🔮 빌드된 JAR 파일을 실행합니다...'
         println '📁 JAR 파일 위치: build/libs/korean-fortune-app.jar'
-        println '🌐 애플리케이션 접속: http://localhost:8080'
-        println '📊 Actuator: http://localhost:8080/actuator'
-        println '📚 API 문서: http://localhost:8080/api/docs'
+        println '🌐 애플리케이션 접속: http://localhost:18080'
+        println '📊 Actuator: http://localhost:18080/actuator'
+        println '📚 API 문서: http://localhost:18080/api/docs'
         println ''
         println '실행 명령어: java -jar build/libs/korean-fortune-app.jar'
         println '또는: java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev'
@@ -343,7 +343,7 @@ tasks.register('startLocal', Exec) {
     ignoreExitValue = true
     doFirst {
         println '🚀 로컬 JAR 파일을 실행합니다...'
-        println '🌐 애플리케이션 접속: http://localhost:8080'
+        println '🌐 애플리케이션 접속: http://localhost:18080'
     }
     doLast {
         println '✅ 로컬 JAR 파일 실행 완료'
@@ -495,7 +495,7 @@ tasks.register('addStaticResources') {
         println '1. favicon.ico 파일 추가'
         println '2. index.html 홈페이지 추가'
         println '3. favicon 오류 로그 최소화'
-        println '4. 이제 http://localhost:8080 에서 홈페이지를 확인할 수 있습니다'
+        println '4. 이제 http://localhost:18080 에서 홈페이지를 확인할 수 있습니다'
     }
 }
 
@@ -511,8 +511,8 @@ tasks.register('setupApiDocumentation') {
         println '4. API 테스트 페이지: /api/docs/test'
         println '5. 홈페이지에 API 문서 링크 추가'
         println '6. 이제 다음 URL에서 API 문서를 확인할 수 있습니다:'
-        println '   - http://localhost:8080/api/docs'
-        println '   - http://localhost:8080/api/docs/test'
+        println '   - http://localhost:18080/api/docs'
+        println '   - http://localhost:18080/api/docs/test'
     }
 }
 

@@ -125,7 +125,7 @@ GET /actuator/caches       # Caffeine 캐시 목록
 - 의존성: `io.micrometer:micrometer-registry-prometheus` (client 버전은 `build.gradle` 에서 `1.3.6` 으로 고정)
 - 노출 경로: `/actuator/prometheus`
 - `prod` 프로필: `management.metrics.export.prometheus.enabled=true`
-- Compose Prometheus(`docker/prometheus/prometheus.yml`)가 job `korean-fortune-app` 으로 `app:8080/actuator/prometheus` 를 5초 간격 스크레이프 (전역 15초)
+- Compose Prometheus(`docker/prometheus/prometheus.yml`)가 job `korean-fortune-app` 으로 `app:18080/actuator/prometheus` 를 5초 간격 스크레이프 (전역 15초)
 - 캐시: Caffeine 기반 캐시 정의(`config/CacheConfig.java`) — `users`, `daily-fortune`, `year-pillar`, `day-pillar`, `blacklist`, `fortune-data`, `zodiac-fortune`, `ai-*` 등. `caches` 엔드포인트로 조회.
 
 ---

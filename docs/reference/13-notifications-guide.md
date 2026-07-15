@@ -142,7 +142,7 @@ app:
 ### 테스트
 
 ```bash
-curl -X POST http://localhost:8080/api/fortune/discord/test \
+curl -X POST http://localhost:18080/api/fortune/discord/test \
   -H "Content-Type: application/json" \
   -d '{"message":"테스트","webhookUrl":"https://discord.com/api/webhooks/…"}'
 ```
@@ -152,7 +152,7 @@ curl -X POST http://localhost:8080/api/fortune/discord/test \
 ## 4. 발송 요청 예시
 
 ```bash
-curl -X POST http://localhost:8080/api/fortune/saju/calculate-and-send \
+curl -X POST http://localhost:18080/api/fortune/saju/calculate-and-send \
   -H "Content-Type: application/json" \
   -d '{
     "birthYear":1981,"birthMonth":3,"birthDay":20,

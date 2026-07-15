@@ -19,6 +19,10 @@ import java.util.List;
 @AllArgsConstructor
 public class GanjiCalendarDay {
     private LocalDate date;
+    private int lunarYear;
+    private int lunarMonth;
+    private int lunarDay;
+    private boolean leapMonth;
     private String dayPillar;
     private int fortuneScore;
     private boolean luckyDay;

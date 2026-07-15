@@ -8,19 +8,26 @@
 #   docker compose -f docker/docker-compose.standalone.yml up -d
 #
 # 접속:
-#   http://localhost:8080
+#   http://localhost:18080
 # ================================================================
 
 services:
   app:
-    image: ghcr.io/nanamix/korean-fortune-system:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: runtime
+    image: korean-fortune-system:local
     container_name: korean-fortune-standalone
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "18080:18080"
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      AI_ENABLED: ${AI_ENABLED:-false}
+      APP_FORTUNE_AI_ENABLED: ${AI_ENABLED:-false}
+      APP_FORTUNE_AI_PROVIDER: ${AI_PROVIDER:-openai}
+      APP_FORTUNE_AI_MODEL: ${AI_MODEL:-gpt-5.4-mini}
+      APP_FORTUNE_AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
@@ -28,7 +35,7 @@ services:
     volumes:
       - ./logs:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:18080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3

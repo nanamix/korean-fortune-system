@@ -95,12 +95,12 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 
 | 항목 | 경로 |
 |------|------|
-| 웹앱(메인) | `http://localhost:8080/fortune-app.html` |
-| API 문서 | `http://localhost:8080/api/docs` |
-| API 테스트 페이지 | `http://localhost:8080/api/docs/test` |
-| 간지달력 뷰 | `http://localhost:8080/api/calendar/view/current` |
-| 헬스체크 | `http://localhost:8080/actuator/health` |
-| Prometheus | `http://localhost:8080/actuator/prometheus` |
+| 웹앱(메인) | `http://localhost:18080/fortune-app.html` |
+| API 문서 | `http://localhost:18080/api/docs` |
+| API 테스트 페이지 | `http://localhost:18080/api/docs/test` |
+| 간지달력 뷰 | `http://localhost:18080/api/calendar/view/current` |
+| 헬스체크 | `http://localhost:18080/actuator/health` |
+| Prometheus | `http://localhost:18080/actuator/prometheus` |
 
 - 아키텍처 상세 → [02-architecture.md](02-architecture.md)
 - 계산 방법론 → [03-saju-calculation-methodology.md](03-saju-calculation-methodology.md)

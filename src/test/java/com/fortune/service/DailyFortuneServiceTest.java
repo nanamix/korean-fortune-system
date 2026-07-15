@@ -78,6 +78,10 @@ public class DailyFortuneServiceTest {
         assertNotNull(result.getLuckyColors());
         assertFalse(result.getLuckyColors().isEmpty());
         assertNotNull(result.getCategoryFortune());
+        assertFalse(result.getCategoryFortune().getLoveMessage().isBlank());
+        assertFalse(result.getCategoryFortune().getCareerMessage().isBlank());
+        assertFalse(result.getCategoryFortune().getHealthMessage().isBlank());
+        assertFalse(result.getCategoryFortune().getWealthMessage().isBlank());
 
         // 결과 출력
         System.out.println("=== 1981년 3월 20일생 남성의 운세 ===");

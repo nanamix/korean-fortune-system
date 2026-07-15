@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 /**
@@ -109,6 +110,13 @@ public class GanjiCalculatorService {
             }
 
             SajuResult.WuxingAnalysis wuxingAnalysis = analyzeWuxing(yearPillar, monthPillar, dayPillar, timePillar);
+            Map<String, Integer> sipsinDistribution = analyzeSipsinDistribution(
+                    yearDetail, monthDetail, dayDetail, timeDetail);
+            int flowStartYear = LocalDate.now().getYear();
+            List<SajuResult.AnnualFlow> annualFlows = buildAnnualFlows(
+                    flowStartYear, birthKst.getYear(), dayMaster);
+            List<SajuResult.MonthlyFlow> monthlyFlows = buildMonthlyFlows(flowStartYear, dayMaster);
+            SajuResult.PersonalityAnalysis personality = analyzePersonality(dayMaster, wuxingAnalysis);
 
             SajuResult result = SajuResult.builder()
                     .yearPillar(yearPillar).monthPillar(monthPillar)
@@ -122,6 +130,9 @@ public class GanjiCalculatorService {
                     .yearDetail(yearDetail).monthDetail(monthDetail)
                     .dayDetail(dayDetail).timeDetail(timeDetail)
                     .daeun(daeun).daeunForward(forward).daeunNumber(daeunNo)
+                    .sipsinDistribution(sipsinDistribution)
+                    .annualFlows(annualFlows).monthlyFlows(monthlyFlows)
+                    .personalityAnalysis(personality)
                     .fortuneSummary(generateFortuneSummary(dayMaster))
                     .build();
             log.info("✅ 사주팔자 계산 완료: {} (대운 {}, 대운수 {})",
@@ -195,6 +206,101 @@ public class GanjiCalculatorService {
                 .branchSipsin(branchMainSipsin(dayStemKr, branchKr))
                 .twelveStage(twelveStage(indexOf(STEMS, dayStemKr), indexOf(BRANCHES, branchKr)))
                 .build();
+    }
+
+    private Map<String, Integer> analyzeSipsinDistribution(SajuResult.Pillar... pillars) {
+        Map<String, Integer> distribution = new LinkedHashMap<>();
+        for (String name : List.of("비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인")) {
+            distribution.put(name, 0);
+        }
+        for (SajuResult.Pillar pillar : pillars) {
+            addSipsin(distribution, pillar.getStemSipsin());
+            addSipsin(distribution, pillar.getBranchSipsin());
+        }
+        return distribution;
+    }
+
+    private void addSipsin(Map<String, Integer> distribution, String sipsin) {
+        if (sipsin != null && distribution.containsKey(sipsin)) {
+            distribution.computeIfPresent(sipsin, (ignored, count) -> count + 1);
+        }
+    }
+
+    private List<SajuResult.AnnualFlow> buildAnnualFlows(int startYear, int birthYear, String dayMaster) {
+        List<SajuResult.AnnualFlow> flows = new ArrayList<>();
+        for (int year = startYear; year < startYear + 10; year++) {
+            String ganjiHanja = eightChar(LocalDate.of(year, 7, 1).atTime(12, 0)).getYear();
+            String ganji = pillarKr(ganjiHanja);
+            String stemSipsin = sipsinOf(dayMaster, ganji.substring(0, 1));
+            String branchSipsin = branchMainSipsin(dayMaster, ganji.substring(1, 2));
+            flows.add(SajuResult.AnnualFlow.builder()
+                    .year(year).age(year - birthYear + 1)
+                    .ganji(ganji).ganjiHanja(ganjiHanja)
+                    .stemSipsin(stemSipsin).branchSipsin(branchSipsin)
+                    .twelveStage(twelveStage(indexOf(STEMS, dayMaster), indexOf(BRANCHES, ganji.substring(1, 2))))
+                    .theme(flowTheme(stemSipsin)).build());
+        }
+        return flows;
+    }
+
+    private List<SajuResult.MonthlyFlow> buildMonthlyFlows(int year, String dayMaster) {
+        List<SajuResult.MonthlyFlow> flows = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            String ganji = calculateMonthPillar(LocalDate.of(year, month, 15));
+            String stemSipsin = sipsinOf(dayMaster, ganji.substring(0, 1));
+            String branchSipsin = branchMainSipsin(dayMaster, ganji.substring(1, 2));
+            flows.add(SajuResult.MonthlyFlow.builder()
+                    .year(year).month(month).ganji(ganji)
+                    .stemSipsin(stemSipsin).branchSipsin(branchSipsin)
+                    .theme(flowTheme(stemSipsin)).build());
+        }
+        return flows;
+    }
+
+    private String flowTheme(String sipsin) {
+        return switch (sipsin) {
+            case "비견" -> "자기주도와 협업의 균형";
+            case "겁재" -> "경쟁과 지출 관리";
+            case "식신" -> "생산성·표현·생활 안정";
+            case "상관" -> "창의적 변화와 언행 점검";
+            case "편재" -> "외부 기회와 유동 재물";
+            case "정재" -> "꾸준한 성과와 자산 관리";
+            case "편관" -> "도전·책임·위험 관리";
+            case "정관" -> "조직·평판·원칙";
+            case "편인" -> "탐구·전환·독창성";
+            case "정인" -> "학습·문서·지원";
+            default -> "균형과 점검";
+        };
+    }
+
+    private SajuResult.PersonalityAnalysis analyzePersonality(
+            String dayMaster, SajuResult.WuxingAnalysis wuxing) {
+        List<String> strengths = switch (dayMaster) {
+            case "갑" -> List.of("추진력", "정직함", "성장 지향");
+            case "을" -> List.of("유연함", "관계 감각", "세밀함");
+            case "병" -> List.of("표현력", "활력", "개방성");
+            case "정" -> List.of("집중력", "배려", "섬세한 통찰");
+            case "무" -> List.of("신뢰감", "포용력", "안정성");
+            case "기" -> List.of("실용성", "조율력", "꾸준함");
+            case "경" -> List.of("결단력", "원칙", "실행력");
+            case "신" -> List.of("분석력", "정교함", "심미안");
+            case "임" -> List.of("포용력", "전략적 사고", "적응력");
+            case "계" -> List.of("관찰력", "직관", "유연한 지혜");
+            default -> List.of("균형 감각", "성실함");
+        };
+        List<String> cautions = switch (wuxing.getStrongestElement()) {
+            case "목" -> List.of("성급한 확장", "고집");
+            case "화" -> List.of("과열", "충동적 표현");
+            case "토" -> List.of("변화 회피", "걱정의 누적");
+            case "금" -> List.of("지나친 완벽주의", "냉정한 표현");
+            case "수" -> List.of("생각 과다", "결정 지연");
+            default -> List.of("극단적인 판단");
+        };
+        String growthTip = "%s 기운이 상대적으로 약하므로, 부족함을 단정하기보다 관련 행동을 의식적으로 보완해 보세요."
+                .formatted(wuxing.getWeakestElement());
+        return SajuResult.PersonalityAnalysis.builder()
+                .core(generateFortuneSummary(dayMaster))
+                .strengths(strengths).cautions(cautions).growthTip(growthTip).build();
     }
 
     // ── 하위호환 공개 헬퍼 (다른 서비스가 사용) ─────────────────────

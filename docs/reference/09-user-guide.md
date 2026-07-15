@@ -10,7 +10,7 @@
 애플리케이션을 실행한 뒤 브라우저에서 아래 주소로 접속합니다.
 
 ```
-http://localhost:8080/fortune-app.html
+http://localhost:18080/fortune-app.html
 ```
 
 상단의 탭 버튼으로 기능을 전환합니다.
@@ -116,8 +116,8 @@ http://localhost:8080/fortune-app.html
 브라우저에서 직접 접근할 수도 있습니다.
 
 ```
-http://localhost:8080/api/calendar/view/current      # 이번 달
-http://localhost:8080/api/calendar/view/2025/6        # 2025년 6월
+http://localhost:18080/api/calendar/view/current      # 이번 달
+http://localhost:18080/api/calendar/view/2025/6        # 2025년 6월
 ```
 
 ---

@@ -1,13 +1,13 @@
 package com.fortune.service;
 
 import com.fortune.ai.AiFortuneFacade;
+import com.fortune.ai.AiProviderStatus;
 import com.fortune.dto.DailyFortuneResult;
 import com.fortune.dto.SajuResult;
 import com.fortune.dto.TojeongResult;
 import com.fortune.dto.ZodiacFortuneResult;
 import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "app.fortune.ai.enabled", havingValue = "true")
 public class AIFortuneService {
     private final AiFortuneFacade aiFortuneFacade;
 
@@ -49,11 +48,11 @@ public class AIFortuneService {
     }
 
     public String answerFortuneQuestion(SajuResult saju, String question) {
-        return """
-                질문: %s
+        return aiFortuneFacade.answerQuestion(saju, question);
+    }
 
-                %s
-                """.formatted(question, aiFortuneFacade.interpretSaju(saju));
+    public AiProviderStatus providerStatus() {
+        return aiFortuneFacade.providerStatus();
     }
 
     public CompletableFuture<String> analyzeFortuneAsync(SajuResult saju, String analysisType) {

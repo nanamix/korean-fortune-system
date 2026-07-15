@@ -16,11 +16,11 @@ cp .env.example .env
 # 옵션 A: 로컬 JAR 실행
 ./gradlew bootJar
 java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
-# → http://localhost:8080/fortune-app.html
+# → http://localhost:18080/fortune-app.html
 
 # 옵션 B: Docker 단독 실행
 docker compose -f docker/docker-compose.standalone.yml up -d
-# → http://localhost:8080/fortune-app.html
+# → http://localhost:18080/fortune-app.html
 ```
 
 ## 2. 환경별 도커 자동화
@@ -78,6 +78,6 @@ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml 
 
 - **로그**: ELK 스택 또는 `/app/logs/` 볼륨 마운트
 - **모니터링**: Prometheus (`http://localhost:9090`) + Grafana (`http://localhost:3000`)
-- **헬스체크**: `http://localhost:8080/actuator/health`
+- **헬스체크**: `http://localhost:18080/actuator/health`
 - **로컬 개발**: DB/Redis만 도커로 띄우고 `./gradlew runDev` 사용
 - **GUI**: `/fortune-app.html` — 사주팔자, 오늘운세, 토정비결, 별자리, 간지달력 탭 UI

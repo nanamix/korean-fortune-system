@@ -82,14 +82,14 @@ ENV JAVA_OPTS="-XX:+UseZGC \
 
 # 애플리케이션 설정
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV SERVER_PORT=8080
+ENV SERVER_PORT=18080
 
 # 포트 노출
-EXPOSE 8080
+EXPOSE 18080
 
 # 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:18080/actuator/health || exit 1
 
 # 사용자 전환
 USER fortune
