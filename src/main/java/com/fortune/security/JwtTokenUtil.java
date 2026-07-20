@@ -7,6 +7,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -27,8 +29,18 @@ public class JwtTokenUtil {
      * - 환경 변수에서 주입됩니다.
      * 
      */
-    @Value("${jwt.secret:mySecretKey123456789012345678901234567890}")
+    @Value("${JWT_SECRET:}")
     private String jwtSecret;
+
+    @Value("${app.fortune.security.enabled:false}")
+    private boolean securityEnabled;
+
+    @PostConstruct
+    void validateSecretConfiguration() {
+        if (securityEnabled && (jwtSecret == null || jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32)) {
+            throw new IllegalStateException("JWT signing key must be provided by the secret store");
+        }
+    }
     /**
      * JWT 토큰 만료 시간
      * - 환경 변수에서 주입됩니다.

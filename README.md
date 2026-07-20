@@ -64,14 +64,17 @@ docker compose -f docker/docker-compose.standalone.yml up -d
 
 ### 4. Docker Compose 전체 스택 (운영 환경)
 
-```bash
-# 환경 변수 설정
-cp .env.example .env
-# .env 파일 편집 후 실행
+OpenBao bootstrap credential과 KV 값을 준비한 뒤 실행합니다.
 
-# 운영 환경 (MySQL + Redis + Nginx + 모니터링)
-docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+```bash
+docker compose \
+  -f docker/docker-compose.yaml \
+  -f docker/docker-compose.prod.yaml \
+  -f docker/docker-compose.openbao.override.yml \
+  up -d
 ```
+
+상세 절차는 `ops/openbao/README.md`를 참고합니다.
 
 ## 🌐 접속 정보
 
@@ -103,33 +106,11 @@ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml 
 | AI 사주 해석 | POST | `/api/fortune/ai/interpret-saju` | AI 기반 사주 해석 |
 | 시스템 상태 | GET | `/api/system/status` | 시스템 상태 확인 |
 
-## 🔑 환경 변수 설정
+## 🔐 OpenBao secret 관리
 
-배포 시 `.env.example` 파일을 복사하여 설정하세요:
+운영 자격증명은 `.env`나 Compose environment 값으로 보관하지 않습니다. `secret/projects/korean-fortune-system/<environment>`의 KV 문자열을 시작 시점에 공유 `tmpfs`로 렌더링하며, MySQL·Spring Boot·Grafana는 secret file을 직접 읽습니다.
 
-```bash
-cp .env.example .env
-# .env 파일에서 실제 값으로 수정
-```
-
-### 주요 환경 변수
-
-```bash
-# 데이터베이스
-MYSQL_PASSWORD=your_password
-
-# AI 기능 (선택)
-AI_ENABLED=true
-OPENAI_API_KEY=sk-...
-
-# 텔레그램 봇 (선택)
-TELEGRAM_BOT_TOKEN=1234567890:AAH...
-TELEGRAM_CHAT_ID=123456789
-
-# 이메일 발송 (선택)
-MAIL_USERNAME=your@gmail.com
-MAIL_PASSWORD=app_password
-```
+필수 key와 bootstrap 파일, 회전 절차는 `ops/openbao/README.md`에 있습니다.
 
 ## 📋 주요 Gradle 태스크
 
@@ -267,12 +248,14 @@ korean-fortune-system/
 ├── docker/                  # Docker 관련 파일
 │   ├── docker-compose.yaml         # 기본 컴포즈
 │   ├── docker-compose.prod.yaml    # 운영 오버라이드
+│   ├── docker-compose.openbao.override.yml # OpenBao secret 주입
 │   ├── docker-compose.standalone.yml # 단독 실행
 │   ├── nginx/               # Nginx 설정
 │   ├── mysql/               # MySQL 초기화 스크립트
 │   └── prometheus/          # Prometheus 설정
 ├── .github/workflows/       # GitHub Actions CI/CD
-├── .env.example             # 환경 변수 템플릿
+├── ops/openbao/             # OpenBao tmpfs renderer·운영 절차
+├── .env.example             # 비밀이 아닌 OpenBao 선택자 안내
 ├── Dockerfile               # 멀티 스테이지 빌드
 └── build.gradle             # Gradle 빌드 설정
 ```
@@ -436,125 +419,11 @@ open http://localhost:18080/api/docs/test
 | AI 사주 해석 | POST | `/api/fortune/ai/interpret-saju` | AI 기반 사주 해석 |
 | 시스템 상태 | GET | `/api/system/status` | 시스템 상태 확인 |
 
-## 🔑 환경변수 설정
+## 🔐 OpenBao secret 관리
 
-### 개발 환경에서 이메일/텔레그램 발송 설정
+개발·운영 자격증명은 `.env`, shell export, application secret 파일에 저장하지 않습니다. Compose에서는 `docker-compose.openbao.override.yml`을 포함하고, 로컬 JAR 실행에서는 승인된 secret source에서 프로세스 수명 동안만 주입합니다.
 
-개발 환경에서 이메일과 텔레그램 발송을 사용하려면 다음 방법 중 하나를 선택하세요:
-
-#### 방법 1: 프로퍼티 파일 사용 (권장)
-
-1. `src/main/resources/application-dev-secrets.yml` 파일을 생성하고 다음 내용을 추가:
-
-```yaml
-spring:
-  mail:
-    username: your-email@gmail.com
-    password: your-app-password
-
-app:
-  fortune:
-    telegram:
-      bot-token: your-telegram-bot-token
-      chat-id: your-telegram-chat-id
-```
-
-2. 실제 값으로 변경하여 사용하세요.
-
-#### 방법 2: 환경변수 사용
-
-```bash
-# 이메일 발송 설정
-export MAIL_USERNAME=your-email@gmail.com
-export MAIL_PASSWORD=your-app-password
-
-# 텔레그램 발송 설정
-export TELEGRAM_BOT_TOKEN=your-telegram-bot-token
-export TELEGRAM_CHAT_ID=your-telegram-chat-id
-```
-
-#### 보안 주의사항 ⚠️
-
-- `application-dev-secrets.yml` 파일은 `.gitignore`에 추가되어 Git에 커밋되지 않습니다.
-- 민감한 정보는 절대 Git에 커밋하지 마세요.
-- 운영 환경에서는 별도의 보안 관리 시스템을 사용하세요.
-- 텔레그램 봇 토큰과 채팅 ID는 절대 공개 저장소에 올리지 마세요.
-- 이메일 비밀번호는 Gmail 앱 비밀번호를 사용하세요.
-
-#### 🔒 보안 강화 방법
-
-1. **환경변수 사용** (권장):
-   ```bash
-   export EMAIL_USERNAME=your-email@gmail.com
-   export EMAIL_PASSWORD=your-app-password
-   export TELEGRAM_BOT_TOKEN=your-telegram-bot-token
-   export TELEGRAM_CHAT_ID=your-telegram-chat-id
-   ```
-
-2. **별도 설정 파일 사용**:
-   - `src/main/resources/application-dev-secrets.yml.template` 파일을 참고하여
-   - `src/main/resources/application-dev-secrets.yml` 파일을 생성하고 실제 값으로 설정
-
-3. **Git 히스토리에서 민감 정보 제거**:
-   ```bash
-   # 이미 커밋된 민감 정보가 있다면
-   git filter-repo --path path/to/sensitive/file --invert-paths --force
-   git push origin master --force
-   ```
-
-### AI 기능 설정
-AI 기능은 기본적으로 꺼져 있습니다. 외부 모델 호출을 사용하려면 `ai` 프로파일과 API 키를 함께 설정하세요:
-
-```bash
-export OPENAI_API_KEY=your-api-key
-./gradlew runWithAI
-```
-
-OpenAI-compatible 서버를 바꾸고 싶다면 다음 환경변수를 사용합니다:
-
-```bash
-export APP_FORTUNE_AI_PROVIDER=openai
-export APP_FORTUNE_AI_MODEL=gpt-5.4-mini
-export APP_FORTUNE_AI_BASE_URL=https://api.openai.com/v1
-export APP_FORTUNE_AI_TIMEOUT=30s
-```
-
-### 이메일 발송 설정
-이메일 발송 기능을 사용하려면 SMTP 설정을 추가하세요:
-
-```yaml
-# application-prod.yml 또는 환경변수
-spring:
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: your-email@gmail.com
-    password: your-app-password
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-app:
-  fortune:
-    email:
-      enabled: true
-```
-
-### 텔레그램 발송 설정
-텔레그램 발송 기능을 사용하려면 봇 토큰을 설정하세요:
-
-```yaml
-# application-prod.yml 또는 환경변수
-app:
-  fortune:
-    telegram:
-      enabled: true
-      bot-token: "your-telegram-bot-token"
-      api-url: "https://api.telegram.org/bot"
-```
+KV key 목록과 실행 절차는 `ops/openbao/README.md`를 참고합니다.
 
 ## 📋 주요 Gradle 태스크
 

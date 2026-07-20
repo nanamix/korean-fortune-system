@@ -49,7 +49,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 
 `application.yml`이 베이스(기본 `dev`, H2 인메모리). 프로필별 override: `application-{dev,ai,mysql,docker,prod,perf,test}.yml`. 주요 토글은 `app.fortune.*` 트리 아래 — `ai.enabled`, `ai.provider`, `security.enabled`, `email.enabled`, `telegram.*`, `cache.*`.
 
-시크릿은 환경변수로: `OPENAI_API_KEY`, `MAIL_USERNAME`/`MAIL_PASSWORD`, `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`. `.env.example` 참고. `application-dev-secrets.yml.template`을 복사해 로컬 시크릿 구성 가능(gitignore 대상).
+시크릿은 `.env`, shell export, application 설정 파일에 저장하지 않는다. Compose는 `docker/docker-compose.openbao.override.yml`, 운영 절차는 `ops/openbao/README.md`를 따른다.
 
 ## Docker
 

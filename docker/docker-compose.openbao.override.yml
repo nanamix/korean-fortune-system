@@ -1,0 +1,52 @@
+volumes:
+  openbao_secrets:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1m,mode=0711
+
+services:
+  openbao-secrets:
+    build:
+      context: ..
+      dockerfile: ops/openbao/Dockerfile
+    container_name: korean-fortune-openbao-secrets
+    restart: "no"
+    environment:
+      OPENBAO_ADDR: ${OPENBAO_ADDR:-https://vault.jyha.net}
+      OPENBAO_BOOTSTRAP_DIR: /run/openbao-bootstrap
+      OPENBAO_OUTPUT_DIR: /run/openbao-secrets
+      OPENBAO_SECRET_PATH: ${OPENBAO_SECRET_PATH:-secret/data/projects/korean-fortune-system/prod}
+      OPENBAO_REQUIRED_KEYS: MYSQL_ROOT_PASSWORD MYSQL_PASSWORD GRAFANA_PASSWORD JWT_SECRET
+    volumes:
+      - openbao_secrets:/run/openbao-secrets
+      - ${OPENBAO_BOOTSTRAP_HOST_DIR:-/Users/nanamix/.config/korean-fortune-system/openbao-bootstrap}:/run/openbao-bootstrap:ro
+
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/openbao-secrets/MYSQL_ROOT_PASSWORD
+      MYSQL_PASSWORD_FILE: /run/openbao-secrets/MYSQL_PASSWORD
+    volumes:
+      - openbao_secrets:/run/openbao-secrets:ro
+    depends_on:
+      openbao-secrets:
+        condition: service_completed_successfully
+
+  app:
+    environment:
+      SPRING_CONFIG_IMPORT: configtree:/run/openbao-secrets/
+    volumes:
+      - openbao_secrets:/run/openbao-secrets:ro
+    depends_on:
+      openbao-secrets:
+        condition: service_completed_successfully
+
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/openbao-secrets/GRAFANA_PASSWORD
+    volumes:
+      - openbao_secrets:/run/openbao-secrets:ro
+    depends_on:
+      openbao-secrets:
+        condition: service_completed_successfully

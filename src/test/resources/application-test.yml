@@ -40,7 +40,6 @@ spring:
       path: /h2-console
       
 jwt:
-  secret: test-secret-key-for-testing-environment-that-is-long-enough-12345
   expiration: 3600
   refresh-expiration: 86400
 

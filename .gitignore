@@ -332,6 +332,7 @@ logs/
 # 민감한 정보 파일 (Git에 커밋되지 않음)
 # ==============================================
 src/main/resources/application-dev-secrets.yml
+docker/docker/ollama/id_ed25519
 src/main/resources/application-prod-secrets.yml
 src/main/resources/application-*-secrets.yml
 *.secrets.yml

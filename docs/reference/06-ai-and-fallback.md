@@ -52,7 +52,6 @@ flowchart TD
 기본값은 비활성입니다 (`application.yml:47-54`: `enabled: false`, `provider: fallback`). 외부 모델을 쓰려면 `ai` 프로필 + API 키가 필요합니다.
 
 ```bash
-export OPENAI_API_KEY=sk-...
 ./gradlew runWithAI      # profiles=dev,ai
 ```
 

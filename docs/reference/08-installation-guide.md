@@ -125,52 +125,17 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 
 프로필 지정은 `--spring.profiles.active=<프로필>` 인자 또는 `SPRING_PROFILES_ACTIVE` 환경변수를 사용합니다. 복수 지정은 쉼표로 결합합니다(예: `dev,ai`).
 
-### 8.4.2 `.env` 파일 (Docker Compose용)
+### 8.4.2 OpenBao secret 주입
 
-Docker Compose 실행 시 환경변수는 `.env` 파일로 주입합니다. 템플릿을 복사해 값을 채웁니다.
+Docker Compose 운영·개발 스택은 `.env`에 자격증명을 저장하지 않습니다. `docker-compose.openbao.override.yml`의 renderer가 `secret/projects/korean-fortune-system/<environment>`를 공유 `tmpfs`에 렌더링합니다.
 
-```bash
-cp .env.example .env
-```
-
-`.env.example` 의 주요 항목:
-
-| 변수 | 기본값 | 설명 |
-|------|--------|------|
-| `MYSQL_ROOT_PASSWORD` | `root_fortune_2025!` | MySQL root 비밀번호 |
-| `MYSQL_PASSWORD` | `fortune_secure_2025!` | 애플리케이션 DB 사용자 비밀번호 |
-| `REDIS_PASSWORD` | (빈 값) | Redis 비밀번호 |
-| `SPRING_PROFILES_ACTIVE` | `docker` | 활성 프로필 |
-| `AI_ENABLED` | `false` | AI 기능 스위치 |
-| `OPENAI_API_KEY` | (빈 값) | OpenAI 호환 API 키 |
-| `POSTGRES_URL` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | `localhost:5432` 기본 | PostgreSQL 프로필(`postgres`) 연결 |
-| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | (빈 값) | 텔레그램 발송 |
-| `DISCORD_WEBHOOK_URL` | (빈 값) | Discord 발송 webhook |
-| `MAIL_HOST` / `MAIL_PORT` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM` | Gmail SMTP 기본 | 이메일 발송 ([13. 알림 가이드](13-notifications-guide.md) 참조) |
-| `GRAFANA_PASSWORD` | `admin123` | 모니터링 Grafana 관리자 비밀번호 |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | (주석) | OTLP 트레이스 수집기 |
-
-### 8.4.3 로컬 개발에서 이메일/텔레그램 발송 설정
-
-`dev` 프로필은 이메일·텔레그램 발송이 활성화되어 있습니다. 두 가지 방법 중 하나로 자격증명을 주입합니다.
-
-방법 1 — 환경변수:
-
-```bash
-export EMAIL_USERNAME=your-email@gmail.com   # Gmail 앱 비밀번호 사용
-export EMAIL_PASSWORD=your-app-password
-export TELEGRAM_BOT_TOKEN=123456:AA...
-export TELEGRAM_CHAT_ID=123456789
-```
-
-방법 2 — 시크릿 파일(권장): `src/main/resources/application-dev-secrets.yml` 파일을 생성합니다. 이 파일은 `.gitignore` 에 포함되어 커밋되지 않습니다. 템플릿은 `application-dev-secrets.yml.template` / `application-dev-secrets.yml.example` 을 참고하세요. `dev` 프로필은 `optional:classpath:application-dev-secrets.yml` 을 자동으로 import 합니다.
+필수 key, 선택 key, bootstrap credential 파일과 실행 명령은 `ops/openbao/README.md`를 참고합니다. 로컬 JAR 실행도 실제 자격증명을 shell history나 설정 파일에 저장하지 말고 승인된 secret source에서 일시 주입합니다.
 
 ### 8.4.4 AI 기능 설정
 
 AI는 기본 비활성화 상태이며, `ai` 프로필 + `OPENAI_API_KEY` 가 함께 있을 때만 외부 모델을 호출합니다. 그 외에는 결정적(deterministic) fallback 으로 응답합니다.
 
 ```bash
-export OPENAI_API_KEY=sk-...
 ./gradlew runWithAI
 ```
 

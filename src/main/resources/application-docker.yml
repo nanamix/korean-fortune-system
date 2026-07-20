@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:mysql://mysql:3306/korean_fortune?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${MYSQL_USER:fortune_user}
-    password: ${MYSQL_PASSWORD:fortune_secure_2025!}
+    password: ${MYSQL_PASSWORD}
 
 server:
   port: 18080

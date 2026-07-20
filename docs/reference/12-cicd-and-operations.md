@@ -36,7 +36,7 @@
 1. GHCR 로그인(`secrets.GHCR_PAT`)
 2. `docker pull ...:latest`
 3. 배포 디렉토리(`vars.DEPLOY_PATH`, 기본 `/opt/korean-fortune`)에서 기존 컨테이너 down
-4. `docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d`
+4. `docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d`
 5. 헬스체크 폴링: `http://localhost:18080/actuator/health` 를 최대 20회(10초 간격) 재시도, 200이면 성공, 실패 시 앱 로그 출력 후 종료
 6. `docker compose ps` 로 상태 확인
 
@@ -63,8 +63,8 @@ push (develop)               → ci.yml: build-and-test 만
 수동 배포(서버에서 직접):
 
 ```bash
-docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml pull
-docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml pull
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d
 ```
 
 ---
@@ -102,7 +102,7 @@ docker compose -f docker/docker-compose.yaml logs -f app
 ### 메트릭 / 대시보드
 
 - Prometheus: `http://localhost:18080/actuator/prometheus` (Compose Prometheus가 5초 간격 스크레이프, job `korean-fortune-app`)
-- Grafana: `http://localhost:3000` (기본 비밀번호 `GRAFANA_PASSWORD`, 기본 `admin123`)
+- Grafana: `http://localhost:3000` (관리자 비밀번호는 OpenBao의 `GRAFANA_PASSWORD`)
 
 ### 배포 롤백 참고
 

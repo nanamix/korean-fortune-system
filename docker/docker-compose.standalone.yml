@@ -28,9 +28,6 @@ services:
       APP_FORTUNE_AI_PROVIDER: ${AI_PROVIDER:-openai}
       APP_FORTUNE_AI_MODEL: ${AI_MODEL:-gpt-5.4-mini}
       APP_FORTUNE_AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       TZ: Asia/Seoul
     volumes:
       - ./logs:/app/logs

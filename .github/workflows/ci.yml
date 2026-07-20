@@ -150,10 +150,10 @@ jobs:
 
             cd ${{ vars.DEPLOY_PATH || '/opt/korean-fortune' }}
             echo "🛑 Stopping existing containers..."
-            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml down --remove-orphans || true
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
 
             echo "🚀 Starting updated containers..."
-            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d
 
             echo "⏳ Waiting for application to become healthy..."
             HEALTH_URL="http://localhost:18080/actuator/health"
@@ -169,12 +169,12 @@ jobs:
               sleep $RETRY_INTERVAL
               if [ $i -eq $MAX_RETRIES ]; then
                 echo "❌ Health check failed after $MAX_RETRIES attempts"
-                docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml logs --tail=50 app
+                docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml logs --tail=50 app
                 exit 1
               fi
             done
 
-            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml ps
+            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml ps
             echo "✅ Deployment complete!"
 
       - name: Deployment skipped (no DEPLOY_HOST configured)

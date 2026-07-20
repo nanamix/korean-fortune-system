@@ -10,7 +10,6 @@ services:
       SPRING_DEVTOOLS_RESTART_ENABLED: true
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: true
       DB_USERNAME: fortune_user
-      DB_PASSWORD: fortune_dev_2025!
       APP_FORTUNE_AI_ENABLED: false
       LOGGING_LEVEL_COM_FORTUNE: DEBUG
       TZ: Asia/Seoul
@@ -30,8 +29,6 @@ services:
   # 🗄️ MySQL (개발 설정)
   mysql:
     environment:
-      MYSQL_ROOT_PASSWORD: root_dev_2025!
-      MYSQL_PASSWORD: fortune_dev_2025!
       MYSQL_DATABASE: korean_fortune_dev
     ports:
       - "3306:3306"
@@ -54,9 +51,6 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      PMA_USER: fortune_user
-      PMA_PASSWORD: fortune_dev_2025!
-      MYSQL_ROOT_PASSWORD: root_dev_2025!
     ports:
       - "8081:80"
     networks:

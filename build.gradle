@@ -216,7 +216,7 @@ tasks.register('dockerComposeUpProd', Exec) {
     group = 'docker'
     description = 'Docker Compose로 전체 서비스 시작 (운영 환경)'
     workingDir 'docker'
-    commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', 'up', '-d'
+    commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', '-f', 'docker-compose.openbao.override.yml', 'up', '-d'
 }
 
 tasks.register('dockerComposeDown', Exec) {
@@ -247,7 +247,7 @@ tasks.register('dockerComposeRestart', Exec) {
     doLast {
         exec {
             workingDir 'docker'
-            commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', 'up', '-d'
+            commandLine 'docker-compose', '-f', 'docker-compose.yaml', '-f', 'docker-compose.prod.yaml', '-f', 'docker-compose.openbao.override.yml', 'up', '-d'
         }
     }
 }
@@ -575,7 +575,7 @@ println """
   또는: ./gradlew startLocal     # 자동 실행
 
 환경변수 설정:
-  export OPENAI_API_KEY=your-api-key  # AI 기능 사용시에만 필요
+  OpenBao 설정: ops/openbao/README.md
 
 ✨ 문제없이 빌드됩니다! ✨
 """

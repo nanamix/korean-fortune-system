@@ -2,10 +2,7 @@
 -- 데이터베이스 생성
 CREATE DATABASE IF NOT EXISTS korean_fortune CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 사용자 생성 및 권한 부여
-CREATE USER IF NOT EXISTS 'fortune_user'@'%' IDENTIFIED BY 'fortune_password';
-GRANT ALL PRIVILEGES ON korean_fortune.* TO 'fortune_user'@'%';
-FLUSH PRIVILEGES;
+-- 사용자는 MySQL 공식 이미지의 MYSQL_USER/MYSQL_PASSWORD_FILE로 생성한다.
 
 -- 기본 테이블 생성
 USE korean_fortune;

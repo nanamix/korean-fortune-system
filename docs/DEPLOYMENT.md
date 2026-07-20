@@ -2,11 +2,7 @@
 
 ## 0. 사전 준비
 
-```bash
-# 환경 변수 파일 생성 (처음 한 번만)
-cp .env.example .env
-# .env 파일을 편집하여 실제 값 입력
-```
+OpenBao의 `korean-fortune-system` project policy/AppRole, KV 값, owner-only bootstrap directory를 준비합니다. 값은 `.env`나 명령행에 기록하지 않습니다. 상세 절차는 `ops/openbao/README.md`를 참고합니다.
 
 ## 1. 빠른 단독 실행 (가장 간단)
 
@@ -35,7 +31,7 @@ docker compose -f docker/docker-compose.standalone.yml up -d
 ### 운영 환경
 ```bash
 ./gradlew dockerBuildProd
-./gradlew dockerComposeUpProd   # docker-compose.yaml + docker-compose.prod.yaml
+./gradlew dockerComposeUpProd   # base + prod + OpenBao override
 ./gradlew dockerComposeDown
 ```
 
@@ -46,7 +42,7 @@ docker compose -f docker/docker-compose.standalone.yml up -d
 docker compose -f docker/docker-compose.yaml -f docker/docker-compose.dev.yaml up -d
 
 # 운영 환경 (MySQL + Redis + Nginx + 앱 × 2 replica)
-docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d
 
 # 단독 실행 (H2 인메모리)
 docker compose -f docker/docker-compose.standalone.yml up -d
@@ -64,15 +60,16 @@ docker compose -f docker/docker-compose.yaml down
 
 서버에서 새 이미지를 당겨 재시작:
 ```bash
-docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml pull
-docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml up -d
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml pull
+docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d
 ```
 
-## 5. 환경 변수 및 오버라이드
+## 5. OpenBao 및 오버라이드
 
-- `.env.example` → `.env` 복사 후 실제 값 설정
-- 각 compose 오버라이드(`prod`, `dev`, `standalone`)에서 환경별 설정 분리
-- `OPENAI_API_KEY`, `TELEGRAM_BOT_TOKEN` 등 민감 정보는 절대 Git에 커밋하지 마세요
+- 운영 Compose에는 `docker-compose.openbao.override.yml`을 항상 포함합니다.
+- secret은 OpenBao KV에서 공유 `tmpfs`로만 렌더링됩니다.
+- 비밀이 아닌 profile, port, endpoint만 일반 환경변수로 둘 수 있습니다.
+- 저장소나 Git history에 노출된 기존 값은 별도로 회전합니다.
 
 ## 6. 운영 팁
 

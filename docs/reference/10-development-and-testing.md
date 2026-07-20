@@ -141,7 +141,7 @@ src/main/resources/
 |-----------|------|
 | 개발 (H2, AI off) | `./gradlew runDev` |
 | 로컬 MySQL 연동 | `java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=mysql` |
-| AI 활성화 | `OPENAI_API_KEY=sk-... ./gradlew runWithAI` |
+| AI 활성화 | OpenBao의 `OPENAI_API_KEY` |
 | 성능 프로필 | `java -jar ...korean-fortune-app.jar --spring.profiles.active=perf` |
 | 운영 시뮬레이션 | `java -jar ...korean-fortune-app.jar --spring.profiles.active=prod` |
 
