@@ -12,6 +12,7 @@
 다음 선택 key도 같은 경로에 문자열로 저장할 수 있다.
 
 - `OPENAI_API_KEY`
+- `DEEPSEEK_API_KEY` (기본 외부 AI 제공자)
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
 - `DISCORD_WEBHOOK_URL`
 - `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`

@@ -10,10 +10,10 @@ app:
   fortune:
     ai:
       enabled: true
-      provider: ${APP_FORTUNE_AI_PROVIDER:openai}
-      model: ${APP_FORTUNE_AI_MODEL:gpt-5.4-mini}
-      base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.openai.com/v1}
-      api-key: ${OPENAI_API_KEY:}
+      provider: ${APP_FORTUNE_AI_PROVIDER:deepseek}
+      model: ${APP_FORTUNE_AI_MODEL:deepseek-chat}
+      base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.deepseek.com/v1}
+      api-key: ${DEEPSEEK_API_KEY:${OPENAI_API_KEY:}}
       timeout: ${APP_FORTUNE_AI_TIMEOUT:30s}
       fallback-enabled: true
 

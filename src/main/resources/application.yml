@@ -64,6 +64,8 @@ app:
       chat-id: ${TELEGRAM_CHAT_ID:}
     discord:
       webhook-url: ${DISCORD_WEBHOOK_URL:}
+    slack:
+      webhook-url: ${SLACK_WEBHOOK_URL:}
 
 # 로깅 설정 (traceId / spanId 포함)
 logging:

@@ -122,6 +122,8 @@ public class AiFortuneFacade {
                 option("gemini", "Google Gemini", "OpenAI 호환", "gemini-3.5-flash", "gemini-flash-latest"),
                 option("groq", "GroqCloud", "OpenAI 호환", "openai/gpt-oss-20b", "openai/gpt-oss-120b", "llama-3.3-70b-versatile"),
                 option("mistral", "Mistral AI", "OpenAI 호환", "mistral-small-latest", "mistral-large-latest"),
+                option("anthropic", "Anthropic", "OpenAI 호환 프록시", "claude-sonnet-4"),
+                option("ollama", "Ollama", "사설망·로컬", "llama3.3", "qwen2.5"),
                 option("openrouter", "OpenRouter", "멀티 제공자 게이트웨이", "openai/*", "anthropic/*", "google/*", "deepseek/*"));
     }
 

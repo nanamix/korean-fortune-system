@@ -43,6 +43,7 @@ public class FortuneController {
     private final EmailService emailService;
     private final TelegramService telegramService;
     private final DiscordService discordService;
+    private final SlackService slackService;
 
     @Autowired
     public FortuneController(
@@ -54,7 +55,8 @@ public class FortuneController {
             @Autowired(required = false) AIFortuneService aiFortuneService,
             EmailService emailService,
             TelegramService telegramService,
-            DiscordService discordService) {
+            DiscordService discordService,
+            SlackService slackService) {
         this.ganjiCalculatorService = ganjiCalculatorService;
         this.dailyFortuneService = dailyFortuneService;
         this.tojeongBigyeolService = tojeongBigyeolService;
@@ -64,6 +66,7 @@ public class FortuneController {
         this.emailService = emailService;
         this.telegramService = telegramService;
         this.discordService = discordService;
+        this.slackService = slackService;
     }
 
     /**
@@ -557,6 +560,17 @@ public class FortuneController {
             log.error("❌ Discord 발송 테스트 실패", e);
             return ResponseEntity.badRequest()
                     .body(com.fortune.dto.ApiResponse.error("Discord 발송 실패: " + e.getMessage(), "DISCORD_TEST_ERROR"));
+        }
+    }
+
+    @PostMapping("/slack/test")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> testSlackSend(@Valid @RequestBody SlackTestRequest request) {
+        try {
+            slackService.sendMessage(request.getMessage(), request.getWebhookUrl());
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("Slack 메시지가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ Slack 발송 테스트 실패", e);
+            return ResponseEntity.badRequest().body(com.fortune.dto.ApiResponse.error("Slack 발송 실패: " + e.getMessage(), "SLACK_TEST_ERROR"));
         }
     }
 
