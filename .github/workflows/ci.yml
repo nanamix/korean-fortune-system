@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -123,7 +124,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────
   deploy:
     name: Deploy to Production
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, x64]
     needs: docker
     if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     environment:
@@ -132,6 +133,9 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
       - name: Notify deploy started
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_CICD_WEBHOOK_URL }}
@@ -142,22 +146,15 @@ jobs:
           curl --fail --silent --show-error --max-time 10 -H 'Content-Type: application/json' --data "$payload" "$DISCORD_WEBHOOK_URL"
 
       - name: Deploy via SSH
-        if: ${{ vars.DEPLOY_HOST != '' }}
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ vars.DEPLOY_HOST }}
-          username: ${{ vars.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ vars.DEPLOY_PORT || 22 }}
-          script: |
+        run: |
             set -e
             echo "🔐 Logging in to GitHub Container Registry..."
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
             echo "📥 Pulling latest image..."
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-            cd ${{ vars.DEPLOY_PATH || '/opt/korean-fortune' }}
+            cd "${{ vars.DEPLOY_PATH || '/Users/nanamix/Dev/korean-fortune-system' }}"
             echo "🛑 Stopping existing containers..."
             docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
 
@@ -185,15 +182,6 @@ jobs:
 
             docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml ps
             echo "✅ Deployment complete!"
-
-      - name: Deployment skipped (no DEPLOY_HOST configured)
-        if: ${{ vars.DEPLOY_HOST == '' }}
-        run: |
-          echo "⚠️  DEPLOY_HOST 미설정 — Docker 이미지는 GHCR 에 게시되었습니다."
-          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          echo "자동 배포하려면 리포지토리 변수/시크릿을 설정하세요:"
-          echo "  vars:    DEPLOY_HOST, DEPLOY_USER, DEPLOY_PORT, DEPLOY_PATH, APP_URL"
-          echo "  secrets: DEPLOY_SSH_KEY, GHCR_PAT(read:packages)"
 
       - name: Notify deploy finished
         if: ${{ always() }}
