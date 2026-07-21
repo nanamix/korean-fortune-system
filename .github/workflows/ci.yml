@@ -157,6 +157,10 @@ jobs:
             cd "${{ vars.DEPLOY_PATH || '/Users/nanamix/Dev/korean-fortune-system' }}"
             echo "🛑 Stopping existing containers..."
             docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
+            # 이전 Compose 프로젝트가 남긴 고정 이름 컨테이너 정리
+            for container in korean-fortune-redis korean-fortune-openbao-secrets korean-fortune-prometheus korean-fortune-standalone korean-fortune-elasticsearch; do
+              docker rm -f "$container" 2>/dev/null || true
+            done
 
             echo "🚀 Starting updated containers..."
             docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d
