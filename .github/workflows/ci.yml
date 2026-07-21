@@ -196,17 +196,19 @@ jobs:
     if: always() && github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     permissions:
       contents: read
-    env:
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_CICD_WEBHOOK_URL }}
     steps:
       - name: Send deployment status to Discord
-        if: ${{ env.DISCORD_WEBHOOK_URL != '' }}
         env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_CICD_WEBHOOK_URL }}
           BUILD_RESULT: ${{ needs.build-and-test.result }}
           DOCKER_RESULT: ${{ needs.docker.result }}
           DEPLOY_RESULT: ${{ needs.deploy.result }}
         run: |
           set -eu
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_CICD_WEBHOOK_URL 미설정 — 배포 알림을 건너뜁니다."
+            exit 0
+          fi
           status="success"
           color=3066993
           if [ "$BUILD_RESULT" != "success" ] || [ "$DOCKER_RESULT" != "success" ] || [ "$DEPLOY_RESULT" != "success" ]; then
@@ -227,7 +229,3 @@ jobs:
             -H 'Content-Type: application/json' \
             --data "$payload" \
             "$DISCORD_WEBHOOK_URL"
-
-      - name: Discord notification skipped (secret not configured)
-        if: ${{ env.DISCORD_WEBHOOK_URL == '' }}
-        run: echo "DISCORD_CICD_WEBHOOK_URL 미설정 — 배포 알림을 건너뜁니다."
