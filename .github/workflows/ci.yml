@@ -132,6 +132,15 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Notify deploy started
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_CICD_WEBHOOK_URL }}
+        run: |
+          set -eu
+          [ -n "$DISCORD_WEBHOOK_URL" ] || { echo "Discord webhook not configured"; exit 0; }
+          payload=$(jq -n --arg title "Deploy started" --arg url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{embeds:[{title:$title,url:$url,color:16776960,fields:[{name:"Step",value:"Deploy to Production",inline:true},{name:"Commit",value:(env.GITHUB_SHA[0:12]),inline:true}]}]}')
+          curl --fail --silent --show-error --max-time 10 -H 'Content-Type: application/json' --data "$payload" "$DISCORD_WEBHOOK_URL"
+
       - name: Deploy via SSH
         if: ${{ vars.DEPLOY_HOST != '' }}
         uses: appleboy/ssh-action@v1
@@ -185,6 +194,19 @@ jobs:
           echo "자동 배포하려면 리포지토리 변수/시크릿을 설정하세요:"
           echo "  vars:    DEPLOY_HOST, DEPLOY_USER, DEPLOY_PORT, DEPLOY_PATH, APP_URL"
           echo "  secrets: DEPLOY_SSH_KEY, GHCR_PAT(read:packages)"
+
+      - name: Notify deploy finished
+        if: ${{ always() }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_CICD_WEBHOOK_URL }}
+          DEPLOY_RESULT: ${{ job.status }}
+        run: |
+          set -eu
+          [ -n "$DISCORD_WEBHOOK_URL" ] || { echo "Discord webhook not configured"; exit 0; }
+          color=3066993
+          [ "$DEPLOY_RESULT" = "success" ] || color=15158332
+          payload=$(jq -n --arg title "Deploy finished: $DEPLOY_RESULT" --arg url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" --arg result "$DEPLOY_RESULT" --argjson color "$color" '{embeds:[{title:$title,url:$url,color:$color,fields:[{name:"Step",value:"Deploy to Production",inline:true},{name:"Result",value:$result,inline:true}]}]}')
+          curl --fail --silent --show-error --max-time 10 -H 'Content-Type: application/json' --data "$payload" "$DISCORD_WEBHOOK_URL"
 
   # ──────────────────────────────────────────────────────────────
   # 4. DISCORD STATUS — master 배포 결과 알림
