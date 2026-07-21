@@ -158,7 +158,7 @@ jobs:
             echo "🛑 Stopping existing containers..."
             docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
             # 이전 Compose 프로젝트가 남긴 고정 이름 컨테이너 정리
-            for container in korean-fortune-redis korean-fortune-openbao-secrets korean-fortune-prometheus korean-fortune-standalone korean-fortune-elasticsearch; do
+            for container in korean-fortune-redis korean-fortune-openbao-secrets korean-fortune-prometheus korean-fortune-standalone korean-fortune-elasticsearch korean-fortune-mysql korean-fortune-grafana; do
               docker rm -f "$container" 2>/dev/null || true
             done
 
