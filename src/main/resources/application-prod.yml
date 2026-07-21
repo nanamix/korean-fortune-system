@@ -6,6 +6,18 @@ spring:
     activate:
       on-profile: prod
 
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:true}
+
   datasource:
     url: ${DB_URL:jdbc:mysql://mysql:3306/korean_fortune?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${DB_USERNAME:fortune_user}
@@ -35,7 +47,7 @@ server:
 app:
   fortune:
     ai:
-      enabled: ${APP_FORTUNE_AI_ENABLED:false}  # 환경변수로 제어
+      enabled: ${APP_FORTUNE_AI_ENABLED:false}
       provider: ${APP_FORTUNE_AI_PROVIDER:openai}
       model: ${APP_FORTUNE_AI_MODEL:gpt-5.4-mini}
       base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.openai.com/v1}
@@ -47,6 +59,13 @@ app:
       ttl: 7200 # 2시간
     security:
       enabled: true
+    email:
+      enabled: ${FORTUNE_EMAIL_ENABLED:false}
+    telegram:
+      bot-token: ${TELEGRAM_BOT_TOKEN:}
+      chat-id: ${TELEGRAM_CHAT_ID:}
+    discord:
+      webhook-url: ${DISCORD_WEBHOOK_URL:}
 
 # 운영환경 로깅 (traceId / spanId 포함)
 logging:

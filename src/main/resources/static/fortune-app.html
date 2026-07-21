@@ -577,6 +577,8 @@ body {
 .tg-setup ol { padding-left: 1.25rem; margin-top: 0.5rem; }
 .tg-setup li { margin: 0.3rem 0; }
 .tg-setup code { background: #bee3f8; padding: 0.1rem 0.35rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
+.notif-help { margin:.55rem 0 0; color:var(--text-muted); font-size:.75rem; line-height:1.5; }
+.notif-channel-field[hidden] { display:none; }
 
 /* Responsive */
 @media (max-width: 640px) {
@@ -680,9 +682,11 @@ body {
         <div class="form-row">
           <div class="form-group"><label for="profile-name">수신자 이름</label><input type="text" id="profile-name" placeholder="홍길동"></div>
           <div class="form-group"><label for="profile-email">이메일</label><input type="email" id="profile-email" placeholder="example@email.com"></div>
-          <div class="form-group"><label for="profile-tg">텔레그램 채팅 ID</label><input type="text" id="profile-tg" inputmode="numeric" placeholder="숫자 ID"></div>
-          <div class="form-group"><label for="profile-notif-type">발송 방법</label><select id="profile-notif-type"><option value="">발송 안 함</option><option value="email">이메일</option><option value="telegram">텔레그램</option><option value="both">둘 다</option></select></div>
+          <div class="form-group notif-channel-field" data-channel="telegram"><label for="profile-tg">텔레그램 채팅 ID</label><input type="text" id="profile-tg" inputmode="numeric" placeholder="숫자 ID"></div>
+          <div class="form-group notif-channel-field" data-channel="discord"><label for="profile-discord">Discord Webhook URL</label><input type="url" id="profile-discord" placeholder="https://discord.com/api/webhooks/..."></div>
+          <div class="form-group"><label for="profile-notif-type">발송 방법</label><select id="profile-notif-type" onchange="updateNotificationFields()"><option value="">발송 안 함</option><option value="email">이메일</option><option value="telegram">텔레그램</option><option value="discord">Discord</option><option value="both">이메일·텔레그램</option><option value="all">전체 채널</option></select></div>
         </div>
+        <p class="notif-help">입력한 수신 정보는 이번 요청에만 사용됩니다. Discord Webhook 기본값과 봇 토큰은 서버에서 OpenBao로 관리합니다.</p>
       </div>
       <p class="common-profile-privacy">입력값은 현재 페이지에서만 공유하며 브라우저 저장소에는 저장하지 않습니다. 알림은 발송 방법을 선택한 요청에서만 전송됩니다.</p>
       <div class="profile-save-row"><button type="button" class="profile-save-btn" onclick="finishProfileSettings()">✓ 설정 적용하고 돌아가기</button></div>
@@ -915,6 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', updateProfileSummaries);
     input.addEventListener('change', updateProfileSummaries);
   });
+  updateNotificationFields();
   updateProfileSummaries();
   const requestedTab = location.hash.replace('#', '');
   if (document.getElementById('sec-' + requestedTab)) showTab(requestedTab, false);
@@ -1036,7 +1041,7 @@ function updateProfileSummaries() {
   const value = id => document.getElementById(id)?.value || '-';
   const gender = value('profile-gender') === 'F' ? '여성' : '남성';
   const calendar = value('profile-calendar') === 'LUNAR' ? '음력' : '양력';
-  const notification = {email:'이메일 알림', telegram:'텔레그램 알림', both:'이메일·텔레그램 알림'}[value('profile-notif-type')] || '알림 없음';
+  const notification = {email:'이메일 알림', telegram:'텔레그램 알림', discord:'Discord 알림', both:'이메일·텔레그램 알림', all:'전체 채널 알림'}[value('profile-notif-type')] || '알림 없음';
   const summary = `${value('profile-year')}-${String(value('profile-month')).padStart(2,'0')}-${String(value('profile-day')).padStart(2,'0')} ${String(value('profile-hour')).padStart(2,'0')}:${String(value('profile-minute')).padStart(2,'0')} · ${gender} · ${calendar} · ${notification}`;
   document.querySelectorAll('.uses-common-profile').forEach(container => {
     const aiNote = container.closest('#sec-ai') ? ' · AI 요청은 알림 미발송' : '';
@@ -1063,6 +1068,17 @@ function toggleNotif(id) {
   const arrow = document.getElementById(id + '-arrow');
   body.classList.toggle('open');
   if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function updateNotificationFields() {
+  const type = document.getElementById('profile-notif-type')?.value || '';
+  const showEmail = ['email', 'both', 'all'].includes(type);
+  const showTelegram = ['telegram', 'both', 'all'].includes(type);
+  const showDiscord = ['discord', 'all'].includes(type);
+  document.querySelectorAll('[data-channel="telegram"]').forEach(el => { el.hidden = !showTelegram; });
+  document.querySelectorAll('[data-channel="discord"]').forEach(el => { el.hidden = !showDiscord; });
+  const email = document.getElementById('profile-email')?.closest('.form-group');
+  if (email) email.hidden = !showEmail;
 }
 
 // ── LOADING STATE ─────────────────────────────────────
@@ -1092,7 +1108,8 @@ async function apiGet(url) {
 
 async function parseApiResponse(res) {
   const contentType = res.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json') ? await res.json() : null;
+  const isJsonResponse = contentType.toLowerCase().includes('json');
+  const payload = isJsonResponse ? await res.json() : null;
   if (!res.ok) {
     const message = payload?.message || payload?.error?.message || `요청 실패 (${res.status})`;
     throw new Error(message);
@@ -1116,6 +1133,7 @@ function buildCommonNotification() {
   const emailInput = document.getElementById('profile-email');
   const email = emailInput.value.trim();
   const telegramChatId = document.getElementById('profile-tg').value.trim();
+  const discordWebhookUrl = document.getElementById('profile-discord').value.trim();
   if (!name) throw new Error('알림을 발송하려면 수신자 이름을 입력하세요.');
   if ((type === 'email' || type === 'both') && (!email || !emailInput.checkValidity())) {
     throw new Error('올바른 이메일 주소를 입력하세요.');
@@ -1123,10 +1141,14 @@ function buildCommonNotification() {
   if ((type === 'telegram' || type === 'both') && !telegramChatId) {
     throw new Error('텔레그램 채팅 ID를 입력하세요.');
   }
+  if (['discord', 'all'].includes(type) && discordWebhookUrl && !/^https:\/\/(discord\\.com|discordapp\\.com|canary\\.discord\\.com|ptb\\.discord\\.com)(:\\d+)?\/api\/webhooks\/.+$/i.test(discordWebhookUrl)) {
+    throw new Error('Discord 공식 Webhook URL만 입력할 수 있습니다.');
+  }
   return {
     recipientName: name,
     email: email || null,
     telegramChatId: telegramChatId || null,
+    discordWebhookUrl: discordWebhookUrl || null,
     notificationType: type
   };
 }
