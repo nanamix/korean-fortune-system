@@ -177,11 +177,20 @@ jobs:
             for container in korean-fortune-redis korean-fortune-openbao-secrets korean-fortune-prometheus korean-fortune-standalone korean-fortune-elasticsearch korean-fortune-mysql korean-fortune-grafana; do
               docker rm -f "$container" 2>/dev/null || true
             done
+            # 다른 Compose 프로젝트가 점유한 호스트 포트도 정리
+            for port in 6379 3306 18080 3000 9090 9200; do
+              docker ps --filter "publish=$port" -q | xargs -r docker rm -f || true
+            done
             notify_step "기존 컨테이너 중지·정리" "success"
 
             notify_step "신규 컨테이너 시작" "started"
             echo "🚀 Starting updated containers..."
-            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d
+            if ! docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d; then
+              echo "❌ 컨테이너 시작 실패 — openbao-secrets 로그"
+              docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml logs --tail=100 openbao-secrets || true
+              notify_step "신규 컨테이너 시작" "failure"
+              exit 1
+            fi
             notify_step "신규 컨테이너 시작" "success"
 
             notify_step "애플리케이션 헬스체크" "started"
