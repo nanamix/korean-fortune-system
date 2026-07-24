@@ -82,5 +82,9 @@ if OPENBAO_EDGE_AUTH_MODE=invalid run_renderer >/dev/null 2>&1; then
   echo "invalid edge auth mode unexpectedly succeeded" >&2
   exit 1
 fi
+if OPENBAO_HOLD_OPEN=invalid run_renderer >/dev/null 2>&1; then
+  echo "invalid hold-open mode unexpectedly succeeded" >&2
+  exit 1
+fi
 
 echo "render-secrets-test:ok"

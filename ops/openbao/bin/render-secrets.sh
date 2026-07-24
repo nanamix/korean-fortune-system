@@ -7,6 +7,7 @@ bootstrap_dir="${OPENBAO_BOOTSTRAP_DIR:-/run/openbao-bootstrap}"
 output_dir="${OPENBAO_OUTPUT_DIR:-/run/openbao-secrets}"
 secret_path="${OPENBAO_SECRET_PATH:-secret/data/projects/korean-fortune-system/prod}"
 required_keys="${OPENBAO_REQUIRED_KEYS:-MYSQL_ROOT_PASSWORD MYSQL_PASSWORD GRAFANA_PASSWORD JWT_SECRET}"
+hold_open="${OPENBAO_HOLD_OPEN:-false}"
 
 case "$address" in
   https://*) ;;
@@ -19,10 +20,16 @@ case "$edge_auth_mode" in
   tailscale|cloudflare) ;;
   *) echo "openbao_secret_render_failed:invalid OPENBAO_EDGE_AUTH_MODE" >&2; exit 1 ;;
 esac
+case "$hold_open" in
+  true|false) ;;
+  *) echo "openbao_secret_render_failed:invalid OPENBAO_HOLD_OPEN" >&2; exit 1 ;;
+esac
 
 mkdir -p "$output_dir"
 chmod 0711 "$output_dir"
 
+ready_file="$output_dir/.ready"
+rm -f "$ready_file"
 curl_config="$output_dir/.curl-config"
 login_request="$output_dir/.login-request.json"
 login_response="$output_dir/.login-response.json"
@@ -118,3 +125,11 @@ done
 
 secret_count="$(find "$output_dir" -maxdepth 1 -type f ! -name '.*' | wc -l | tr -d ' ')"
 echo "openbao_secret_render_complete:count=$secret_count"
+
+if [ "$hold_open" = "true" ]; then
+  printf '%s\n' ready > "$ready_file"
+  chmod 0444 "$ready_file"
+  while :; do
+    sleep 3600
+  done
+fi

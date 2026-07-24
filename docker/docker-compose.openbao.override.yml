@@ -12,10 +12,11 @@ services:
       context: ..
       dockerfile: ops/openbao/Dockerfile
     container_name: korean-fortune-openbao-secrets
-    restart: "no"
+    restart: unless-stopped
     environment:
       OPENBAO_ADDR: ${OPENBAO_ADDR:-https://jyha-macbook-pro-2019.tail21796d.ts.net:8443}
       OPENBAO_EDGE_AUTH_MODE: ${OPENBAO_EDGE_AUTH_MODE:-tailscale}
+      OPENBAO_HOLD_OPEN: "true"
       OPENBAO_BOOTSTRAP_DIR: /run/openbao-bootstrap
       OPENBAO_OUTPUT_DIR: /run/openbao-secrets
       OPENBAO_SECRET_PATH: ${OPENBAO_SECRET_PATH:-secret/data/projects/korean-fortune-system/prod}
@@ -23,6 +24,11 @@ services:
     volumes:
       - openbao_secrets:/run/openbao-secrets
       - ${OPENBAO_BOOTSTRAP_HOST_DIR:-/Users/nanamix/.config/korean-fortune-system/openbao-bootstrap}:/run/openbao-bootstrap:ro
+    healthcheck:
+      test: ["CMD", "test", "-f", "/run/openbao-secrets/.ready"]
+      interval: 2s
+      timeout: 1s
+      retries: 15
 
   mysql:
     environment:
@@ -32,7 +38,7 @@ services:
       - openbao_secrets:/run/openbao-secrets:ro
     depends_on:
       openbao-secrets:
-        condition: service_completed_successfully
+        condition: service_healthy
 
   app:
     environment:
@@ -41,7 +47,7 @@ services:
       - openbao_secrets:/run/openbao-secrets:ro
     depends_on:
       openbao-secrets:
-        condition: service_completed_successfully
+        condition: service_healthy
 
   grafana:
     environment:
@@ -50,4 +56,4 @@ services:
       - openbao_secrets:/run/openbao-secrets:ro
     depends_on:
       openbao-secrets:
-        condition: service_completed_successfully
+        condition: service_healthy
