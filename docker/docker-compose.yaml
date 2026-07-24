@@ -187,7 +187,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
-      - ./logstash/config:/usr/share/logstash/config:ro
       - logs:/var/log/app:ro
     networks:
       - fortune-network

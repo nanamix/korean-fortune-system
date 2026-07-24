@@ -6,7 +6,8 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError
     deploy:
-      replicas: 2
+      # 단일 host port 18080을 사용하므로 Compose 운영은 replica 1로 제한한다.
+      replicas: 1
       resources:
         limits:
           memory: 3G
