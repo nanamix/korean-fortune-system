@@ -26,6 +26,17 @@ volumes:
 
 # 🔧 서비스 정의
 services:
+  # 공유 로그 볼륨을 비특권 애플리케이션 사용자(UID 1001)가 쓸 수 있게 준비한다.
+  logs-init:
+    image: alpine:3.22
+    container_name: korean-fortune-logs-init
+    user: "0:0"
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["chown -R 1001:1001 /logs"]
+    restart: "no"
+    volumes:
+      - logs:/logs
+
   # 🗄️ MySQL 데이터베이스
   mysql:
     image: mysql:8.0.35
@@ -96,6 +107,8 @@ services:
     networks:
       - fortune-network
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       mysql:
         condition: service_healthy
       redis:
