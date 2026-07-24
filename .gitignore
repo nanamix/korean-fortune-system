@@ -349,3 +349,5 @@ bin/main/application-dev-secrets.yml
 
 # Eclipse/STS 빌드 산출물 (재발 방지: 시크릿 유출 벡터)
 bin/
+!ops/openbao/bin/
+!ops/openbao/bin/render-secrets.sh

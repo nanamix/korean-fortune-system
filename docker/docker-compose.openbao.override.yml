@@ -14,7 +14,8 @@ services:
     container_name: korean-fortune-openbao-secrets
     restart: "no"
     environment:
-      OPENBAO_ADDR: ${OPENBAO_ADDR:-https://vault.jyha.net}
+      OPENBAO_ADDR: ${OPENBAO_ADDR:-https://jyha-macbook-pro-2019.tail21796d.ts.net:8443}
+      OPENBAO_EDGE_AUTH_MODE: ${OPENBAO_EDGE_AUTH_MODE:-tailscale}
       OPENBAO_BOOTSTRAP_DIR: /run/openbao-bootstrap
       OPENBAO_OUTPUT_DIR: /run/openbao-secrets
       OPENBAO_SECRET_PATH: ${OPENBAO_SECRET_PATH:-secret/data/projects/korean-fortune-system/prod}
