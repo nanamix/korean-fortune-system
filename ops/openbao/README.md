@@ -57,7 +57,7 @@ docker compose \
 
 `openbao-secrets`는 렌더링 후 `.ready` health marker를 만들고 상주한다. Docker의 `local + type=tmpfs` volume은 mount한 writer가 종료되면 내용이 사라지므로, MySQL·애플리케이션·Grafana는 sidecar의 `service_healthy`를 기다린다. renderer는 필수 key가 없거나 인증·응답 검증에 실패하면 fail-closed로 종료하며, 성공한 sidecar가 상주하는 동안에만 secret 파일이 공유된다.
 
-MySQL은 공식 이미지의 `MYSQL_*_FILE`, Grafana는 `GF_SECURITY_ADMIN_PASSWORD__FILE`, Spring Boot는 `configtree:`로 값을 읽는다. secret volume은 Docker local driver의 `tmpfs`이므로 컨테이너가 값을 파일로 소비하면서도 host disk에는 저장하지 않는다. sidecar를 중지하면 tmpfs 내용도 사라지므로 소비 서비스 재기동 전에 sidecar health를 먼저 복구해야 한다.
+MySQL은 공식 이미지의 `MYSQL_*_FILE`, Grafana는 `GF_SECURITY_ADMIN_PASSWORD__FILE`, Spring Boot는 `configtree:`로 값을 읽는다. secret volume은 Docker local driver의 `tmpfs`이므로 컨테이너가 값을 파일로 소비하면서도 host disk에는 저장하지 않는다. directory는 비특권 애플리케이션이 key 목록을 읽을 수 있도록 `0755`, secret 파일은 값 쓰기를 막도록 `0444`로 유지한다. sidecar를 중지하면 tmpfs 내용도 사라지므로 소비 서비스 재기동 전에 sidecar health를 먼저 복구해야 한다.
 
 ## OpenBao project 준비
 

@@ -66,6 +66,7 @@ run_renderer() {
 }
 
 run_renderer >/dev/null
+[ "$(stat -f '%Lp' "$output_dir" 2>/dev/null || stat -c '%a' "$output_dir")" = "755" ]
 if grep -q 'CF-Access-' "$capture_dir/login-curl-config"; then
   echo "tailscale mode unexpectedly added Cloudflare headers" >&2
   exit 1

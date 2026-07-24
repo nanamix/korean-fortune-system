@@ -4,7 +4,7 @@ volumes:
     driver_opts:
       type: tmpfs
       device: tmpfs
-      o: size=1m,mode=0711
+      o: size=1m,mode=0755
 
 services:
   openbao-secrets:

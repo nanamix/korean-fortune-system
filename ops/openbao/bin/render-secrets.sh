@@ -26,7 +26,7 @@ case "$hold_open" in
 esac
 
 mkdir -p "$output_dir"
-chmod 0711 "$output_dir"
+chmod 0755 "$output_dir"
 
 ready_file="$output_dir/.ready"
 rm -f "$ready_file"
