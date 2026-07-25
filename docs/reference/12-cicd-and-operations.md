@@ -35,7 +35,7 @@
 
 1. GHCR 로그인(`github.token`)
 2. `docker pull ...:latest`
-3. 배포 디렉토리(`vars.DEPLOY_PATH`, 기본 `/Users/nanamix/Dev/korean-fortune-system`)에서 기존 컨테이너 down
+3. `actions/checkout`이 준비한 `$GITHUB_WORKSPACE`에서 기존 컨테이너 down
 4. OpenBao가 다시 렌더링할 tmpfs secret volume 재생성
 5. `docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d`
 6. 헬스체크 폴링: `http://localhost:18080/actuator/health` 를 최대 20회(10초 간격) 재시도, 200이면 성공, 실패 시 앱 로그 출력 후 종료

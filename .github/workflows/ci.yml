@@ -145,7 +145,7 @@ jobs:
           payload=$(jq -n --arg title "Deploy started" --arg url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" '{embeds:[{title:$title,url:$url,color:16776960,fields:[{name:"Step",value:"Deploy to Production",inline:true},{name:"Commit",value:(env.GITHUB_SHA[0:12]),inline:true}]}]}')
           curl --fail --silent --show-error --max-time 10 -H 'Content-Type: application/json' --data "$payload" "$DISCORD_WEBHOOK_URL"
 
-      - name: Deploy via SSH
+      - name: Deploy on self-hosted runner
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_CICD_WEBHOOK_URL }}
         run: |
@@ -169,7 +169,9 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             notify_step "최신 이미지 Pull" "success"
 
-            cd "${{ vars.DEPLOY_PATH || '/Users/nanamix/Dev/korean-fortune-system' }}"
+            # actions/checkout이 검증한 현재 commit을 그대로 배포한다.
+            # 별도 장기 checkout은 stale 상태일 수 있으므로 사용하지 않는다.
+            cd "$GITHUB_WORKSPACE"
             notify_step "기존 컨테이너 중지·정리" "started"
             echo "🛑 Stopping existing containers..."
             docker compose --profile '*' -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
