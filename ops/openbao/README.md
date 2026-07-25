@@ -10,6 +10,8 @@
 - `MYSQL_PASSWORD`
 - `GRAFANA_PASSWORD`
 - `JWT_SECRET` (UTF-8 기준 32 byte 이상)
+- `CF_ACCESS_TEAM_DOMAIN` (`https://<team>.cloudflareaccess.com`)
+- `CF_ACCESS_AUD` (`saju.jyha.net` Access Application Audience)
 
 다음 선택 key도 같은 경로에 문자열로 저장할 수 있다.
 
@@ -24,6 +26,11 @@
 - `APP_FORTUNE_AI_ENABLED`, `APP_FORTUNE_AI_PROVIDER`, `APP_FORTUNE_AI_MODEL`, `APP_FORTUNE_AI_BASE_URL`
 
 KV key는 `^[A-Z][A-Z0-9_]*$`, 값은 문자열이어야 한다. 값은 명령행 인자나 로그로 전달하지 말고 OpenBao UI 또는 승인된 보안 입력 경로로 등록한다.
+
+Cloudflare Access의 team domain과 AUD는 자격증명은 아니지만 production의
+origin JWT 검증을 구성하는 필수 운영 값이므로 다른 runtime 설정과 함께 OpenBao에서
+렌더링한다. `app.fortune.security.cloudflare-access.enabled=true`인데 두 값 중 하나가
+누락되면 `/actuator/health`를 제외한 요청은 HTTP 503으로 fail-closed된다.
 
 ## Bootstrap credential
 

@@ -1,4 +1,5 @@
 package com.fortune.config;
+import com.fortune.security.CloudflareAccessFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,12 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final CloudflareAccessFilter cloudflareAccessFilter;
+
+    public SecurityConfig(CloudflareAccessFilter cloudflareAccessFilter) {
+        this.cloudflareAccessFilter = cloudflareAccessFilter;
+    }
+
     /**
      * 🔐 보안 활성화 시 설정
      * 
@@ -69,6 +76,8 @@ public class SecurityConfig {
                         .contentTypeOptions(contentTypeOptions -> {})
                         .httpStrictTransportSecurity(hstsConfig -> {})
                 )
+                .addFilterBefore(cloudflareAccessFilter,
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
     /**

@@ -59,6 +59,10 @@ app:
       ttl: 7200 # 2시간
     security:
       enabled: true
+      cloudflare-access:
+        enabled: ${REQUIRE_CF_ACCESS:true}
+        team-domain: ${CF_ACCESS_TEAM_DOMAIN:}
+        audience: ${CF_ACCESS_AUD:}
     email:
       enabled: ${FORTUNE_EMAIL_ENABLED:false}
     telegram:
