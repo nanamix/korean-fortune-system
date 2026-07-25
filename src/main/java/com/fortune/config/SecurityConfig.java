@@ -40,7 +40,20 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
+                                "/",                        // 공개 랜딩 페이지
+                                "/index.html",
+                                "/fortune-app.html",
+                                "/api-docs.html",
+                                "/api-test.html",
+                                "/manifest.json",
+                                "/sw.js",
+                                "/favicon.ico",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
                                 "/api/fortune/**",          // 모든 운세 API 허용
+                                "/api/system/status",       // 공개 시스템 상태
+                                "/api/docs/**",             // API 문서·테스트
                                 "/swagger-ui/**",           // Swagger UI
                                 "/api-docs/**",             // API 문서
                                 "/actuator/health",         // 헬스체크
