@@ -31,24 +31,38 @@
 
 ## 12.2 배포 (deploy 잡, environment: production)
 
-`vars.DEPLOY_HOST` 가 설정된 경우 `appleboy/ssh-action` 으로 원격 서버에 SSH 배포:
+`master` 배포는 `[self-hosted, macOS, x64]` runner에서 실행한다.
 
-1. GHCR 로그인(`secrets.GHCR_PAT`)
+1. GHCR 로그인(`github.token`)
 2. `docker pull ...:latest`
-3. 배포 디렉토리(`vars.DEPLOY_PATH`, 기본 `/opt/korean-fortune`)에서 기존 컨테이너 down
-4. `docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d`
-5. 헬스체크 폴링: `http://localhost:18080/actuator/health` 를 최대 20회(10초 간격) 재시도, 200이면 성공, 실패 시 앱 로그 출력 후 종료
-6. `docker compose ps` 로 상태 확인
+3. 배포 디렉토리(`vars.DEPLOY_PATH`, 기본 `/Users/nanamix/Dev/korean-fortune-system`)에서 기존 컨테이너 down
+4. OpenBao가 다시 렌더링할 tmpfs secret volume 재생성
+5. `docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml up -d`
+6. 헬스체크 폴링: `http://localhost:18080/actuator/health` 를 최대 20회(10초 간격) 재시도, 200이면 성공, 실패 시 앱 로그 출력 후 종료
+7. `docker compose ps` 로 상태 확인
 
-`DEPLOY_HOST` 미설정 시 배포는 스킵되고, 이미지는 GHCR에 푸시된 상태로 남습니다.
+production 기본 Compose는 다음 4개 서비스만 기동한다.
 
-배포에 필요한 GitHub 설정:
+| 서비스 | 역할 |
+|------|------|
+| `logs-init` | 공유 로그 volume 권한 초기화 후 종료 |
+| `openbao-secrets` | OpenBao secret을 tmpfs에 렌더링 |
+| `mysql` | 영속 데이터베이스 |
+| `app` | Korean Fortune 애플리케이션 |
 
-| 종류 | 이름 | 용도 |
+host에는 Nginx Proxy Manager가 전달할 app의 `18080`만 publish한다. MySQL `3306`은 Compose 내부 network에서만 접근한다.
+
+선택 서비스는 profile로 분리한다.
+
+| profile | 서비스 | 용도 |
 |------|------|------|
-| variable | `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_PORT` / `DEPLOY_PATH` / `APP_URL` | SSH 대상·경로·앱 URL |
-| secret | `DEPLOY_SSH_KEY` | SSH 개인키 |
-| secret | `GHCR_PAT` | 서버의 `docker login` 용 PAT (`read:packages`) |
+| `valkey` | `redis` | Redis/Valkey cache를 명시적으로 사용할 때 |
+| `edge` | `nginx` | 외부 reverse proxy가 없는 환경 |
+| `observability` | `prometheus`, `grafana` | 자체 metrics 수집·대시보드 |
+| `logging` | `elasticsearch`, `logstash`, `kibana` | 자체 ELK 로그 분석 |
+| `ai` | `ollama` | 로컬 AI provider |
+
+운영 호스트는 Nginx Proxy Manager가 80/443을 소유하므로 `edge` profile을 활성화하지 않는다.
 
 ---
 

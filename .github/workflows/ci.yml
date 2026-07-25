@@ -172,15 +172,21 @@ jobs:
             cd "${{ vars.DEPLOY_PATH || '/Users/nanamix/Dev/korean-fortune-system' }}"
             notify_step "기존 컨테이너 중지·정리" "started"
             echo "🛑 Stopping existing containers..."
-            docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
+            docker compose --profile '*' -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml -f docker/docker-compose.openbao.override.yml down --remove-orphans || true
             # 이전 Compose 프로젝트가 남긴 고정 이름 컨테이너 정리
-            for container in korean-fortune-redis korean-fortune-openbao-secrets korean-fortune-prometheus korean-fortune-standalone korean-fortune-elasticsearch korean-fortune-mysql korean-fortune-grafana; do
+            for container in docker-app-1 korean-fortune-standalone korean-fortune-logs-init korean-fortune-openbao-secrets korean-fortune-mysql korean-fortune-redis korean-fortune-nginx korean-fortune-prometheus korean-fortune-grafana korean-fortune-elasticsearch korean-fortune-logstash korean-fortune-kibana; do
               docker rm -f "$container" 2>/dev/null || true
             done
-            # 다른 Compose 프로젝트가 점유한 호스트 포트도 정리
-            for port in 6379 3306 18080 3000 9090 9200; do
-              docker ps --filter "publish=$port" -q | xargs -r docker rm -f || true
-            done
+            # OpenBao secret volume은 tmpfs 렌더링 캐시다. 설정(mode 등)이 바뀌어도
+            # 기존 volume metadata와 충돌하지 않도록 매 배포 시 재생성한다.
+            docker volume rm docker_openbao_secrets 2>/dev/null || true
+            # 다른 프로젝트의 컨테이너를 포트만으로 강제 제거하지 않는다.
+            # production에서 유일하게 publish하는 app port가 남아 있으면 안전하게 중단한다.
+            blocker="$(docker ps --filter "publish=18080" --format '{{.Names}}' | head -n 1)"
+            if [ -n "$blocker" ]; then
+              echo "❌ Host port 18080 is already allocated by $blocker"
+              exit 1
+            fi
             notify_step "기존 컨테이너 중지·정리" "success"
 
             notify_step "신규 컨테이너 시작" "started"
