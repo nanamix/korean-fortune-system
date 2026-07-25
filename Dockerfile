@@ -13,8 +13,10 @@ LABEL description="Korean Traditional Fortune Telling System"
 # 작업 디렉토리 설정
 WORKDIR /build
 
-# 시스템 의존성 설치 (Amazon Linux 2 베이스, yum)
-RUN yum install -y curl git && \
+# amazoncorretto:21은 Amazon Linux 2023 기반이며 curl-minimal을 기본 제공한다.
+# curl 패키지를 다시 설치하면 curl-minimal과 충돌한다.
+# Gradle Wrapper가 사용하는 xargs는 findutils에서 제공한다.
+RUN yum install -y git findutils && \
     yum clean all
 
 # Gradle Wrapper 파일들 먼저 복사
@@ -46,9 +48,10 @@ LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
 LABEL version="3.0.0-modernization"
 LABEL description="Korean Traditional Fortune Telling System - Runtime"
 
-# 필수 런타임 도구 설치 (amazoncorretto:21 = Amazon Linux 2 베이스, yum)
-# shadow-utils = groupadd/useradd 제공 (AL2 베이스에는 기본 미포함)
-RUN yum install -y shadow-utils curl tzdata && \
+# 필수 런타임 도구 설치 (amazoncorretto:21 = Amazon Linux 2023)
+# curl-minimal과 tzdata는 기본 제공된다. curl 재설치는 curl-minimal과 충돌한다.
+# shadow-utils는 groupadd/useradd를 제공한다.
+RUN yum install -y shadow-utils tzdata && \
     yum clean all
 
 # 보안을 위한 비특권 사용자 생성
@@ -101,7 +104,7 @@ ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
 # ==================== 개발 스테이지 (선택적) ====================
 FROM runtime AS development
 
-# 개발 도구 추가 설치 (Amazon Linux 2 베이스, yum)
+# 개발 도구 추가 설치 (Amazon Linux 2023, yum/dnf 호환 명령)
 USER root
 RUN yum install -y vim-enhanced procps-ng && \
     yum clean all
