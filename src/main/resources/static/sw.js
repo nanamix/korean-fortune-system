@@ -1,5 +1,5 @@
 // 🔮 한국형 만세력 운세 시스템 - Service Worker
-const CACHE_NAME = 'korean-fortune-v25';
+const CACHE_NAME = 'korean-fortune-v26';
 const STATIC_ASSETS = [
   '/',
   '/fortune-app.html',
@@ -34,7 +34,7 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API calls, cache-first for static assets
+// Fetch: network-first for API and HTML, cache-first for other static assets
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
@@ -44,6 +44,20 @@ self.addEventListener('fetch', event => {
       new Response(JSON.stringify({ success: false, message: '오프라인 상태입니다.' }),
         { headers: { 'Content-Type': 'application/json' } })
     ));
+    return;
+  }
+
+  // Documents must reflect the currently deployed version. Fall back to cache only offline.
+  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request).then(cached => cached || caches.match('/index.html')))
+    );
     return;
   }
 
