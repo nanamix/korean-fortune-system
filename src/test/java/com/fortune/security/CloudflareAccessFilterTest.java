@@ -1,8 +1,10 @@
 package com.fortune.security;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 
+import com.nimbusds.jose.RemoteKeySourceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -72,6 +75,31 @@ class CloudflareAccessFilterTest {
         mockMvc.perform(get("/").header("Cf-Access-Jwt-Assertion", "invalid-assertion"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("CF_ACCESS_INVALID"));
+
+        verify(jwtDecoder).decode("invalid-assertion");
+    }
+
+    @Test
+    void retriesTransientJwkFailureOnce() throws Exception {
+        when(jwtDecoder.decode("transient-assertion"))
+                .thenThrow(transientJwkFailure())
+                .thenReturn(validJwt());
+
+        mockMvc.perform(get("/").header("Cf-Access-Jwt-Assertion", "transient-assertion"))
+                .andExpect(status().isOk());
+
+        verify(jwtDecoder, times(2)).decode("transient-assertion");
+    }
+
+    @Test
+    void returnsServiceUnavailableWhenJwkRetrievalKeepsFailing() throws Exception {
+        when(jwtDecoder.decode("transient-assertion")).thenThrow(transientJwkFailure());
+
+        mockMvc.perform(get("/").header("Cf-Access-Jwt-Assertion", "transient-assertion"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error.code").value("CF_ACCESS_VERIFIER_UNAVAILABLE"));
+
+        verify(jwtDecoder, times(2)).decode("transient-assertion");
     }
 
     @Test
@@ -128,5 +156,13 @@ class CloudflareAccessFilterTest {
                 .issuedAt(now.minusSeconds(10))
                 .expiresAt(now.plusSeconds(300))
                 .build();
+    }
+
+    private JwtException transientJwkFailure() {
+        return new JwtException(
+                "Unable to obtain the keys",
+                new RemoteKeySourceException(
+                        "Couldn't retrieve remote JWK set",
+                        new IOException("temporary network failure")));
     }
 }
