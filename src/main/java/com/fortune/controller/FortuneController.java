@@ -406,7 +406,10 @@ public class FortuneController {
 
         log.info("🔮 사주팔자 계산 및 발송 요청: {}님", 
                 sajuRequest.getNotification() != null ? sajuRequest.getNotification().getRecipientName() : "알 수 없음");
-        log.info("🔍 요청 데이터 확인: notification={}", sajuRequest.getNotification());
+        log.info("🔍 요청 데이터 확인: notificationType={}",
+                sajuRequest.getNotification() != null
+                        ? sajuRequest.getNotification().getNotificationType()
+                        : "none");
 
         try {
             // 1. 사주팔자 계산

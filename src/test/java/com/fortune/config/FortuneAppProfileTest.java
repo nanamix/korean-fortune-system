@@ -35,6 +35,7 @@ class FortuneAppProfileTest {
                 .contains("maxlength=\"254\"")
                 .contains("updateNotificationSyntax(this)")
                 .contains("Telegram Bot Token")
+                .contains("form-group form-full notif-channel-field\" data-channel=\"telegram\"")
                 .contains("서버 OpenBao 보안 설정 사용");
     }
 
