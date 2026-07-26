@@ -590,6 +590,24 @@ body {
   background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%);
   border: 1px solid #c3dafe; color: var(--primary-dark);
 }
+.lucky-color-card {
+  display:flex; align-items:center; gap:.6rem; min-width:145px; padding:.55rem .7rem;
+  border:1px solid var(--border); border-radius:12px; background:#fff;
+}
+.lucky-color-picker {
+  flex:none; width:46px; height:38px; padding:0; border:0; background:transparent;
+  cursor:default; opacity:1;
+}
+.lucky-color-picker::-webkit-color-swatch-wrapper { padding:0; }
+.lucky-color-picker::-webkit-color-swatch {
+  border:1px solid rgba(45,55,72,.25); border-radius:9px;
+}
+.lucky-color-picker::-moz-color-swatch {
+  border:1px solid rgba(45,55,72,.25); border-radius:9px;
+}
+.lucky-color-meta strong, .lucky-color-meta small { display:block; }
+.lucky-color-meta strong { color:var(--text-dark); font-size:.8rem; }
+.lucky-color-meta small { margin-top:.15rem; color:var(--text-muted); font:600 .67rem/1.3 monospace; }
 
 /* Telegram section */
 .tg-setup { background: #f0f8ff; border: 1px solid #90cdf4; border-radius: 12px; padding: 1rem 1.25rem; font-size: 0.88rem; color: #2c5282; }
@@ -1629,9 +1647,31 @@ function renderLuckySinsal(s, index) {
     </details>`;
 }
 
+const LUCKY_COLOR_HEX = Object.freeze({
+  '녹색':'#22C55E', '청색':'#2563EB', '남색':'#1E3A8A',
+  '연두색':'#84CC16', '초록색':'#16A34A', '청록색':'#0D9488',
+  '빨간색':'#EF4444', '주황색':'#F97316', '분홍색':'#EC4899',
+  '자주색':'#A21CAF', '보라색':'#7C3AED', '연분홍색':'#F9A8D4',
+  '노란색':'#EAB308', '갈색':'#92400E', '황토색':'#C58C3D',
+  '베이지색':'#D6C7A1', '아이보리':'#FFFFF0', '크림색':'#FFFDD0',
+  '흰색':'#FFFFFF', '은색':'#C0C0C0', '회색':'#6B7280',
+  '금색':'#D4AF37', '백금색':'#E5E4E2', '진주색':'#F8F6F0',
+  '검은색':'#111827', '짙은 파랑':'#1E3A8A',
+  '물색':'#BFEFFF', '하늘색':'#38BDF8', '연파랑':'#93C5FD'
+});
+
+function renderLuckyColor(color) {
+  const name = String(color || '행운 색상');
+  const hex = LUCKY_COLOR_HEX[name] || '#667EEA';
+  return `<div class="lucky-color-card">
+    <input type="color" class="lucky-color-picker" value="${hex}" tabindex="-1" aria-hidden="true" disabled>
+    <span class="lucky-color-meta"><strong>${escHtml(name)}</strong><small>색상 코드 ${hex}</small></span>
+  </div>`;
+}
+
 function renderDaily(d) {
   const cat = d.categoryFortune || {};
-  const colors = (d.luckyColors || []).map(c => `<span class="lucky-tag">${c}</span>`).join('');
+  const colors = (d.luckyColors || []).map(renderLuckyColor).join('');
   const score = d.totalScore || 0;
   const grade = score >= 80 ? '매우 좋은 흐름' : score >= 60 ? '좋은 흐름' : score >= 40 ? '차분한 흐름' : '주의가 필요한 흐름';
   const categories = [

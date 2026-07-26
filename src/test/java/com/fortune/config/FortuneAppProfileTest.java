@@ -70,6 +70,20 @@ class FortuneAppProfileTest {
                 .contains("d.scoreBasis");
     }
 
+    @Test
+    void rendersLuckyColorsAsAccessibleColorPickers() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("const LUCKY_COLOR_HEX")
+                .contains("'빨간색':'#EF4444'")
+                .contains("'아이보리':'#FFFFF0'")
+                .contains("function renderLuckyColor")
+                .contains("<input type=\"color\"")
+                .contains("class=\"lucky-color-picker\"")
+                .contains("색상 코드");
+    }
+
     private String loadFortuneApp() throws IOException {
         return new ClassPathResource("static/fortune-app.html")
                 .getContentAsString(StandardCharsets.UTF_8);
