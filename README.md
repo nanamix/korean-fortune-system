@@ -267,7 +267,7 @@ korean-fortune-system/
 
 ## 🔄 최근 변경사항
 
-### v3.1.0 (2026-07-12)
+### v3.1.0 (2026-07-26)
 - ✅ **Discord 알림 연동** — 채널 웹후크 발송(SSRF 방지 allowlist), `notificationType` `discord`·`all`, `POST /api/fortune/discord/test`
 - ✅ **PostgreSQL 지원** — `postgres` 프로파일(비밀번호 env 필수, `ddl-auto`/`show-sql` override)
 - ✅ **Redis/Valkey 캐시** — `spring.cache.type` 으로 Caffeine(기본)↔Redis/Valkey 선택(`valkey` 프로파일)
