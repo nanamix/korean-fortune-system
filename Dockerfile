@@ -40,8 +40,8 @@ RUN ./gradlew bootJar --no-daemon -x test
 RUN ls -la build/libs/ && \
     mv build/libs/*.jar build/libs/app.jar
 
-# ==================== 런타임 스테이지 ====================
-FROM amazoncorretto:21 AS runtime
+# ==================== 공통 런타임 베이스 ====================
+FROM amazoncorretto:21 AS runtime-base
 
 # 메타데이터
 LABEL maintainer="Korean Fortune Team <admin@jyha.net>"
@@ -65,9 +65,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # 작업 디렉토리 생성 및 권한 설정
 WORKDIR /app
 RUN chown -R fortune:fortune /app
-
-# 빌드된 JAR 파일 복사
-COPY --from=builder --chown=fortune:fortune /build/build/libs/app.jar /app/app.jar
 
 # 설정 디렉토리 생성
 RUN mkdir -p /app/config /app/logs && \
@@ -100,6 +97,25 @@ USER fortune
 # 실행 명령 — exec 로 JVM 을 PID 1 로 두어 SIGTERM(graceful shutdown) 직접 수신.
 # (dumb-init 은 AL2 repo 미제공. 단일 JVM 프로세스라 별도 init 불요.)
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]
+
+# 로컬 Docker 빌드: builder 단계에서 만든 JAR 사용
+FROM runtime-base AS runtime
+COPY --from=builder --chown=fortune:fortune /build/build/libs/app.jar /app/app.jar
+
+# CI Docker 빌드: 검증된 JAR를 변경 빈도별 레이어로 추출
+FROM amazoncorretto:21 AS artifact-layers
+WORKDIR /layers
+COPY build/libs/korean-fortune-app.jar /tmp/korean-fortune-app.jar
+RUN java -Djarmode=tools -jar /tmp/korean-fortune-app.jar \
+      extract --layers --destination /layers
+
+# 의존성(약 88MB)은 재사용하고 변경된 application 레이어만 다시 게시한다.
+FROM runtime-base AS runtime-ci
+COPY --from=artifact-layers --chown=fortune:fortune /layers/dependencies/ /app/
+COPY --from=artifact-layers --chown=fortune:fortune /layers/spring-boot-loader/ /app/
+COPY --from=artifact-layers --chown=fortune:fortune /layers/snapshot-dependencies/ /app/
+COPY --from=artifact-layers --chown=fortune:fortune /layers/application/ /app/
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/korean-fortune-app.jar"]
 
 # ==================== 개발 스테이지 (선택적) ====================
 FROM runtime AS development
