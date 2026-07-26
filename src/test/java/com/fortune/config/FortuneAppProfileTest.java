@@ -55,6 +55,7 @@ class FortuneAppProfileTest {
         String html = loadFortuneApp();
 
         assertThat(html)
+                .contains("const bestMonth = sortedMonths[0];")
                 .contains("<details class=\"tojeong-month${isCurrent ? ' current' : ''}\" open>")
                 .doesNotContain("const shouldOpen = isCurrent || month === bestMonth;");
     }

@@ -1720,6 +1720,7 @@ async function calcTojeong() {
 function renderTojeong(d) {
   const monthly = d.monthlyFortune || [];
   const sortedMonths = [...monthly].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const bestMonth = sortedMonths[0];
   const cautionMonth = sortedMonths[sortedMonths.length - 1];
   const currentMonth = Number(d.targetYear) === new Date().getFullYear() ? new Date().getMonth() + 1 : -1;
   const quarterFlow = [0, 1, 2, 3].map(quarter => {
