@@ -56,7 +56,14 @@ class TojeongBigyeolServiceTest {
         assertTrue(result.getGwaNumber() >= 1 && result.getGwaNumber() <= 144);
         assertNotNull(result.getGwaName());
         assertNotNull(result.getAdvice());
+        assertTrue(result.getAdvice().length() >= 220,
+                "올해의 실천 조언은 우선순위·실행·주의사항을 충분히 설명해야 합니다.");
         assertTrue(result.getOverallScore() >= 0 && result.getOverallScore() <= 100);
+        assertEquals(12, result.getMonthlyFortune().size());
+        assertTrue(result.getMonthlyFortune().stream()
+                        .allMatch(month -> month.getMessage() != null
+                                && month.getMessage().length() >= 180),
+                "모든 월별 운세는 기운의 근거와 구체적인 행동 지침을 포함해야 합니다.");
         String expectedLuckyMonths = result.getMonthlyFortune().stream()
                 .filter(month -> month.getScore() >= 70)
                 .map(month -> month.getMonth() + "월(" + month.getScore() + "점)")

@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ZodiacDailyFortune {
     private String overallMessage;
+    private int overallScore;
+    private String scoreBasis;
     private int loveScore;
     private String loveMessage;
     private int careerScore;

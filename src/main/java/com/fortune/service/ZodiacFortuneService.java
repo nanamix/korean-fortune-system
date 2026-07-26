@@ -82,7 +82,7 @@ public class ZodiacFortuneService {
                     .luckyNumbers(luckyNumbers)
                     .luckyColor(ZODIAC_LUCKY_COLORS.getOrDefault(zodiac, "흰색"))
                     .luckyStone(ZODIAC_LUCKY_STONES.getOrDefault(zodiac, "수정"))
-                    .personality(ZODIAC_PERSONALITIES.getOrDefault(zodiac, "균형잡힌 성격입니다."))
+                    .personality(expandPersonality(zodiac))
                     .build();
             /* 별자리 운세 결과 반환 */
             log.info("✅ 별자리 운세 계산 완료: {}", zodiac.getKoreanName());
@@ -146,16 +146,15 @@ public class ZodiacFortuneService {
      * @return 일일 운세 결과
      */
     private ZodiacDailyFortune calculateDetailedDailyFortune(Zodiac zodiac, LocalDate targetDate) {
-        /* 날짜 기반 랜덤 시드 생성 */
-        Random random = new Random(targetDate.toEpochDay() + zodiac.ordinal());
-        /* 기본 점수 생성 (별자리별 기본 점수 + 변동) */
-        int loveScore = generateScore(zodiac, "love", random);
-        /* 직장 점수 생성 */
-        int careerScore = generateScore(zodiac, "career", random);
-        /* 건강 점수 생성 */
-        int healthScore = generateScore(zodiac, "health", random);
-        /* 금전 점수 생성 */
-        int moneyScore = generateScore(zodiac, "money", random);
+        ScoreComponents love = calculateDailyScore(zodiac, targetDate, 0);
+        ScoreComponents career = calculateDailyScore(zodiac, targetDate, 1);
+        ScoreComponents health = calculateDailyScore(zodiac, targetDate, 2);
+        ScoreComponents money = calculateDailyScore(zodiac, targetDate, 3);
+        int loveScore = love.score();
+        int careerScore = career.score();
+        int healthScore = health.score();
+        int moneyScore = money.score();
+        int overallScore = Math.round((loveScore + careerScore + healthScore + moneyScore) / 4.0f);
         /* 상세 메시지 생성 */
         String loveMessage = generateDetailedMessage(zodiac, "love", loveScore);
         /* 직장 메시지 생성 */
@@ -167,6 +166,10 @@ public class ZodiacFortuneService {
         String overall = generateDailyOverview(zodiac, loveScore, careerScore, healthScore, moneyScore);
         return ZodiacDailyFortune.builder()
                 .overallMessage(overall)
+                .overallScore(overallScore)
+                .scoreBasis(dailyScoreBasis(
+                        love, career, health, money, overallScore,
+                        loveScore, careerScore, healthScore, moneyScore))
                 .loveScore(loveScore)
                 .loveMessage(loveMessage)
                 .careerScore(careerScore)
@@ -178,20 +181,65 @@ public class ZodiacFortuneService {
                 .build();
     }
     /**
-     * 점수 생성
-     * SQL: SELECT * FROM zodiac_fortunes;
+     * 문화·오락용 결정론적 점수 생성.
+     *
+     * <p>모든 별자리가 같은 중립 기준점(60점)에서 시작하며, 별자리·분야 조합 리듬과
+     * 대상 날짜·분야 조합 리듬만 가감한다. 같은 입력은 항상 같은 결과를 반환한다.</p>
+     *
      * @param zodiac 별자리
-     * @param category 카테고리
-     * @param random 랜덤 시드
-     * @return 점수
+     * @param targetDate 대상 날짜
+     * @param categoryIndex 관계0·일1·건강2·재정3
+     * @return 점수와 실제 가감 요소
      */
-    private int generateScore(Zodiac zodiac, String category, Random random) {
-        /* 별자리별 기본 점수 생성 */
-        int base = 50 + zodiac.ordinal() * 3;
-        /* -20 ~ +20 변동 */
-        int variation = random.nextInt(41) - 20;
-        /* 0 ~ 100 점수 범위 제한 */
-        return Math.max(0, Math.min(100, base + variation));
+    private ScoreComponents calculateDailyScore(
+            Zodiac zodiac, LocalDate targetDate, int categoryIndex) {
+        int zodiacRhythm = Math.floorMod(
+                (zodiac.ordinal() + 1) * 7 + categoryIndex * 5, 21) - 10;
+        int dateRhythm = Math.floorMod(
+                targetDate.getYear() * 3
+                        + targetDate.getDayOfYear() * 5
+                        + categoryIndex * 11,
+                31) - 15;
+        return new ScoreComponents(
+                clampScore(60 + zodiacRhythm + dateRhythm),
+                zodiacRhythm,
+                dateRhythm);
+    }
+
+    private String dailyScoreBasis(
+            ScoreComponents love, ScoreComponents career,
+            ScoreComponents health, ScoreComponents money,
+            int overallScore, int loveScore, int careerScore,
+            int healthScore, int moneyScore) {
+        return "문화·오락용 결정론적 점수입니다. 각 분야는 중립 기준 60점에서 "
+                + "별자리와 분야 조합으로 만든 별자리 리듬(-10~+10), 대상 날짜와 분야 조합으로 만든 "
+                + "날짜 리듬(-15~+15)을 더한 뒤 0~100점으로 보정합니다. "
+                + "별자리 리듬은 ((별자리 순번×7 + 분야 순번×5) mod 21)-10, "
+                + "날짜 리듬은 ((연도×3 + 연중 일수×5 + 분야 순번×11) mod 31)-15이며, "
+                + "별자리는 양자리부터 1~12, 분야는 관계·일·건강·재정 순으로 0~3을 사용합니다. "
+                + "실제 가감은 관계 " + componentsText(love)
+                + ", 일·성취 " + componentsText(career)
+                + ", 건강 " + componentsText(health)
+                + ", 재정 " + componentsText(money) + "입니다. "
+                + "오늘의 평균은 (" + loveScore + " + " + careerScore + " + "
+                + healthScore + " + " + moneyScore + ") ÷ 4를 반올림한 "
+                + overallScore + "점입니다.";
+    }
+
+    private String componentsText(ScoreComponents components) {
+        return "(별자리 " + signed(components.zodiacRhythm())
+                + ", 날짜 " + signed(components.dateRhythm()) + ")";
+    }
+
+    private int clampScore(int score) {
+        return Math.max(0, Math.min(100, score));
+    }
+
+    private String signed(int value) {
+        return value >= 0 ? "+" + value : Integer.toString(value);
+    }
+
+    private record ScoreComponents(int score, int zodiacRhythm, int dateRhythm) {
     }
     /**
      * 상세 메시지 생성
@@ -202,13 +250,14 @@ public class ZodiacFortuneService {
      * @return 상세 메시지
      */
     private String generateDetailedMessage(Zodiac zodiac, String category, int score) {
-        return switch (category) {
+        String interpretation = switch (category) {
             case "love" -> loveMessage(score);
             case "career" -> careerMessage(score);
             case "health" -> healthMessage(score);
             case "money" -> moneyMessage(score);
             default -> "오늘의 흐름을 차분히 살피고 중요한 일은 한 번 더 점검하세요.";
         };
+        return interpretation + " " + categoryFollowThrough(category, score);
     }
 
     private String generateDailyOverview(Zodiac zodiac, int love, int career, int health, int money) {
@@ -219,10 +268,29 @@ public class ZodiacFortuneService {
         scores.put("재정", money);
         Map.Entry<String, Integer> strongest = Collections.max(scores.entrySet(), Map.Entry.comparingByValue());
         Map.Entry<String, Integer> weakest = Collections.min(scores.entrySet(), Map.Entry.comparingByValue());
-        int average = (love + career + health + money) / 4;
+        int average = Math.round((love + career + health + money) / 4.0f);
         return zodiac.getKoreanName() + "의 오늘 종합 흐름은 " + scoreLabel(average) + "입니다. "
                 + strongest.getKey() + " 영역(" + strongest.getValue() + "점)은 적극적으로 활용하고, "
-                + weakest.getKey() + " 영역(" + weakest.getValue() + "점)은 속도를 조절하며 확인하세요.";
+                + weakest.getKey() + " 영역(" + weakest.getValue() + "점)은 속도를 조절하며 확인하세요. "
+                + "점수가 높은 분야의 여유를 낮은 분야의 보완에 나누어 쓰면 하루 전체의 균형을 지키기 쉽습니다. "
+                + "오전에는 오늘 반드시 끝낼 일 한 가지를 정하고, 중요한 대화·결제·일정 변경은 현재 정보와 조건을 다시 확인한 뒤 진행하세요. "
+                + "저녁에는 예상과 실제가 달랐던 지점을 짧게 기록해 다음 선택의 근거로 남기는 것이 좋습니다.";
+    }
+
+    private String categoryFollowThrough(String category, int score) {
+        String checkPoint = switch (category) {
+            case "love" -> "상대의 반응을 미리 단정하지 말고, 원하는 바와 감정을 구분해 짧고 구체적인 말로 확인하세요. 관계의 평가는 한 번의 대화보다 약속을 지키는 반복 행동을 기준으로 보는 편이 안전합니다.";
+            case "career" -> "착수 전 완료 조건과 담당자를 확인하고, 중간 결과를 공유해 방향이 어긋나는 일을 줄이세요. 성과뿐 아니라 결정 근거와 남은 위험도 함께 기록하면 협업과 다음 판단에 도움이 됩니다.";
+            case "health" -> "수면·식사·수분·활동량 가운데 오늘 지킬 수 있는 한 가지를 정해 실제 행동으로 옮기세요. 통증이나 불편이 계속되면 운세 문구로 판단하지 말고 의료 전문가의 진료를 우선해야 합니다.";
+            case "money" -> "지출이나 투자 판단은 필요성, 총비용, 해지 조건, 감당 가능한 손실을 차례로 확인하세요. 큰 금액일수록 당일 결정을 피하고 객관적인 자료나 자격 있는 전문가의 의견을 함께 검토하는 편이 좋습니다.";
+            default -> "결과를 단정하기보다 현재 조건을 확인하고, 작게 실행한 뒤 실제 반응에 따라 다음 단계를 조정하세요.";
+        };
+        String pace = score >= 70
+                ? "흐름이 좋을수록 범위를 무리하게 넓히지 말고 가장 중요한 한 가지에 집중하면 강점을 오래 유지할 수 있습니다."
+                : score >= 50
+                ? "큰 변화보다 작고 되돌릴 수 있는 선택부터 실행하고, 중간 점검을 통해 속도를 조정하세요."
+                : "불확실성이 큰 선택은 보류하고 일정과 자원에 여유를 두어 회복과 재검토의 기회를 확보하세요.";
+        return checkPoint + " " + pace;
     }
 
     private String scoreLabel(int score) {
@@ -272,23 +340,28 @@ public class ZodiacFortuneService {
      * @return 월별 운세 결과
      */
     private ZodiacMonthlyFortune calculateMonthlyFortune(Zodiac zodiac, LocalDate targetDate) {
-        // 대상 날짜 월 값
         int month = targetDate.getMonthValue();
-        // 날짜 기반 랜덤 시드 생성
-        Random random = new Random(zodiac.ordinal() + month);
-        // 종합 점수 생성
-        int overallScore = 40 + random.nextInt(40);
-        // 월별 테마 생성
+        int zodiacMonthRhythm = Math.floorMod(
+                (zodiac.ordinal() + 1) * 7 + month * 5, 21) - 10;
+        int yearMonthRhythm = Math.floorMod(
+                targetDate.getYear() * 3 + month * 11, 31) - 15;
+        int overallScore = clampScore(60 + zodiacMonthRhythm + yearMonthRhythm);
         String theme = generateMonthlyTheme(zodiac, month);
-        // 상세 메시지 생성
         String detailedMessage = generateMonthlyMessage(zodiac, month, overallScore);
-        // 주의 메시지 생성
         String caution = generateCaution(overallScore);
-        // 기회 메시지 생성
         String opportunity = generateOpportunity(overallScore);
         return ZodiacMonthlyFortune.builder()
                 .month(month)
                 .overallScore(overallScore)
+                .scoreBasis("문화·오락용 결정론적 점수입니다. 중립 기준 60점에 "
+                        + zodiac.getKoreanName() + "와 " + month + "월 조합의 별자리 리듬 "
+                        + signed(zodiacMonthRhythm) + "점, " + targetDate.getYear() + "년과 "
+                        + month + "월 조합의 날짜 리듬 " + signed(yearMonthRhythm)
+                        + "점을 더해 " + overallScore + "점으로 계산했습니다. "
+                        + "별자리 리듬은 ((별자리 순번×7 + 월×5) mod 21)-10, "
+                        + "날짜 리듬은 ((연도×3 + 월×11) mod 31)-15를 사용합니다. "
+                        + "같은 별자리와 대상 연월에는 항상 같은 점수가 나오며, 천문학적 예측이나 "
+                        + "의학·재정 판단 지표가 아닌 서비스 내부의 오락용 참고 산식입니다.")
                 .theme(theme)
                 .detailedMessage(detailedMessage)
                 .caution(caution)
@@ -407,6 +480,26 @@ public class ZodiacFortuneService {
         ZODIAC_PERSONALITIES.put(Zodiac.AQUARIUS, "독창적이고 인도주의적인 성격으로 혁신을 추구합니다.");
         ZODIAC_PERSONALITIES.put(Zodiac.PISCES, "상상력이 풍부하고 직감적인 성격으로 예술적 감각이 뛰어납니다.");
     }
+
+    private String expandPersonality(Zodiac zodiac) {
+        String base = ZODIAC_PERSONALITIES.getOrDefault(zodiac, "균형 잡힌 성향을 지니고 있습니다.");
+        String guidance = switch (zodiac) {
+            case ARIES -> "빠르게 시작하고 사람들을 움직이는 힘이 장점이지만, 결론을 서두르면 다른 사람의 속도와 중요한 세부 조건을 놓칠 수 있습니다. 목표를 작게 나누고 중간에 의견을 듣는 습관을 더하면 추진력을 오래 유지하면서도 시행착오를 줄일 수 있습니다.";
+            case TAURUS -> "안정적인 기준과 인내심 덕분에 장기 과제를 신뢰 있게 완수하는 편이지만, 익숙한 방식에 머물면 필요한 변화의 시기를 늦출 수 있습니다. 지켜야 할 핵심과 시험해 볼 변화를 구분하고 작은 실험부터 허용하면 안정성과 성장 가능성을 함께 살릴 수 있습니다.";
+            case GEMINI -> "정보를 빠르게 연결하고 다양한 사람과 대화하는 능력이 강점이지만, 관심사가 넓어지면 집중과 마무리가 약해질 수 있습니다. 중요한 질문과 완료 기준을 먼저 적고 한 번에 진행할 과제 수를 제한하면 풍부한 아이디어를 실제 결과로 전환하기 쉽습니다.";
+            case CANCER -> "사람의 감정과 분위기를 세심하게 읽어 관계를 돌보는 힘이 크지만, 타인의 필요를 우선하다 자신의 한계와 피로를 늦게 알아차릴 수 있습니다. 도움을 주기 전 가능한 범위를 말하고 혼자 회복하는 시간을 일정에 넣으면 따뜻함을 소진 없이 이어갈 수 있습니다.";
+            case LEO -> "자신감과 표현력이 있어 공동의 목표를 선명하게 만들고 사람들에게 용기를 주는 편이지만, 인정 욕구가 커지면 다른 의견을 방어적으로 받아들일 수 있습니다. 성과를 함께 만든 사람에게 공을 나누고 반대 의견에서 사실을 먼저 찾으면 리더십의 신뢰가 더욱 깊어집니다.";
+            case VIRGO -> "세부를 관찰하고 오류를 미리 발견하는 분석력이 뛰어나지만, 완벽한 결과를 기다리다 시작이나 공유가 늦어질 수 있습니다. 반드시 지킬 품질 기준과 나중에 개선할 항목을 구분하고 초안을 일찍 검토받으면 정확성과 실행 속도를 함께 높일 수 있습니다.";
+            case LIBRA -> "여러 관점을 비교하고 갈등 사이에서 균형점을 찾는 능력이 강점이지만, 모두를 만족시키려 하면 자신의 기준과 결정 시점을 놓칠 수 있습니다. 선택의 원칙과 기한을 먼저 정하고 필요한 경우 정중하게 거절하는 연습을 하면 조화와 주도성을 함께 지킬 수 있습니다.";
+            case SCORPIO -> "한 주제를 깊이 파고들며 쉽게 포기하지 않는 집중력과 통찰이 강점이지만, 불확실한 상황에서 경계심이 커지면 관계를 닫아 버릴 수 있습니다. 추측과 확인된 사실을 구분해 말하고 신뢰할 사람에게 진행 과정을 조금씩 공유하면 깊이를 협력의 힘으로 바꿀 수 있습니다.";
+            case SAGITTARIUS -> "넓은 가능성을 보고 새로운 경험에서 빠르게 배우는 낙관성과 탐험심이 강점이지만, 다음 기회에 마음이 쏠리면 현재 약속의 세부를 놓칠 수 있습니다. 자유롭게 시도하되 예산·기한·마무리 기준을 먼저 정하면 모험을 지속 가능한 성장으로 연결할 수 있습니다.";
+            case CAPRICORN -> "책임감과 현실 감각이 있어 긴 목표를 단계적으로 달성하는 힘이 크지만, 성과와 의무에 집중하다 휴식과 감정 표현을 뒤로 미룰 수 있습니다. 진행률뿐 아니라 체력과 관계의 상태도 함께 점검하고 도움을 요청하면 꾸준함을 소진 없이 이어갈 수 있습니다.";
+            case AQUARIUS -> "기존 틀에서 벗어난 관점으로 새로운 해결책을 찾는 독창성이 강점이지만, 아이디어의 속도와 주변의 이해 속도가 다르면 거리감이 생길 수 있습니다. 문제와 기대 효과를 쉬운 말로 설명하고 작은 실험 결과를 보여 주면 혁신적인 생각이 실제 협력으로 이어집니다.";
+            case PISCES -> "미묘한 감정과 가능성을 감지하고 상상력으로 의미를 만드는 능력이 강점이지만, 경계가 흐려지면 타인의 분위기와 자신의 판단을 혼동할 수 있습니다. 직감은 기록하되 사실과 일정 조건을 별도로 확인하고 휴식과 거절의 기준을 세우면 감수성을 안정적인 창의성으로 발전시킬 수 있습니다.";
+        };
+        return base + " " + guidance
+                + " 별자리 성향은 고정된 성격 판정이 아니라 자신을 돌아보기 위한 문화적 참고 설명이므로, 실제 경험과 현재 환경을 함께 살펴보세요.";
+    }
     /**
      * 별자리 행운의 색깔 초기화
      * SQL: SELECT * FROM zodiac_fortunes;
@@ -474,13 +567,19 @@ public class ZodiacFortuneService {
         /* 점수가 70점 이상 */
         if (score >= 70) {
             return month + "월은 " + zodiacName + "에게 확장과 성취의 흐름이 강한 달입니다. "
-                    + "새로운 제안은 목표와 자원 조건을 확인한 뒤 적극적으로 검토하고, 성과는 기록과 공유를 통해 다음 기회로 연결하세요.";
+                    + "새로운 제안은 목표와 자원 조건을 확인한 뒤 적극적으로 검토하고, 성과는 기록과 공유를 통해 다음 기회로 연결하세요. "
+                    + "월 초에는 가장 중요한 목표와 성공 조건을 한 문장으로 정하고, 중순에는 협력자·예산·일정의 병목을 확인해 조정하는 편이 좋습니다. "
+                    + "월말에는 얻은 결과와 남은 부담을 함께 정리해 과도한 확장을 막고 다음 달에도 지속할 수 있는 방식만 남기세요.";
         } else if (score >= 50) {
             return month + "월은 " + zodiacName + "에게 기반을 다지고 완성도를 높이기 좋은 달입니다. "
-                    + "진행 중인 일의 우선순위를 정리하고 관계·건강·재정의 균형을 유지하면 꾸준한 결과를 만들 수 있습니다.";
+                    + "진행 중인 일의 우선순위를 정리하고 관계·건강·재정의 균형을 유지하면 꾸준한 결과를 만들 수 있습니다. "
+                    + "새로운 일을 시작하기 전 미완료 과제와 반복 지출을 먼저 정리하고, 중요한 약속은 담당자와 기한을 문서로 확인하세요. "
+                    + "매주 한 번 실제 진척과 컨디션을 점검해 계획을 작게 수정하면 급격한 변화 없이도 안정적인 성과를 축적할 수 있습니다.";
         } else {
             return month + "월은 " + zodiacName + "에게 속도보다 점검과 회복이 중요한 달입니다. "
-                    + "새로운 부담을 늘리기보다 일정과 지출을 보수적으로 관리하고, 중요한 결정에는 충분한 검토 시간을 확보하세요.";
+                    + "새로운 부담을 늘리기보다 일정과 지출을 보수적으로 관리하고, 중요한 결정에는 충분한 검토 시간을 확보하세요. "
+                    + "월 초에는 반드시 유지해야 할 일과 잠시 줄일 일을 구분하고, 중순에는 누적 피로·갈등·예산 초과 신호가 없는지 살펴보세요. "
+                    + "상황이 안정될 때까지 되돌리기 어려운 선택은 미루고, 작은 개선을 시험한 뒤 실제 결과를 보고 다음 단계를 정하는 편이 안전합니다.";
         }
     }
     /**
@@ -492,11 +591,17 @@ public class ZodiacFortuneService {
     private String generateCaution(int score) {
         /* 점수가 50점 미만 */
         if (score < 50) {
-            return "급한 결정과 과도한 일정 확장을 피하세요. 합의 조건·예산·마감일을 문서로 다시 확인하고 회복 시간을 먼저 확보하는 편이 좋습니다.";
+            return "급한 결정과 과도한 일정 확장을 피하세요. 합의 조건·예산·마감일을 문서로 다시 확인하고 회복 시간을 먼저 확보하는 편이 좋습니다. "
+                    + "특히 되돌리기 어려운 계약·고액 지출·관계의 단절은 감정이 가라앉은 뒤 객관적인 자료와 대안을 비교해 판단하세요. "
+                    + "문제가 생겼을 때 혼자 감당하기보다 관련 당사자나 전문가에게 일찍 공유해 선택지를 넓히는 것이 손실을 줄이는 데 도움이 됩니다.";
         } else if (score < 70) {
-            return "큰 변화를 한꺼번에 추진하기보다 현재 상황을 안정화하세요. 익숙함 때문에 놓친 반복 비용이나 관계의 작은 불편도 점검해 보세요.";
+            return "큰 변화를 한꺼번에 추진하기보다 현재 상황을 안정화하세요. 익숙함 때문에 놓친 반복 비용이나 관계의 작은 불편도 점검해 보세요. "
+                    + "일정에는 예상보다 한 단계 더 여유를 두고, 구두 합의는 해야 할 일·담당자·기한이 보이도록 기록하는 편이 좋습니다. "
+                    + "작은 이상 신호를 방치하지 않고 중간에 수정하면 무난한 흐름을 불필요한 갈등이나 손실로 바꾸지 않을 수 있습니다.";
         } else {
-            return "흐름이 좋더라도 과신은 피하세요. 약속한 범위와 자원 한계를 지키고 성과를 주변과 나누는 태도가 좋은 흐름을 오래 유지합니다.";
+            return "흐름이 좋더라도 과신은 피하세요. 약속한 범위와 자원 한계를 지키고 성과를 주변과 나누는 태도가 좋은 흐름을 오래 유지합니다. "
+                    + "기회가 동시에 들어올 때는 기대 수익만 보지 말고 필요한 시간·비용·책임을 비교해 가장 중요한 선택에 집중하세요. "
+                    + "잘 풀리는 과정에서도 검토자와 중단 기준을 정해 두면 과도한 확장이나 자신감에 따른 실수를 예방할 수 있습니다.";
         }
     }
     /**
@@ -508,11 +613,17 @@ public class ZodiacFortuneService {
     private String generateOpportunity(int score) {
         /* 점수가 70점 이상 */
         if (score >= 70) {
-            return "새로운 프로젝트 제안, 역할 확장, 협력 관계를 구체화하기 좋습니다. 관심 있는 기회에는 먼저 질문하고 작은 실행으로 가능성을 확인하세요.";
+            return "새로운 프로젝트 제안, 역할 확장, 협력 관계를 구체화하기 좋습니다. 관심 있는 기회에는 먼저 질문하고 작은 실행으로 가능성을 확인하세요. "
+                    + "자신의 강점과 상대가 필요로 하는 결과를 연결해 제안하고, 시작 전에 목표·권한·일정·보상의 기준을 분명히 하면 기회를 지속 가능한 성과로 바꾸기 쉽습니다. "
+                    + "첫 성공은 개인의 공으로만 남기지 말고 과정과 도움을 공유해 신뢰와 다음 협력의 기반으로 확장하세요.";
         } else if (score >= 50) {
-            return "기존 관계와 업무의 개선 지점에서 기회가 생깁니다. 반복 작업을 정리하거나 미뤄 둔 대화를 마치는 작은 변화가 다음 단계의 기반이 됩니다.";
+            return "기존 관계와 업무의 개선 지점에서 기회가 생깁니다. 반복 작업을 정리하거나 미뤄 둔 대화를 마치는 작은 변화가 다음 단계의 기반이 됩니다. "
+                    + "시간이 자주 새는 과정 하나를 골라 단순화하고, 이미 알고 지내는 사람에게 필요한 도움과 기대를 구체적으로 물어보세요. "
+                    + "눈에 띄는 큰 성과보다 재사용할 수 있는 습관·문서·관계를 남기는 것이 다음 달의 선택 폭을 넓혀 줍니다.";
         } else {
-            return "위험이 낮고 되돌릴 수 있는 작은 변화부터 시작하세요. 생활 리듬과 고정비, 업무 우선순위를 정비하는 과정 자체가 다음 기회를 준비합니다.";
+            return "위험이 낮고 되돌릴 수 있는 작은 변화부터 시작하세요. 생활 리듬과 고정비, 업무 우선순위를 정비하는 과정 자체가 다음 기회를 준비합니다. "
+                    + "새로운 약속을 늘리기보다 멈춰 있던 작은 과제를 끝내고, 필요한 정보나 도움을 요청해 막힌 원인을 하나씩 줄이세요. "
+                    + "짧은 시험에서 긍정적인 결과가 확인된 선택만 단계적으로 확대하면 부담을 통제하면서 회복과 기회를 함께 준비할 수 있습니다.";
         }
     }
 }

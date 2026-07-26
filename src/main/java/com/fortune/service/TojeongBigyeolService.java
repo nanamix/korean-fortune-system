@@ -210,21 +210,25 @@ public class TojeongBigyeolService {
      * @return 점수대별 조언
      */
     private String generateAdvice(TojeongGwa gwa) {
-        String advice = "올해 당신의 운세는 '" + gwa.getName() + "'입니다. ";
-        if (gwa.getScore() >= 90) {
-            advice += "매우 좋은 운세입니다. 적극적으로 행동하세요.";
-        } else if (gwa.getScore() >= 80) {
-            advice += "좋은 운세입니다. 기회를 놓치지 마세요.";
+        String pace;
+        if (gwa.getScore() >= 85) {
+            pace = "전체 흐름이 강하게 열려 있으므로 오래 준비한 목표 한두 가지를 정해 주도적으로 추진하기 좋습니다. "
+                    + "다만 기회가 많아 보여도 사람·시간·비용의 한도를 먼저 정하고, 성과가 생기면 기록과 관계 관리로 다음 기회까지 연결하세요.";
         } else if (gwa.getScore() >= 70) {
-            advice += "평균 이상의 운세입니다. 꾸준히 노력하세요.";
-        } else if (gwa.getScore() >= 60) {
-            advice += "보통의 운세입니다. 신중하게 행동하세요.";
-        } else if (gwa.getScore() >= 50) {
-            advice += "주의가 필요한 해입니다. 조심스럽게 행동하세요.";
+            pace = "안정적인 성장 가능성이 있으므로 새로운 시도와 기존 기반의 보강을 함께 가져가는 편이 좋습니다. "
+                    + "한 번에 범위를 넓히기보다 월별 우선순위를 정하고, 완료한 일의 품질과 협력 관계를 차근차근 쌓아 가세요.";
+        } else if (gwa.getScore() >= 55) {
+            pace = "큰 승부보다 꾸준한 실행과 균형 관리가 결과를 만드는 해입니다. "
+                    + "진행 중인 일의 마감 기준을 명확히 하고, 중요한 결정은 기대 효과뿐 아니라 비용·일정·되돌릴 방법까지 확인한 뒤 선택하세요.";
         } else {
-            advice += "어려운 해가 될 수 있습니다. 인내심을 갖고 극복하세요.";
+            pace = "속도를 높이기보다 손실을 줄이고 기반을 정비하는 태도가 필요한 해입니다. "
+                    + "새로운 부담은 작게 시험한 뒤 확대하고, 계약·재정·건강처럼 영향이 큰 문제는 충분한 자료와 관련 전문가의 의견을 함께 확인하세요.";
         }
-        return advice;
+        return "올해의 괘는 '" + gwa.getName() + "'이며 종합 점수는 " + gwa.getScore() + "점입니다. "
+                + gwa.getSummary() + " " + pace
+                + " 분기 초에는 목표와 가용 자원을 다시 적고, 매달 말에는 실제 성과·지출·컨디션·관계의 변화를 점검해 다음 달 계획을 조정하세요. "
+                + "점수가 높은 달은 중요한 실행과 협의를 배치하는 참고 시기로, 낮은 달은 일정 여유와 검토 단계를 늘리는 시기로 활용하면 한 해의 흐름을 보다 현실적으로 관리할 수 있습니다. "
+                + "운세는 선택을 대신하는 결론이 아니라 계획을 돌아보게 하는 문화적 참고 정보이므로, 실제 결정에서는 현재 상황과 객관적인 근거를 우선하세요.";
     }
 
     /**
@@ -243,11 +247,13 @@ public class TojeongBigyeolService {
             LocalDate rep = LocalDate.of(targetYear, month, 15);
             String monthPillar = ganji.calculateMonthPillar(rep);
             int monthElem = branchElement(monthPillar.substring(1, 2));
-            int monthScore = clamp(guaScore + relationDelta(upperElem, monthElem));
+            int delta = relationDelta(upperElem, monthElem);
+            int monthScore = clamp(guaScore + delta);
             monthlyList.add(MonthlyFortune.builder()
                     .month(month)
                     .score(monthScore)
-                    .message(generateMonthlyMessage(month, monthScore))
+                    .message(generateMonthlyMessage(
+                            month, guaScore, monthScore, upperElem, monthElem, delta))
                     .keywords(generateMonthlyKeywords(month, monthScore))
                     .build());
         }
@@ -311,19 +317,68 @@ public class TojeongBigyeolService {
      * 월별 메시지 생성
      *
      * @param month 월 번호 (1-12)
+     * @param guaScore 연간 괘 점수
      * @param score 월별 점수 (0-100)
      * @return 월별 운세 메시지
      */
-    private String generateMonthlyMessage(int month, int score) {
-        String monthName = month + "월";
+    private String generateMonthlyMessage(int month, int guaScore, int score,
+                                          int upperElem, int monthElem, int delta) {
+        String relation = elementRelationDescription(upperElem, monthElem);
+        String flow;
         if (score >= 80) {
-            return monthName + "은 매우 좋은 운세입니다. 새로운 도전을 해보세요.";
-        } else if (score >= 60) {
-            return monthName + "은 안정적인 운세입니다. 계획을 차근차근 실행하세요.";
-        } else if (score >= 40) {
-            return monthName + "은 평범한 운세입니다. 꾸준한 노력이 필요합니다.";
+            flow = "추진력과 주변의 호응을 함께 얻기 쉬운 구간입니다. 오래 준비한 제안이나 중요한 협의는 목표·예산·완료 조건을 명확히 한 뒤 실행하고, 좋은 반응은 문서와 후속 일정으로 연결하세요.";
+        } else if (score >= 65) {
+            flow = "안정적인 진전이 기대되는 구간입니다. 새 일을 지나치게 늘리기보다 핵심 과제를 먼저 완성하고, 관계에서는 약속한 일정과 역할을 지켜 신뢰를 쌓는 데 집중하세요.";
+        } else if (score >= 50) {
+            flow = "성과와 부담이 함께 나타날 수 있어 우선순위 조정이 중요합니다. 해야 할 일과 미뤄도 되는 일을 구분하고, 재정·일정·체력에 여유분을 남기면 작은 변수에도 흐름을 유지할 수 있습니다.";
         } else {
-            return monthName + "은 조심스러운 운세입니다. 신중하게 행동하세요.";
+            flow = "외부 변수와 피로가 겹치기 쉬우므로 확장보다 점검과 회복을 앞세우는 편이 좋습니다. 큰 계약이나 지출은 조건을 다시 확인하고, 갈등이 생기면 즉답보다 사실관계와 자신의 감정을 정리한 뒤 대화하세요.";
         }
+        return month + "월은 " + seasonalFocus(month) + " "
+                + "연간 괘 점수 " + guaScore + "점에 상괘의 " + elementName(upperElem)
+                + " 기운과 이달의 " + elementName(monthElem) + " 기운 관계를 반영해 "
+                + signed(delta) + "점이 가감되었고, 월 점수는 " + score + "점입니다. "
+                + relation + " " + flow + " "
+                + "월 초에는 가장 중요한 목표 하나와 피해야 할 위험 하나를 정하고, 중순에는 진행 상황과 지출·컨디션을 확인하며, 월말에는 결과를 기록해 다음 달 계획에 반영해 보세요.";
+    }
+
+    private String seasonalFocus(int month) {
+        return switch ((month - 1) / 3) {
+            case 0 -> "새로운 계획의 씨앗을 고르고 생활 리듬을 세우는 시기입니다.";
+            case 1 -> "활동 범위가 넓어지는 만큼 체력과 일정의 균형을 함께 살필 시기입니다.";
+            case 2 -> "진행한 일의 성과를 확인하고 관계와 자원을 정돈할 시기입니다.";
+            default -> "한 해의 결과를 정리하고 다음 선택을 준비할 시기입니다.";
+        };
+    }
+
+    private String elementRelationDescription(int upperElem, int monthElem) {
+        if (upperElem == monthElem) {
+            return "두 기운이 같은 방향으로 겹치는 비화 관계라 익숙한 강점과 기존 기반을 활용하기 좋지만, 한 방식만 고집하지 않도록 주변 의견도 확인해야 합니다.";
+        }
+        if (gen(monthElem) == upperElem) {
+            return "이달의 기운이 상괘를 북돋는 생입 관계라 도움과 자원이 들어오기 쉬우므로, 제안과 협력의 조건을 구체화하면 흐름을 실질적인 성과로 바꾸기 좋습니다.";
+        }
+        if (gen(upperElem) == monthElem) {
+            return "상괘의 기운이 이달로 빠져나가는 설기 관계라 활동은 많아질 수 있으나 소모도 커지므로, 일의 범위와 휴식 시간을 함께 관리해야 합니다.";
+        }
+        if (overcome(monthElem) == upperElem) {
+            return "이달의 기운이 상괘를 누르는 극입 관계라 예상 밖의 제약이나 지연에 대비해 검토 단계와 일정 여유를 두는 편이 안전합니다.";
+        }
+        return "상괘가 이달의 기운을 다스리는 극출 관계라 노력으로 결과를 만들 수 있지만, 통제에 힘을 너무 쓰지 않도록 역할을 나누고 비용 대비 효과를 점검해야 합니다.";
+    }
+
+    private String elementName(int element) {
+        return switch (element) {
+            case 0 -> "목(木)";
+            case 1 -> "화(火)";
+            case 2 -> "토(土)";
+            case 3 -> "금(金)";
+            case 4 -> "수(水)";
+            default -> "중립";
+        };
+    }
+
+    private String signed(int value) {
+        return value >= 0 ? "+" + value : Integer.toString(value);
     }
 } // END TojeongBigyeolService

@@ -25,9 +25,24 @@ class ZodiacFortuneServiceTest {
         assertEquals(targetDate, first.getTargetDate());
         assertEquals(first.getTodayFortune(), second.getTodayFortune());
         assertTrue(first.getTodayFortune().getOverallMessage().contains("영역("));
-        assertTrue(first.getTodayFortune().getCareerMessage().length() >= 70);
-        assertTrue(first.getMonthlyFortune().getDetailedMessage().length() >= 80);
-        assertTrue(first.getMonthlyFortune().getOpportunity().length() >= 50);
-        assertTrue(first.getMonthlyFortune().getCaution().length() >= 50);
+        assertTrue(first.getTodayFortune().getOverallMessage().length() >= 180);
+        assertTrue(first.getTodayFortune().getLoveMessage().length() >= 150);
+        assertTrue(first.getTodayFortune().getCareerMessage().length() >= 150);
+        assertTrue(first.getTodayFortune().getHealthMessage().length() >= 150);
+        assertTrue(first.getTodayFortune().getMoneyMessage().length() >= 150);
+        int expectedAverage = Math.round((
+                first.getTodayFortune().getLoveScore()
+                        + first.getTodayFortune().getCareerScore()
+                        + first.getTodayFortune().getHealthScore()
+                        + first.getTodayFortune().getMoneyScore()) / 4.0f);
+        assertEquals(expectedAverage, first.getTodayFortune().getOverallScore());
+        assertTrue(first.getTodayFortune().getScoreBasis().contains("중립 기준 60점"));
+        assertTrue(first.getTodayFortune().getScoreBasis().contains("별자리 리듬"));
+        assertTrue(first.getTodayFortune().getScoreBasis().contains("날짜 리듬"));
+        assertTrue(first.getMonthlyFortune().getDetailedMessage().length() >= 180);
+        assertTrue(first.getMonthlyFortune().getOpportunity().length() >= 120);
+        assertTrue(first.getMonthlyFortune().getCaution().length() >= 120);
+        assertTrue(first.getMonthlyFortune().getScoreBasis().contains("중립 기준 60점"));
+        assertTrue(first.getPersonality().length() >= 140);
     }
 }

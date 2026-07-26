@@ -550,6 +550,12 @@ body {
 .zodiac-month-head strong { color:#553c9a; }
 .zodiac-month-score { font-size:1.15rem; font-weight:900; color:var(--primary); }
 .zodiac-month-card p { margin:0; color:var(--text-muted); font-size:.82rem; line-height:1.7; }
+.zodiac-score-basis { margin-top:.8rem; border:1px solid #c3dafe; border-radius:12px; background:#f7f8ff; }
+.zodiac-score-basis summary { padding:.8rem 1rem; color:var(--primary-dark); font-size:.8rem; font-weight:900; cursor:pointer; }
+.zodiac-score-basis-body { display:grid; gap:.7rem; padding:0 1rem 1rem; }
+.zodiac-score-basis-item { padding:.8rem; border-radius:10px; background:#fff; }
+.zodiac-score-basis-item strong { display:block; margin-bottom:.35rem; color:var(--text-dark); font-size:.78rem; }
+.zodiac-score-basis-item p { margin:0; color:var(--text-muted); font-size:.74rem; line-height:1.7; }
 .zodiac-lucky-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.6rem; }
 .zodiac-lucky-item { padding:.8rem; border-radius:12px; background:#f8fafc; text-align:center; }
 .zodiac-lucky-item span { display:block; margin-bottom:.25rem; color:var(--text-muted); font-size:.68rem; }
@@ -1767,7 +1773,7 @@ function renderTojeong(d) {
 
     ${monthDetails ? `<h3 class="tojeong-section-title">월별 상세 운세</h3><div class="tojeong-month-list">${monthDetails}</div>` : ''}
 
-    ${d.advice ? `<h3 class="tojeong-section-title">올해의 실천 조언</h3><div class="alert alert-success">💡 ${escHtml(d.advice)}</div>` : ''}
+    ${d.advice ? `<h3 class="tojeong-section-title">올해의 실천 조언</h3><div class="alert alert-success" style="line-height:1.8">💡 ${escHtml(d.advice)}</div>` : ''}
     ${cautionMonth ? `<div class="alert alert-warn">⚠️ ${cautionMonth.month}월은 상대적으로 점수가 낮습니다. 중요한 결정은 서두르기보다 조건과 일정을 한 번 더 점검해 보세요.</div>` : ''}
 
     <details class="tojeong-basis">
@@ -1822,7 +1828,10 @@ function renderZodiac(d) {
     { icon:'🌿', name:'건강·생활', score:daily.healthScore || 0, message:daily.healthMessage },
     { icon:'💰', name:'재정·소비', score:daily.moneyScore || 0, message:daily.moneyMessage }
   ];
-  const average = Math.round(categories.reduce((sum, category) => sum + category.score, 0) / categories.length);
+  const calculatedAverage = Math.round(categories.reduce((sum, category) => sum + category.score, 0) / categories.length);
+  const average = Number.isFinite(Number(daily.overallScore))
+    ? Number(daily.overallScore)
+    : calculatedAverage;
   const nums = (d.luckyNumbers || []).join(' · ') || '-';
   const compat = (d.compatibleZodiacs || []).map(zodiacDisplayName).join(' · ') || '-';
   const zodiac = ZODIACS.find(item => item.name === d.zodiacKoreanName) || {};
@@ -1844,6 +1853,14 @@ function renderZodiac(d) {
 
     <h3 class="zodiac-title">분야별 상세 운세와 행동 지침</h3>
     <div class="zodiac-score-grid">${scoreCards}</div>
+    ${(daily.scoreBasis || monthly.scoreBasis) ? `
+      <details class="zodiac-score-basis" open>
+        <summary>점수는 어떻게 산출되나요?</summary>
+        <div class="zodiac-score-basis-body">
+          ${daily.scoreBasis ? `<div class="zodiac-score-basis-item"><strong>오늘의 분야별 점수와 평균</strong><p>${escHtml(daily.scoreBasis)}</p></div>` : ''}
+          ${monthly.scoreBasis ? `<div class="zodiac-score-basis-item"><strong>${monthly.month || ''}월 점수</strong><p>${escHtml(monthly.scoreBasis)}</p></div>` : ''}
+        </div>
+      </details>` : ''}
 
     <h3 class="zodiac-title">${monthly.month || ''}월의 큰 흐름</h3>
     <div class="zodiac-month-card">

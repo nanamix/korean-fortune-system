@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class ZodiacMonthlyFortune {
     private int month;
     private int overallScore;
+    private String scoreBasis;
     private String theme;
     private String detailedMessage;
     private String caution;
