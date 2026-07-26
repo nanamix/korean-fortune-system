@@ -47,9 +47,9 @@ app:
     ai:
       enabled: false  # 기본적으로 AI 비활성화
       provider: fallback
-      model: gpt-5.4-mini
-      base-url: https://api.openai.com/v1
-      api-key: ${OPENAI_API_KEY:}
+      model: deepseek-v4-flash
+      base-url: https://api.deepseek.com
+      api-key: ${DEEPSEEK_API_KEY:${OPENAI_API_KEY:}}
       timeout: 30s
       fallback-enabled: true
     cache:

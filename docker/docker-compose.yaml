@@ -96,11 +96,6 @@ services:
       DB_USERNAME: fortune_user
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      APP_FORTUNE_AI_ENABLED: ${APP_FORTUNE_AI_ENABLED:-false}
-      APP_FORTUNE_AI_PROVIDER: ${APP_FORTUNE_AI_PROVIDER:-openai}
-      APP_FORTUNE_AI_MODEL: ${APP_FORTUNE_AI_MODEL:-gpt-5.4-mini}
-      APP_FORTUNE_AI_BASE_URL: ${APP_FORTUNE_AI_BASE_URL:-https://api.openai.com/v1}
-      APP_FORTUNE_AI_TIMEOUT: ${APP_FORTUNE_AI_TIMEOUT:-30s}
       TZ: Asia/Seoul
     ports:
       - "18080:18080"

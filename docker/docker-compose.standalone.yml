@@ -25,9 +25,9 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       APP_FORTUNE_AI_ENABLED: ${AI_ENABLED:-false}
-      APP_FORTUNE_AI_PROVIDER: ${AI_PROVIDER:-openai}
-      APP_FORTUNE_AI_MODEL: ${AI_MODEL:-gpt-5.4-mini}
-      APP_FORTUNE_AI_BASE_URL: ${AI_BASE_URL:-https://api.openai.com/v1}
+      APP_FORTUNE_AI_PROVIDER: ${AI_PROVIDER:-deepseek}
+      APP_FORTUNE_AI_MODEL: ${AI_MODEL:-deepseek-v4-flash}
+      APP_FORTUNE_AI_BASE_URL: ${AI_BASE_URL:-https://api.deepseek.com}
       TZ: Asia/Seoul
     volumes:
       - ./logs:/app/logs

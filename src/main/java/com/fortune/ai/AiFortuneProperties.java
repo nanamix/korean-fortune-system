@@ -15,8 +15,8 @@ public record AiFortuneProperties(
 ) {
     public AiFortuneProperties {
         provider = isBlank(provider) ? "fallback" : provider;
-        model = isBlank(model) ? "deepseek-chat" : model;
-        baseUrl = isBlank(baseUrl) ? "https://api.deepseek.com/v1" : baseUrl;
+        model = isBlank(model) ? "deepseek-v4-flash" : model;
+        baseUrl = isBlank(baseUrl) ? "https://api.deepseek.com" : baseUrl;
         apiKey = apiKey == null ? "" : apiKey;
         timeout = timeout == null ? Duration.ofSeconds(30) : timeout;
     }

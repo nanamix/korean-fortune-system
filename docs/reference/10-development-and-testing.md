@@ -69,7 +69,7 @@ src/main/resources/
 | `bootRun` | application | 기본 실행 |
 | `runDev` | application | `dev` 프로필 + AI 비활성 실행 |
 | `runWithoutAI` | application | AI 없이 실행 |
-| `runWithAI` | application | `dev,ai` 프로필 실행 (`OPENAI_API_KEY` 필수) |
+| `runWithAI` | application | `dev,ai` 프로필 실행 (`DEEPSEEK_API_KEY` 기본, `OPENAI_API_KEY` 호환) |
 | `bootJar` | build | 실행 JAR 생성 → `build/libs/korean-fortune-app.jar` |
 | `startLocal` | application | 빌드된 JAR을 `dev` 프로필로 직접 실행 |
 | `runLocalJar` | application | JAR 실행 안내 정보 출력 |
@@ -141,7 +141,7 @@ src/main/resources/
 |-----------|------|
 | 개발 (H2, AI off) | `./gradlew runDev` |
 | 로컬 MySQL 연동 | `java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=mysql` |
-| AI 활성화 | OpenBao의 `OPENAI_API_KEY` |
+| AI 활성화 | OpenBao의 `DEEPSEEK_API_KEY`와 `APP_FORTUNE_AI_ENABLED=true` |
 | 성능 프로필 | `java -jar ...korean-fortune-app.jar --spring.profiles.active=perf` |
 | 운영 시뮬레이션 | `java -jar ...korean-fortune-app.jar --spring.profiles.active=prod` |
 

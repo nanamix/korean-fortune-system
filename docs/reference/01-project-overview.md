@@ -51,7 +51,7 @@
 | 프로필 | 용도 | DB / 특징 |
 |--------|------|-----------|
 | `dev` | 기본 개발 | H2 인메모리, `ddl-auto=create-drop`, 보안·AI off |
-| `ai` | AI 활성화 오버레이 | `app.fortune.ai.enabled=true`, `OPENAI_API_KEY` 필요 (`application-ai.yml`) |
+| `ai` | AI 활성화 오버레이 | `app.fortune.ai.enabled=true`, 기본 DeepSeek V4 Flash, `DEEPSEEK_API_KEY` 필요 (`application-ai.yml`) |
 | `mysql` | 로컬 MySQL | MySQL, `ddl-auto=update` (`application-mysql.yml:10,17`) |
 | `prod` | 운영 | MySQL, `ddl-auto=validate`, 보안 on, OTLP export on (`application-prod.yml:22,49,76`) |
 | `docker` / `perf` / `test` | 컨테이너 / 성능 / 테스트 | 각 `application-*.yml` |
@@ -90,7 +90,7 @@ korean-fortune-system/
 ```bash
 ./gradlew bootJar
 java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
-# AI 활성화: OPENAI_API_KEY 설정 후 ./gradlew runWithAI  (profiles=dev,ai)
+# AI 활성화: DEEPSEEK_API_KEY 설정 후 ./gradlew runWithAI  (profiles=dev,ai)
 ```
 
 | 항목 | 경로 |

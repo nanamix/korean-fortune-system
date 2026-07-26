@@ -93,7 +93,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 # 개발 환경 실행 (AI 비활성화)
 ./gradlew runDev
 
-# AI 기능 활성화 실행 (OPENAI_API_KEY 환경변수 필수)
+# AI 기능 활성화 실행 (DEEPSEEK_API_KEY 기본)
 ./gradlew runWithAI
 
 # 빌드된 JAR 자동 실행 (dev 프로필)
@@ -101,7 +101,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 ```
 
 - `runDev` / `runWithoutAI` : `--spring.profiles.active=dev --app.fortune.ai.enabled=false` 로 실행합니다.
-- `runWithAI` : `OPENAI_API_KEY` 가 없으면 빌드가 즉시 실패하며, `dev,ai` 프로필로 실행합니다.
+- `runWithAI` : `DEEPSEEK_API_KEY` 또는 호환용 `OPENAI_API_KEY`가 없으면 실행 전에 실패하며, `dev,ai` 프로필로 실행합니다.
 
 실행 후 브라우저에서 `http://localhost:18080/fortune-app.html` 로 접속합니다.
 
@@ -133,20 +133,24 @@ Docker Compose 운영·개발 스택은 `.env`에 자격증명을 저장하지 �
 
 ### 8.4.4 AI 기능 설정
 
-AI는 기본 비활성화 상태이며, `ai` 프로필 + `OPENAI_API_KEY` 가 함께 있을 때만 외부 모델을 호출합니다. 그 외에는 결정적(deterministic) fallback 으로 응답합니다.
+AI는 기본 비활성화 상태이며, `ai` 프로필 + `DEEPSEEK_API_KEY`가 함께 있을 때 기본 제공자인 DeepSeek V4 Flash를 호출합니다. 그 외에는 결정적(deterministic) fallback 으로 응답합니다.
 
 ```bash
 ./gradlew runWithAI
 ```
 
-OpenAI 호환 서버·모델은 다음 변수로 변경합니다.
+DeepSeek 기본 설정은 다음과 같습니다. 운영 값과 API 키는 shell export 대신 OpenBao에 저장합니다.
 
 ```bash
-export APP_FORTUNE_AI_PROVIDER=openai
-export APP_FORTUNE_AI_MODEL=gpt-5.4-mini
-export APP_FORTUNE_AI_BASE_URL=https://api.openai.com/v1
+export APP_FORTUNE_AI_PROVIDER=deepseek
+export APP_FORTUNE_AI_MODEL=deepseek-v4-flash
+export APP_FORTUNE_AI_BASE_URL=https://api.deepseek.com
 export APP_FORTUNE_AI_TIMEOUT=30s
 ```
+
+다른 OpenAI-compatible 제공자를 사용할 때는 provider, model, base URL과
+그 제공자의 API 키를 함께 교체해야 합니다. 현재 웹 UI에서는 제공자를 직접
+변경하지 않으며 `/api/fortune/ai/status`로 적용 상태만 확인합니다.
 
 ---
 

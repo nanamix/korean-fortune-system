@@ -62,10 +62,10 @@ app:
   fortune:
     ai:
       enabled: true
-      provider: ${APP_FORTUNE_AI_PROVIDER:openai}
-      model: ${APP_FORTUNE_AI_MODEL:gpt-5.4-mini}
-      base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.openai.com/v1}
-      api-key: ${OPENAI_API_KEY:}
+      provider: ${APP_FORTUNE_AI_PROVIDER:deepseek}
+      model: ${APP_FORTUNE_AI_MODEL:deepseek-v4-flash}
+      base-url: ${APP_FORTUNE_AI_BASE_URL:https://api.deepseek.com}
+      api-key: ${DEEPSEEK_API_KEY:${OPENAI_API_KEY:}}
       timeout: ${APP_FORTUNE_AI_TIMEOUT:30s}
       fallback-enabled: true
 ```
@@ -76,8 +76,8 @@ app:
 |----------|--------|------|
 | `enabled` | false | AI 계층 활성 여부. true 여야 어댑터 빈 생성 |
 | `provider` | `fallback` | `fallback` 이면 외부 호출 안 함 |
-| `model` | `gpt-5.4-mini` | 요청 모델명 |
-| `baseUrl` | `https://api.openai.com/v1` | OpenAI-compatible 엔드포인트 |
+| `model` | `deepseek-v4-flash` | 요청 모델명 |
+| `baseUrl` | `https://api.deepseek.com` | OpenAI-compatible 엔드포인트 |
 | `apiKey` | `""` | 비어 있으면 Bearer 헤더 생략 |
 | `timeout` | 30s | |
 | `fallbackEnabled` | true | 폴백 허용 |
@@ -85,6 +85,13 @@ app:
 두 빈(`AIFortuneService`, `OpenAiCompatibleFortuneProvider`)은 모두 `@ConditionalOnProperty("app.fortune.ai.enabled"=true)` 로 게이트됩니다 (`AIFortuneService.java:19`, `OpenAiCompatibleFortuneProvider.java:12`). 비활성 시 `FortuneController` 는 `AIFortuneService` 를 `@Autowired(required=false)` 로 받아 null 이면 `AI_SERVICE_DISABLED` 를 반환합니다 ([05 §5.2](05-api-reference.md)).
 
 어댑터 호출은 `RestClient` 로 `POST {baseUrl}/chat/completions` 에 `{model, temperature, messages:[system,user]}` 를 전송하고 `choices[0].message.content` 를 추출합니다 (`OpenAiCompatibleFortuneProvider.java:27-69`).
+
+운영에서는 `DEEPSEEK_API_KEY`, `APP_FORTUNE_AI_ENABLED=true`,
+`APP_FORTUNE_AI_PROVIDER=deepseek`, `APP_FORTUNE_AI_MODEL=deepseek-v4-flash`,
+`APP_FORTUNE_AI_BASE_URL=https://api.deepseek.com`을 OpenBao KV에 저장합니다.
+Compose가 이 선택값을 별도 환경변수 기본값으로 덮어쓰지 않으므로
+`configtree:/run/openbao-secrets/` 값이 적용됩니다. 현재 UI의 제공자 목록은
+선택 컨트롤이 아니라 적용된 제공자와 호환 후보를 보여주는 상태 화면입니다.
 
 응답 캐시: `AIFortuneService` 의 `@Cacheable`(`ai-saju-interpretation` 등, TTL 24h)로 동일 입력의 재호출을 방지합니다 ([02 §2.4](02-architecture.md)).
 

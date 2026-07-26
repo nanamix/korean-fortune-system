@@ -307,11 +307,11 @@ tasks.register('runDev') {
 
 tasks.register('runWithAI') {
     group = 'application'
-    description = 'AI 기능을 활성화하고 애플리케이션 실행 (OpenAI API 키 필요)'
+    description = 'AI 기능을 활성화하고 애플리케이션 실행 (DeepSeek 기본)'
     dependsOn 'bootRun'
     doFirst {
-        if (!System.getenv('OPENAI_API_KEY')) {
-            throw new GradleException('OPENAI_API_KEY 환경변수가 설정되지 않았습니다.')
+        if (!System.getenv('DEEPSEEK_API_KEY') && !System.getenv('OPENAI_API_KEY')) {
+            throw new GradleException('DEEPSEEK_API_KEY 또는 OPENAI_API_KEY 환경변수가 설정되지 않았습니다.')
         }
         bootRun.args '--spring.profiles.active=dev,ai'
     }
@@ -533,7 +533,7 @@ println """
 주요 Gradle 태스크:
   ./gradlew bootRun              - 기본 실행 (AI 비활성화)
   ./gradlew runDev               - 개발 환경으로 실행 (AI 비활성화)
-  ./gradlew runWithAI            - AI 기능 활성화하고 실행 (OPENAI_API_KEY 필요)
+  ./gradlew runWithAI            - AI 기능 활성화하고 실행 (DeepSeek 기본)
   ./gradlew runWithoutAI         - AI 없이 실행
   ./gradlew test                 - 단위 테스트 실행
   ./gradlew integrationTest      - 통합 테스트 실행

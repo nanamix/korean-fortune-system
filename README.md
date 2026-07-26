@@ -26,7 +26,7 @@
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
 - **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
 - **📢 Discord 발송**: 운세 결과를 Discord 웹후크로 채널에 발송
-- **🤖 AI 운세**: OpenAI 기반 AI 운세 해석
+- **🤖 AI 운세**: DeepSeek V4 Flash 기본 AI 운세 해석과 규칙 기반 폴백
 - **🔍 시스템 모니터링**: Spring Boot Actuator 기반 모니터링
 
 ## 🚀 빠른 시작
@@ -49,7 +49,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 # 개발 환경으로 실행
 ./gradlew runDev
 
-# AI 기능 활성화하고 실행 (OPENAI_API_KEY 필요)
+# AI 기능 활성화하고 실행 (DEEPSEEK_API_KEY 기본)
 ./gradlew runWithAI
 ```
 
@@ -109,6 +109,11 @@ docker compose \
 ## 🔐 OpenBao secret 관리
 
 운영 자격증명은 `.env`나 Compose environment 값으로 보관하지 않습니다. `secret/projects/korean-fortune-system/<environment>`의 KV 문자열을 시작 시점에 공유 `tmpfs`로 렌더링하며, MySQL·Spring Boot·Grafana는 secret file을 직접 읽습니다.
+
+운영 AI 기본 제공자는 DeepSeek이며 모델은 `deepseek-v4-flash`입니다.
+`DEEPSEEK_API_KEY`와 `APP_FORTUNE_AI_*` 설정은 OpenBao에 저장합니다.
+브라우저의 AI 제공자 목록은 현재 상태 안내이며, 제공자 변경은 서버 설정과
+재배포를 통해 적용됩니다.
 
 필수 key와 bootstrap 파일, 회전 절차는 `ops/openbao/README.md`에 있습니다.
 
@@ -316,8 +321,8 @@ Apache License 2.0
 - **JDK**: Java 21 (Amazon Corretto 기준)
 - **Spring**: Spring Boot 4.0.6
 - **Build**: Gradle 9.4.1 Wrapper
-- **AI**: Spring AI 의존성을 제거하고 OpenAI-compatible 포트 + 로컬 fallback 구조로 전환
-- **기본 정책**: AI는 기본 비활성화, `ai` 프로파일과 `OPENAI_API_KEY`가 있을 때만 외부 모델 호출
+- **AI**: DeepSeek V4 Flash 기본 OpenAI-compatible 포트 + 로컬 fallback 구조
+- **기본 정책**: AI는 기본 비활성화, `ai` 프로파일과 `DEEPSEEK_API_KEY`가 있을 때 외부 모델 호출
 
 ## ✨ 주요 기능
 
@@ -349,7 +354,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 # 개발 환경으로 실행 (AI 비활성화)
 ./gradlew runDev
 
-# AI 기능 활성화하고 실행 (OPENAI_API_KEY 필요)
+# AI 기능 활성화하고 실행 (DEEPSEEK_API_KEY 기본)
 ./gradlew runWithAI
 
 # JAR 파일 직접 실행
@@ -431,7 +436,7 @@ KV key 목록과 실행 절차는 `ops/openbao/README.md`를 참고합니다.
 # 애플리케이션 실행
 ./gradlew bootRun              # 기본 실행 (AI 비활성화)
 ./gradlew runDev               # 개발 환경으로 실행 (AI 비활성화)
-./gradlew runWithAI            # AI 기능 활성화하고 실행 (OPENAI_API_KEY 필요)
+./gradlew runWithAI            # AI 기능 활성화하고 실행 (DEEPSEEK_API_KEY 기본)
 ./gradlew runWithoutAI         # AI 없이 실행
 ./gradlew startLocal           # JAR 파일 직접 실행
 

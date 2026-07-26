@@ -118,7 +118,13 @@ docker compose \
 
 자격증명은 `.env`나 Compose environment 값으로 보관하지 않습니다. OpenBao renderer가 KV 문자열을 공유 `tmpfs`에 파일로 만들고 MySQL의 `MYSQL_*_FILE`, Grafana의 `GF_SECURITY_ADMIN_PASSWORD__FILE`, Spring Boot의 `configtree:`가 읽습니다.
 
-비밀이 아닌 runtime selector만 일반 환경변수로 유지합니다. 필수 key와 bootstrap 절차는 `ops/openbao/README.md`를 참고합니다.
+AI provider·model·base URL selector도 OpenBao의 `APP_FORTUNE_AI_*` key로
+렌더링합니다. Base Compose는 이 값을 환경변수 기본값으로 주입하지 않으므로
+OpenBao 값이 Spring `configtree:`를 통해 적용됩니다. AI 값이 없을 때 prod/docker
+profile은 `deepseek`, `deepseek-v4-flash`, `https://api.deepseek.com`을 기본으로
+사용하되 `APP_FORTUNE_AI_ENABLED` 기본값은 `false`입니다. 실제 외부 호출을
+활성화하려면 `DEEPSEEK_API_KEY`와 `APP_FORTUNE_AI_ENABLED=true`가 모두
+필요합니다. 필수 key와 bootstrap 절차는 `ops/openbao/README.md`를 참고합니다.
 
 ---
 

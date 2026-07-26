@@ -68,7 +68,13 @@ docker compose -f docker/docker-compose.yaml -f docker/docker-compose.prod.yaml 
 
 - 운영 Compose에는 `docker-compose.openbao.override.yml`을 항상 포함합니다.
 - secret은 OpenBao KV에서 공유 `tmpfs`로만 렌더링됩니다.
-- 비밀이 아닌 profile, port, endpoint만 일반 환경변수로 둘 수 있습니다.
+- DeepSeek 기본 운영값은 `APP_FORTUNE_AI_ENABLED=true`,
+  `APP_FORTUNE_AI_PROVIDER=deepseek`,
+  `APP_FORTUNE_AI_MODEL=deepseek-v4-flash`,
+  `APP_FORTUNE_AI_BASE_URL=https://api.deepseek.com`입니다.
+- `DEEPSEEK_API_KEY`는 OpenBao에만 저장하며 로그·명령행·Compose 파일에 넣지 않습니다.
+- Base Compose는 `APP_FORTUNE_AI_*`를 강제 주입하지 않으므로 OpenBao
+  `configtree:` 값이 적용됩니다.
 - 저장소나 Git history에 노출된 기존 값은 별도로 회전합니다.
 
 ## 6. 운영 팁

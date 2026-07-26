@@ -27,6 +27,13 @@
 
 KV key는 `^[A-Z][A-Z0-9_]*$`, 값은 문자열이어야 한다. 값은 명령행 인자나 로그로 전달하지 말고 OpenBao UI 또는 승인된 보안 입력 경로로 등록한다.
 
+DeepSeek를 운영 기본 제공자로 사용할 때의 권장 값은
+`APP_FORTUNE_AI_ENABLED=true`, `APP_FORTUNE_AI_PROVIDER=deepseek`,
+`APP_FORTUNE_AI_MODEL=deepseek-v4-flash`,
+`APP_FORTUNE_AI_BASE_URL=https://api.deepseek.com`이다. API 키는
+`DEEPSEEK_API_KEY`에만 저장한다. Compose는 이 값을 별도 환경변수 기본값으로
+덮어쓰지 않으며, 값이 없으면 Spring profile의 동일한 DeepSeek 기본값을 사용한다.
+
 Cloudflare Access의 team domain과 AUD는 자격증명은 아니지만 production의
 origin JWT 검증을 구성하는 필수 운영 값이므로 다른 runtime 설정과 함께 OpenBao에서
 렌더링한다. `app.fortune.security.cloudflare-access.enabled=true`인데 두 값 중 하나가
