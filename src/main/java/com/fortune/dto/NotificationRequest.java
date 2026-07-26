@@ -3,6 +3,7 @@ package com.fortune.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,9 +26,10 @@ public class NotificationRequest {
     private String recipientName;
 
     @Email(message = "올바른 이메일 형식이어야 합니다")
+    @Size(max = 254, message = "이메일은 254자 이하여야 합니다")
     private String email;
 
-    @Pattern(regexp = "^[0-9]+$", message = "텔레그램 채팅 ID는 숫자만 입력 가능합니다")
+    @Pattern(regexp = "^-?[0-9]+$", message = "텔레그램 채팅 ID는 숫자 또는 음수 숫자만 입력 가능합니다")
     private String telegramChatId;
 
     // Discord 공식 webhook URL만 허용(SSRF 방지). 미지정 시 서버 기본 webhook 사용.
@@ -39,4 +41,4 @@ public class NotificationRequest {
     @Pattern(regexp = "^(email|telegram|discord|both|all)$",
             message = "발송 방법은 email, telegram, discord, both(email+telegram), all(전체) 중 하나여야 합니다")
     private String notificationType;
-} 
+}

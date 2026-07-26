@@ -1,9 +1,11 @@
 package com.fortune.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fortune.dto.ApiResponse;
 import com.fortune.dto.DailyFortuneResult;
+import com.fortune.dto.NotificationRequest;
 import com.fortune.dto.SajuRequest;
 import com.fortune.dto.SajuResult;
 import com.fortune.dto.TojeongRequest;
@@ -26,7 +28,9 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class FortuneControllerSendResponseTest {
@@ -35,6 +39,7 @@ class FortuneControllerSendResponseTest {
     private DailyFortuneService dailyFortuneService;
     private TojeongBigyeolService tojeongBigyeolService;
     private ZodiacFortuneService zodiacFortuneService;
+    private TelegramService telegramService;
     private FortuneController controller;
 
     @BeforeEach
@@ -43,6 +48,7 @@ class FortuneControllerSendResponseTest {
         dailyFortuneService = mock(DailyFortuneService.class);
         tojeongBigyeolService = mock(TojeongBigyeolService.class);
         zodiacFortuneService = mock(ZodiacFortuneService.class);
+        telegramService = mock(TelegramService.class);
         controller = new FortuneController(
                 ganjiCalculatorService,
                 dailyFortuneService,
@@ -51,7 +57,7 @@ class FortuneControllerSendResponseTest {
                 mock(GanjiCalendarService.class),
                 mock(AIFortuneService.class),
                 mock(EmailService.class),
-                mock(TelegramService.class),
+                telegramService,
                 mock(DiscordService.class),
                 mock(SlackService.class));
     }
@@ -66,6 +72,40 @@ class FortuneControllerSendResponseTest {
 
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getData()).isSameAs(expected);
+    }
+
+    @Test
+    void sendsTelegramResultToRequestedChatId() {
+        SajuResult expected = SajuResult.builder()
+                .yearPillar("신유")
+                .monthPillar("신묘")
+                .dayPillar("갑자")
+                .timePillar("을축")
+                .dayMaster("갑")
+                .adjustedDateTime(LocalDateTime.of(1981, 3, 20, 1, 59))
+                .fortuneSummary("테스트 요약")
+                .wuxingAnalysis(SajuResult.WuxingAnalysis.builder()
+                        .woodCount(2)
+                        .fireCount(1)
+                        .earthCount(1)
+                        .metalCount(2)
+                        .waterCount(2)
+                        .strongestElement("목")
+                        .weakestElement("화")
+                        .build())
+                .build();
+        when(ganjiCalculatorService.calculateSaju(any())).thenReturn(expected);
+        SajuRequest request = SajuRequest.builder()
+                .notification(NotificationRequest.builder()
+                        .recipientName("홍길동")
+                        .telegramChatId("-100123456789")
+                        .notificationType("telegram")
+                        .build())
+                .build();
+
+        controller.calculateSajuAndSend(request);
+
+        verify(telegramService).sendMessage(any(String.class), eq("-100123456789"));
     }
 
     @Test

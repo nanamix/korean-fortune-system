@@ -700,7 +700,7 @@ public class FortuneController {
         }
         
         if (!message.isEmpty()) {
-            telegramService.sendMessage(message);
+            telegramService.sendMessage(message, chatId);
         }
     }
 

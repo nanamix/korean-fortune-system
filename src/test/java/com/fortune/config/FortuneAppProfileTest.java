@@ -31,7 +31,11 @@ class FortuneAppProfileTest {
                 .contains("buildCommonProfile(true);")
                 .contains("['email', 'both', 'all'].includes(type)")
                 .contains("['telegram', 'both', 'all'].includes(type)")
-                .contains("/^[0-9]+$/.test(telegramChatId)");
+                .contains("/^-?[0-9]+$/.test(telegramChatId)")
+                .contains("maxlength=\"254\"")
+                .contains("updateNotificationSyntax(this)")
+                .contains("Telegram Bot Token")
+                .contains("서버 OpenBao 보안 설정 사용");
     }
 
     @Test
