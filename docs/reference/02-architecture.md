@@ -122,12 +122,13 @@ sequenceDiagram
             FC->>T: sendMessage(message)
         end
     end
-    FC-->>C: ApiResponse.success("발송되었습니다")
+    FC-->>C: ApiResponse.success(SajuResult)
 ```
 
-- `notificationType` 은 `email` / `telegram` / `both` 중 하나이며 `NotificationRequest` 에서 정규식으로 검증됩니다 (`NotificationRequest.java:33-35`).
-- 발송 타입 분기(`saju`/`daily`/`tojeong`/`zodiac`)에 따라 이메일 메서드와 텔레그램 메시지 생성기가 선택됩니다 (`FortuneController.java:580-623`).
+- `notificationType` 은 `email` / `telegram` / `discord` / `both` / `all` 중 하나이며 `NotificationRequest` 에서 정규식으로 검증됩니다.
+- 발송 타입 분기(`saju`/`daily`/`tojeong`/`zodiac`)에 따라 이메일 메서드와 텔레그램·Discord 메시지 생성기가 선택됩니다.
 - 동일 패턴이 `daily/today-and-send`, `tojeong/calculate-and-send`, `zodiac/calculate-and-send` 에 반복됩니다.
+- 발송 성공 응답은 문자열이 아니라 계산 결과 객체를 반환하므로 화면 표시와 알림 발송을 한 요청에서 함께 완료합니다.
 
 ## 2.4 캐시 배선
 

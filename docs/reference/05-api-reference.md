@@ -25,10 +25,10 @@
 | POST | `/zodiac` | `ZodiacRequest` | `ZodiacFortuneResult` | 별자리 운세 (`:206`) |
 | GET | `/calendar/ganji/{year}/{month}` | path: year(1900–2100), month(1–12) | `GanjiCalendarResponse` | 범위 밖이면 `INVALID_YEAR`/`INVALID_MONTH` (`:231-245`) |
 | GET | `/health` | — | `String` | 운세 시스템 상태 문구 (`:371`) |
-| POST | `/saju/calculate-and-send` | `SajuRequest` (+`notification`) | `String` | 계산 후 발송 (`:383`) |
-| POST | `/daily/today-and-send` | `SajuRequest` (+`notification`) | `String` | 계산 후 발송 (`:415`) |
-| POST | `/tojeong/calculate-and-send` | `TojeongRequest` (+`notification`) | `String` | 계산 후 발송 (`:449`) |
-| POST | `/zodiac/calculate-and-send` | `ZodiacRequest` (+`notification`) | `String` | 계산 후 발송 (`:480`) |
+| POST | `/saju/calculate-and-send` | `SajuRequest` (+`notification`) | `SajuResult` | 계산 후 발송하고 화면용 결과 반환 (`:403`) |
+| POST | `/daily/today-and-send` | `SajuRequest` (+`notification`) | `DailyFortuneResult` | 계산 후 발송하고 화면용 결과 반환 (`:435`) |
+| POST | `/tojeong/calculate-and-send` | `TojeongRequest` (+`notification`) | `TojeongResult` | 계산 후 발송하고 화면용 결과 반환 (`:469`) |
+| POST | `/zodiac/calculate-and-send` | `ZodiacRequest` (+`notification`) | `ZodiacFortuneResult` | 계산 후 발송하고 화면용 결과 반환 (`:500`) |
 | POST | `/telegram/test` | `TelegramTestRequest` | `String` | 텔레그램 발송 테스트 (`:508`) |
 | POST | `/ai/interpret-saju` | `SajuRequest` | `String` | AI 사주 해석 (`:271`) |
 | POST | `/ai/daily-advice` | `SajuRequest` + `targetDate` (query) | `String` | AI 일일 조언 (`:304`) |
@@ -40,15 +40,15 @@ AI 3종 엔드포인트는 `AIFortuneService` 가 미주입(비활성)이면 `er
 
 | DTO | 필수 필드 (검증) | 파일 |
 |-----|------------------|------|
-| `SajuRequest` | `birthYear`(1900–2100), `birthMonth`(1–12), `birthDay`(1–31), `birthHour`(0–23), `birthMinute`(0–59), `gender`(`M`/`F`), `calendarType`(`SOLAR`/`LUNAR`) + 선택 `notification` | `SajuRequest.java:23-58` |
+| `SajuRequest` | `birthYear`(1900–2100), `birthMonth`(1–12), `birthDay`(1–31), `birthHour`(0–23), `birthMinute`(0–59), `gender`(`M`/`F`), `calendarType`(`SOLAR`/`LUNAR`), 선택 `leapMonth` + 선택 `notification` | `SajuRequest.java` |
 | `TojeongRequest` | `birthYear`(1900–2030), `birthMonth`, `birthDay`, `targetYear`(2020–2040) + 선택 `notification` | `TojeongRequest.java:21-43` |
 | `ZodiacRequest` | `birthDate`(LocalDate), `targetDate`(LocalDate) + 선택 `notification` | `ZodiacRequest.java:22-30` |
-| `NotificationRequest` | `recipientName`(필수), `email`(형식), `telegramChatId`(숫자), `notificationType`(`email`/`telegram`/`both`) | `NotificationRequest.java:24-35` |
+| `NotificationRequest` | `recipientName`(필수), `email`(형식), `telegramChatId`(숫자), 선택 `discordWebhookUrl`, `notificationType`(`email`/`telegram`/`discord`/`both`/`all`) | `NotificationRequest.java` |
 | `TelegramTestRequest` | `chatId`(long, nullable), `message` | `dto/TelegramTestRequest.java` |
 
 ### 발송(`*-and-send`) 동작
 
-`notification` 이 있을 때만 발송하며, `notificationType` 에 따라 이메일/텔레그램/둘 다로 분기합니다 ([02 §2.3](02-architecture.md)). 성공 시 `data` 는 "…성공적으로 발송되었습니다" 문자열입니다.
+`notification` 이 있을 때만 발송하며, `notificationType` 에 따라 이메일·텔레그램·Discord 또는 조합으로 분기합니다 ([02 §2.3](02-architecture.md)). 성공 시 `data` 는 일반 계산 API와 같은 운세 결과 객체이므로, 클라이언트는 발송을 사용해도 화면 결과를 동일하게 렌더링할 수 있습니다.
 
 ### 요청/응답 예시 — `POST /api/fortune/saju/calculate`
 

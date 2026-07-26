@@ -401,7 +401,7 @@ public class FortuneController {
      * @return 발송 결과
      */
     @PostMapping("/saju/calculate-and-send")
-    public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateSajuAndSend(
+    public ResponseEntity<com.fortune.dto.ApiResponse<SajuResult>> calculateSajuAndSend(
             @Valid @RequestBody SajuRequest sajuRequest) {
 
         log.info("🔮 사주팔자 계산 및 발송 요청: {}님", 
@@ -417,7 +417,7 @@ public class FortuneController {
                 sendNotification(sajuRequest.getNotification(), sajuResult, null, null, null, "saju");
             }
 
-            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("사주팔자 결과가 성공적으로 발송되었습니다."));
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(sajuResult));
         } catch (Exception e) {
             log.error("❌ 사주팔자 계산 및 발송 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
@@ -433,7 +433,7 @@ public class FortuneController {
      * @return 발송 결과
      */
     @PostMapping("/daily/today-and-send")
-    public ResponseEntity<com.fortune.dto.ApiResponse<String>> getTodayFortuneAndSend(
+    public ResponseEntity<com.fortune.dto.ApiResponse<DailyFortuneResult>> getTodayFortuneAndSend(
             @Valid @RequestBody SajuRequest sajuRequest) {
 
         log.info("📅 오늘의 운세 계산 및 발송 요청: {}님", 
@@ -451,7 +451,7 @@ public class FortuneController {
                 sendNotification(sajuRequest.getNotification(), null, dailyResult, null, null, "daily");
             }
 
-            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("오늘의 운세 결과가 성공적으로 발송되었습니다."));
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(dailyResult));
         } catch (Exception e) {
             log.error("❌ 오늘의 운세 계산 및 발송 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
@@ -467,7 +467,7 @@ public class FortuneController {
      * @return 발송 결과
      */
     @PostMapping("/tojeong/calculate-and-send")
-    public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateTojeongAndSend(
+    public ResponseEntity<com.fortune.dto.ApiResponse<TojeongResult>> calculateTojeongAndSend(
             @Valid @RequestBody TojeongRequest tojeongRequest) {
 
         log.info("📜 토정비결 계산 및 발송 요청: {}님", 
@@ -482,7 +482,7 @@ public class FortuneController {
                 sendNotification(tojeongRequest.getNotification(), null, null, tojeongResult, null, "tojeong");
             }
 
-            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("토정비결 결과가 성공적으로 발송되었습니다."));
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(tojeongResult));
         } catch (Exception e) {
             log.error("❌ 토정비결 계산 및 발송 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
@@ -498,7 +498,7 @@ public class FortuneController {
      * @return 발송 결과
      */
     @PostMapping("/zodiac/calculate-and-send")
-    public ResponseEntity<com.fortune.dto.ApiResponse<String>> calculateZodiacFortuneAndSend(
+    public ResponseEntity<com.fortune.dto.ApiResponse<ZodiacFortuneResult>> calculateZodiacFortuneAndSend(
             @Valid @RequestBody ZodiacRequest zodiacRequest) {
 
         log.info("⭐ 별자리 운세 계산 및 발송 요청: {}님", 
@@ -514,7 +514,7 @@ public class FortuneController {
                 sendNotification(zodiacRequest.getNotification(), null, null, null, zodiacResult, "zodiac");
             }
 
-            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("별자리 운세 결과가 성공적으로 발송되었습니다."));
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(zodiacResult));
         } catch (Exception e) {
             log.error("❌ 별자리 운세 계산 및 발송 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
