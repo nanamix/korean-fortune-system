@@ -523,6 +523,23 @@ public class FortuneController {
     }
 
     /**
+     * 이메일 발송 테스트 (API 문서/테스트용)
+     */
+    @PostMapping("/email/test")
+    public ResponseEntity<com.fortune.dto.ApiResponse<String>> testEmailSend(
+            @Valid @RequestBody EmailTestRequest request) {
+        try {
+            log.info("📧 이메일 발송 테스트: recipient=provided");
+            emailService.sendTestMessage(request.getEmail(), request.getMessage());
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("이메일 메시지가 성공적으로 발송되었습니다."));
+        } catch (Exception e) {
+            log.error("❌ 이메일 발송 테스트 실패", e);
+            return ResponseEntity.badRequest()
+                    .body(com.fortune.dto.ApiResponse.error("이메일 발송 실패: " + e.getMessage(), "EMAIL_TEST_ERROR"));
+        }
+    }
+
+    /**
      * 텔레그램 발송 테스트 (API 문서/테스트용)
      */
     @PostMapping("/telegram/test")
@@ -533,9 +550,9 @@ public class FortuneController {
                     request.getChatId() != null ? request.getChatId() : "기본값", request.getMessage());
             
             if (request.getChatId() != null) {
-                telegramService.sendMessage(request.getMessage(), String.valueOf(request.getChatId()));
+                telegramService.sendTestMessage(request.getMessage(), String.valueOf(request.getChatId()));
             } else {
-                telegramService.sendMessage(request.getMessage());
+                telegramService.sendTestMessage(request.getMessage(), null);
             }
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("텔레그램 메시지가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
@@ -554,8 +571,8 @@ public class FortuneController {
         try {
             log.info("📢 Discord 발송 테스트: webhook={}",
                     request.getWebhookUrl() != null && !request.getWebhookUrl().isBlank() ? "지정" : "기본값");
-            discordService.sendMessage(request.getMessage(), request.getWebhookUrl());
-            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("Discord 메시지 발송을 시도했습니다."));
+            discordService.sendTestMessage(request.getMessage(), request.getWebhookUrl());
+            return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("Discord 메시지가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
             log.error("❌ Discord 발송 테스트 실패", e);
             return ResponseEntity.badRequest()

@@ -42,7 +42,15 @@ public class CloudflareAccessFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return !enabled
                 || "OPTIONS".equalsIgnoreCase(request.getMethod())
-                || "/actuator/health".equals(request.getRequestURI());
+                || isInternalHealthCheck(request);
+    }
+
+    private boolean isInternalHealthCheck(HttpServletRequest request) {
+        if (!"/actuator/health".equals(request.getRequestURI())) {
+            return false;
+        }
+        String assertion = request.getHeader(ASSERTION_HEADER);
+        return assertion == null || assertion.isBlank();
     }
 
     @Override

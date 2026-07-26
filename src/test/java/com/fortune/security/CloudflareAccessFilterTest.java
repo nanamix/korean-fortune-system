@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -78,6 +79,17 @@ class CloudflareAccessFilterTest {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk());
         verifyNoInteractions(jwtDecoder);
+    }
+
+    @Test
+    void authenticatesBrowserHealthCheckWhenAccessAssertionIsPresent() throws Exception {
+        when(jwtDecoder.decode("valid-assertion")).thenReturn(validJwt());
+
+        mockMvc.perform(get("/actuator/health")
+                        .header("Cf-Access-Jwt-Assertion", "valid-assertion"))
+                .andExpect(status().isOk());
+
+        verify(jwtDecoder).decode("valid-assertion");
     }
 
     @Test

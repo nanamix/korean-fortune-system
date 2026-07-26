@@ -120,7 +120,7 @@ body {
 .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
 
 /* ─── CONTENT SECTIONS ───────────────────── */
-.content { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+.content { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; scroll-margin-top:120px; }
 .section { display: none; }
 .section.active { display: block; }
 .section:focus { outline: none; }
@@ -579,6 +579,9 @@ body {
 .tg-setup code { background: #bee3f8; padding: 0.1rem 0.35rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
 .notif-help { margin:.55rem 0 0; color:var(--text-muted); font-size:.75rem; line-height:1.5; }
 .notif-channel-field[hidden] { display:none; }
+.notif-webhook-field { grid-column:1/-1; min-width:0; }
+.notif-test-help { margin:.8rem 0 0; }
+.notif-test-field[hidden] { display:none; }
 
 /* Responsive */
 @media (max-width: 640px) {
@@ -681,10 +684,10 @@ body {
       <div class="notif-body" id="common-notif">
         <div class="form-row">
           <div class="form-group"><label for="profile-name">수신자 이름</label><input type="text" id="profile-name" placeholder="홍길동"></div>
+          <div class="form-group"><label for="profile-notif-type">발송 방법</label><select id="profile-notif-type" onchange="updateNotificationFields()"><option value="">발송 안 함</option><option value="email">이메일</option><option value="telegram">텔레그램</option><option value="discord">Discord</option><option value="both">이메일·텔레그램</option><option value="all">전체 채널</option></select></div>
           <div class="form-group"><label for="profile-email">이메일</label><input type="email" id="profile-email" placeholder="example@email.com"></div>
           <div class="form-group notif-channel-field" data-channel="telegram"><label for="profile-tg">텔레그램 채팅 ID</label><input type="text" id="profile-tg" inputmode="numeric" placeholder="숫자 ID"></div>
-          <div class="form-group notif-channel-field" data-channel="discord"><label for="profile-discord">Discord Webhook URL</label><input type="url" id="profile-discord" placeholder="https://discord.com/api/webhooks/..."></div>
-          <div class="form-group"><label for="profile-notif-type">발송 방법</label><select id="profile-notif-type" onchange="updateNotificationFields()"><option value="">발송 안 함</option><option value="email">이메일</option><option value="telegram">텔레그램</option><option value="discord">Discord</option><option value="both">이메일·텔레그램</option><option value="all">전체 채널</option></select></div>
+          <div class="form-group form-full notif-channel-field notif-webhook-field" data-channel="discord"><label for="profile-discord">Discord Webhook URL</label><input type="url" id="profile-discord" placeholder="https://discord.com/api/webhooks/..."></div>
         </div>
         <p class="notif-help">입력한 수신 정보는 이번 요청에만 사용됩니다. Discord Webhook 기본값과 봇 토큰은 서버에서 OpenBao로 관리합니다.</p>
       </div>
@@ -863,31 +866,40 @@ body {
       </div>
 
       <div class="card">
-        <div class="card-title">📱 텔레그램 알림 테스트</div>
-        <div class="tg-setup">
-          <strong>📌 텔레그램 봇 설정 방법:</strong>
-          <ol>
-            <li>텔레그램에서 <code>@BotFather</code>를 검색하고 대화 시작</li>
-            <li><code>/newbot</code> 명령으로 봇 생성 후 토큰 발급</li>
-            <li>생성한 봇과 대화 시작 후 <code>https://api.telegram.org/bot{TOKEN}/getUpdates</code>에서 채팅ID 확인</li>
-            <li>환경변수 <code>TELEGRAM_BOT_TOKEN</code>, <code>TELEGRAM_CHAT_ID</code> 설정</li>
-          </ol>
-        </div>
+        <div class="card-title">📣 알림 발송 테스트</div>
+        <p style="margin:-.4rem 0 1rem;color:var(--text-muted);font-size:.78rem;line-height:1.6;">이메일·텔레그램·Discord 중 하나를 선택하여 현재 알림 설정을 확인합니다.</p>
         <div class="form-row" style="margin-top:1rem;">
-          <div class="form-group form-full">
-            <label>테스트 메시지</label>
-            <input type="text" id="tg-msg" value="🔮 한국형 만세력 운세 시스템 테스트 메시지입니다!">
-          </div>
           <div class="form-group">
-            <label>채팅ID (선택)</label>
-            <input type="text" id="tg-chatid" placeholder="기본 설정 사용">
+            <label for="notif-test-type">테스트 채널</label>
+            <select id="notif-test-type" onchange="updateNotificationTestFields()">
+              <option value="telegram">텔레그램</option>
+              <option value="discord">Discord</option>
+              <option value="email">이메일</option>
+            </select>
+          </div>
+          <div class="form-group form-full">
+            <label for="notif-test-message">테스트 메시지</label>
+            <input type="text" id="notif-test-message" value="🔮 한국형 만세력 운세 시스템 테스트 메시지입니다!">
+          </div>
+          <div class="form-group notif-test-field" data-test-channel="telegram">
+            <label for="notif-test-chatid">채팅 ID (선택)</label>
+            <input type="text" id="notif-test-chatid" inputmode="numeric" placeholder="서버 기본 설정 사용">
+          </div>
+          <div class="form-group form-full notif-webhook-field notif-test-field" data-test-channel="discord">
+            <label for="notif-test-webhook">Discord Webhook URL (선택)</label>
+            <input type="url" id="notif-test-webhook" placeholder="서버 기본 설정 사용">
+          </div>
+          <div class="form-group form-full notif-test-field" data-test-channel="email">
+            <label for="notif-test-email">수신 이메일</label>
+            <input type="email" id="notif-test-email" placeholder="example@email.com">
           </div>
         </div>
-        <button class="btn-action" id="tg-btn" onclick="testTelegram()" style="width:auto;padding:0.7rem 1.5rem;">
-          <span class="spinner" id="tg-spin"></span>
-          📱 텔레그램 전송 테스트
+        <div class="tg-setup notif-test-help" id="notif-test-help"></div>
+        <button class="btn-action" id="notif-test-btn" onclick="testNotification()" style="width:auto;padding:0.7rem 1.5rem;">
+          <span class="spinner" id="notif-test-spin"></span>
+          <span id="notif-test-button-label">📱 텔레그램 전송 테스트</span>
         </button>
-        <div id="tg-result" style="margin-top:0.75rem;"></div>
+        <div id="notif-test-result" style="margin-top:0.75rem;" aria-live="polite"></div>
       </div>
     </div>
 
@@ -920,6 +932,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('change', updateProfileSummaries);
   });
   updateNotificationFields();
+  updateNotificationTestFields();
   updateProfileSummaries();
   const requestedTab = location.hash.replace('#', '');
   if (document.getElementById('sec-' + requestedTab)) showTab(requestedTab, false);
@@ -1012,6 +1025,10 @@ function showTab(name, updateHistory = true) {
     link.classList.toggle('active', active);
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
+  });
+  document.getElementById('contentArea').scrollIntoView({
+    behavior: updateHistory ? 'smooth' : 'auto',
+    block: 'start'
   });
   if (name === 'ai') loadAiProviderStatus();
   if (name === 'system') {
@@ -1909,11 +1926,14 @@ async function loadSystemStatus() {
   try {
     const statusResp = await apiGet('/api/system/status');
 
-    const d = statusResp.data || {};
+    const d = statusResp.data ?? statusResp;
+    if (!d || !d.status || !d.version || !d.currentTime || !d.uptime) {
+      throw new Error('시스템 상태 응답에 필수 정보가 없습니다.');
+    }
     const features = d.features || {};
     const featureHtml = Object.entries(features).map(([k,v]) =>
       `<span class="feature-badge ${v?'':'off'}">${v?'✅':'❌'} ${k}</span>`
-    ).join('');
+    ).join('') || '<span class="feature-badge off">기능 정보 없음</span>';
 
     const statusHtml = `
       <div class="status-grid">
@@ -1968,7 +1988,8 @@ function renderHealthStatus(health) {
     ssl:['인증서','등록된 HTTPS 인증서에 만료·유효성 문제가 있는지 확인합니다.']
   };
   const overallUp = health.status === 'UP';
-  const items = Object.entries(health.components || {}).map(([key, component]) => {
+  const components = Object.entries(health.components || {});
+  const items = components.map(([key, component]) => {
     const [name, meaning] = labels[key] || [key, '서버 구성 요소의 현재 동작 상태입니다.'];
     const up = component.status === 'UP';
     let detail = meaning;
@@ -1976,31 +1997,84 @@ function renderHealthStatus(health) {
     if (key === 'db' && component.details?.database) detail += ` 사용 중인 데이터베이스는 ${component.details.database}입니다.`;
     return `<article class="health-item"><div class="health-item-head"><h4>${escHtml(name)}</h4><span class="health-badge${up?'':' down'}">${up?'정상':'점검 필요'}</span></div><p>${escHtml(detail)}</p></article>`;
   }).join('');
+  const detailsHidden = components.length === 0;
   const summary = overallUp ? '모든 필수 구성 요소가 정상이며 서비스를 사용할 수 있습니다.' : '일부 구성 요소에 문제가 있어 점검이 필요합니다.';
-  return `<div class="health-summary${overallUp?'':' down'}"><div class="health-summary-icon">${overallUp?'✅':'⚠️'}</div><div><strong>${overallUp?'서비스 정상':'서비스 점검 필요'}</strong><span>${summary} · UP은 정상, DOWN은 장애 또는 연결 실패를 뜻합니다.</span></div></div><div class="health-grid">${items}</div><details class="health-raw"><summary>운영·개발자용 원본 JSON 보기</summary><pre>${escHtml(JSON.stringify(health, null, 2))}</pre></details>`;
+  const detailNotice = detailsHidden
+    ? '<div class="alert alert-warn" style="margin-top:.8rem;">구성 요소 상세가 응답에 포함되지 않았습니다. 인증 상태 또는 서버의 health 상세 공개 설정을 확인하세요.</div>'
+    : `<div class="health-grid">${items}</div>`;
+  return `<div class="health-summary${overallUp?'':' down'}"><div class="health-summary-icon">${overallUp?'✅':'⚠️'}</div><div><strong>${overallUp?'서비스 정상':'서비스 점검 필요'}</strong><span>${summary} · UP은 정상, DOWN은 장애 또는 연결 실패를 뜻합니다.</span></div></div>${detailNotice}<details class="health-raw"><summary>운영·개발자용 원본 JSON 보기</summary><pre>${escHtml(JSON.stringify(health, null, 2))}</pre></details>`;
 }
 
 function formatGiB(bytes) {
   return `${(Number(bytes) / 1024 / 1024 / 1024).toFixed(1)} GiB`;
 }
 
-// ── TELEGRAM TEST ─────────────────────────────────────
-async function testTelegram() {
-  setLoading('tg', true);
-  const msg = document.getElementById('tg-msg').value;
-  const chatId = document.getElementById('tg-chatid').value;
-  const body = { message: msg };
-  if (chatId) body.chatId = Number(chatId);
+// ── NOTIFICATION TEST ─────────────────────────────────
+function updateNotificationTestFields() {
+  const type = document.getElementById('notif-test-type')?.value || 'telegram';
+  document.querySelectorAll('.notif-test-field').forEach(field => {
+    field.hidden = field.dataset.testChannel !== type;
+  });
+  const config = {
+    telegram: {
+      label:'📱 텔레그램 전송 테스트',
+      help:'<strong>텔레그램</strong> · 채팅 ID를 비워두면 서버의 <code>TELEGRAM_CHAT_ID</code>를 사용합니다.'
+    },
+    discord: {
+      label:'📢 Discord 전송 테스트',
+      help:'<strong>Discord</strong> · Webhook URL을 비워두면 서버의 <code>DISCORD_WEBHOOK_URL</code>을 사용합니다.'
+    },
+    email: {
+      label:'📧 이메일 전송 테스트',
+      help:'<strong>이메일</strong> · 수신 주소가 필요하며 서버의 SMTP 및 <code>FORTUNE_EMAIL_ENABLED</code> 설정을 사용합니다.'
+    }
+  }[type];
+  document.getElementById('notif-test-button-label').textContent = config.label;
+  document.getElementById('notif-test-help').innerHTML = config.help;
+  document.getElementById('notif-test-result').innerHTML = '';
+}
+
+async function testNotification() {
+  const type = document.getElementById('notif-test-type').value;
+  const message = document.getElementById('notif-test-message').value.trim();
+  if (!message) {
+    document.getElementById('notif-test-result').innerHTML = '<div class="alert alert-error">❌ 테스트 메시지를 입력하세요.</div>';
+    return;
+  }
+
+  let url;
+  const body = { message };
+  if (type === 'telegram') {
+    url = '/api/fortune/telegram/test';
+    const chatId = document.getElementById('notif-test-chatid').value.trim();
+    if (chatId) body.chatId = chatId;
+  } else if (type === 'discord') {
+    url = '/api/fortune/discord/test';
+    const webhookUrl = document.getElementById('notif-test-webhook').value.trim();
+    if (webhookUrl) body.webhookUrl = webhookUrl;
+  } else {
+    url = '/api/fortune/email/test';
+    const emailInput = document.getElementById('notif-test-email');
+    const email = emailInput.value.trim();
+    if (!email || !emailInput.checkValidity()) {
+      document.getElementById('notif-test-result').innerHTML = '<div class="alert alert-error">❌ 올바른 수신 이메일 주소를 입력하세요.</div>';
+      return;
+    }
+    body.email = email;
+  }
+
+  setLoading('notif-test', true);
   try {
-    const r = await apiPost('/api/fortune/telegram/test', body);
-    document.getElementById('tg-result').innerHTML = r.success
-      ? `<div class="alert alert-success">✅ 텔레그램 전송 완료</div>`
+    const r = await apiPost(url, body);
+    const channelName = {telegram:'텔레그램', discord:'Discord', email:'이메일'}[type];
+    document.getElementById('notif-test-result').innerHTML = r.success
+      ? `<div class="alert alert-success">✅ ${channelName} 전송 완료</div>`
       : `<div class="alert alert-error">❌ 전송 실패: ${escHtml(r.message||'')}</div>`;
   } catch(e) {
-    document.getElementById('tg-result').innerHTML =
+    document.getElementById('notif-test-result').innerHTML =
       `<div class="alert alert-error">❌ 오류: ${escHtml(e.message)}</div>`;
   } finally {
-    setLoading('tg', false);
+    setLoading('notif-test', false);
   }
 }
 </script>

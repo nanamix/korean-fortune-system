@@ -68,16 +68,37 @@ public class DiscordService {
             return;
         }
         try {
-            String content = message.length() > MAX_CONTENT
-                    ? message.substring(0, MAX_CONTENT - 3) + "..." : message;
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("content", content), headers);
-            restTemplate.postForObject(target, entity, String.class);
-            log.info("📢 Discord 메시지 전송 완료");
+            postMessage(message, target);
         } catch (Exception e) {
             log.error("❌ Discord 메시지 전송 실패", e);
         }
+    }
+
+    /**
+     * 설정과 실제 webhook 호출을 검증하는 테스트 전송. 실패 시 호출자에게 예외를 전달한다.
+     */
+    public void sendTestMessage(String message, String url) {
+        if (message == null || message.isBlank()) {
+            throw new IllegalArgumentException("Discord 테스트 메시지는 필수입니다.");
+        }
+        String target = (url == null || url.isBlank()) ? webhookUrl : url;
+        if (target == null || target.isBlank()) {
+            throw new IllegalStateException("Discord webhook URL이 설정되지 않았습니다.");
+        }
+        if (!isAllowedWebhook(target)) {
+            throw new IllegalArgumentException("Discord 공식 Webhook URL만 사용할 수 있습니다.");
+        }
+        postMessage(message, target);
+    }
+
+    private void postMessage(String message, String target) {
+        String content = message.length() > MAX_CONTENT
+                ? message.substring(0, MAX_CONTENT - 3) + "..." : message;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("content", content), headers);
+        restTemplate.postForObject(target, entity, String.class);
+        log.info("📢 Discord 메시지 전송 완료");
     }
 
     /** Discord 공식 webhook(https, 허용 호스트, /api/webhooks/ 경로)만 허용. */

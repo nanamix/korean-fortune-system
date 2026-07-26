@@ -8,6 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -40,6 +41,18 @@ public class EmailService {
 
     @Value("${app.fortune.email.enabled:false}")
     private boolean emailEnabled;
+
+    /**
+     * 알림 채널 설정을 확인하기 위한 단순 테스트 메일을 동기식으로 발송합니다.
+     */
+    public void sendTestMessage(String toEmail, String message) throws MessagingException {
+        if (!emailEnabled) {
+            throw new IllegalStateException("이메일 발송이 비활성화되어 있습니다.");
+        }
+        String htmlContent = "<p>" + HtmlUtils.htmlEscape(message) + "</p>";
+        sendEmail(toEmail, "🔮 한국형 만세력 운세 시스템 알림 테스트", htmlContent);
+        log.info("이메일 알림 테스트 발송 완료");
+    }
 
     /**
      * 사주팔자 결과를 이메일로 발송
@@ -219,4 +232,4 @@ public class EmailService {
         context.setVariables(model);
         return templateEngine.process("email/zodiac-fortune", context);
     }
-} 
+}

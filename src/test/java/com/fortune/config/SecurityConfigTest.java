@@ -11,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = "app.fortune.security.enabled=true")
@@ -34,7 +35,12 @@ class SecurityConfigTest {
         mockMvc.perform(get("/fortune-app.html")).andExpect(status().isOk());
         mockMvc.perform(get("/manifest.json")).andExpect(status().isOk());
         mockMvc.perform(get("/sw.js")).andExpect(status().isOk());
-        mockMvc.perform(get("/api/system/status")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/system/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.version").isNotEmpty())
+                .andExpect(jsonPath("$.data.currentTime").isNotEmpty())
+                .andExpect(jsonPath("$.data.uptime").isNotEmpty())
+                .andExpect(jsonPath("$.data.features").isMap());
         mockMvc.perform(get("/api/docs")).andExpect(status().isOk());
     }
 
