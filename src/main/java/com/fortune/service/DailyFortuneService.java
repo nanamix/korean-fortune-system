@@ -20,6 +20,9 @@ import java.util.*;
 @Slf4j
 @Service
 public class DailyFortuneService {
+    private static final int DAY_SCORE_WEIGHT = 60;
+    private static final int PERSONAL_SCORE_WEIGHT = 40;
+
     /**
      * 일주 계산 서비스
      * - Autowired 어노테이션을 사용하여 일주 계산 서비스를 주입합니다.
@@ -34,6 +37,9 @@ public class DailyFortuneService {
      */
     @Autowired
     private SinsalService sinsalService;
+
+    @Autowired
+    private GanjiCalendarService ganjiCalendarService;
     /**
      * 오행 색상 매핑
      * - 오행 색상 매핑을 정의합니다.
@@ -90,8 +96,11 @@ public class DailyFortuneService {
             String dayPillar = ganjiCalculatorService.calculateDayPillar(targetDate);
             /* 2. 길신/흉신 계산 */
             List<SinsalInfo> sinsals = sinsalService.calculateDailySinsals(targetDate, saju);
-            /* 3. 종합 점수 계산 */
-            int totalScore = calculateTotalScore(saju, dayPillar, sinsals);
+            /* 3. 간지달력 공통 점수와 개인화 점수를 결합 */
+            int dayFortuneScore = ganjiCalendarService.calculateDayFortuneScore(targetDate);
+            int personalFortuneScore =
+                    calculatePersonalFortuneScore(saju, dayPillar, sinsals);
+            int totalScore = combineScores(dayFortuneScore, personalFortuneScore);
             /* 4. 분야별 운세 계산 */
             FortuneByCategory categoryFortune = calculateCategoryFortune(saju, dayPillar, totalScore);
             /* 5. 조언 생성 */
@@ -107,7 +116,11 @@ public class DailyFortuneService {
             DailyFortuneResult result = DailyFortuneResult.builder()
                     .date(targetDate)
                     .dayPillar(dayPillar)
+                    .dayFortuneScore(dayFortuneScore)
+                    .personalFortuneScore(personalFortuneScore)
                     .totalScore(totalScore)
+                    .scoreBasis(scoreBasis(
+                            dayFortuneScore, personalFortuneScore, totalScore))
                     .categoryFortune(categoryFortune)
                     .sinsals(sinsals)
                     .advice(advice)
@@ -130,7 +143,10 @@ public class DailyFortuneService {
      * @param sinsals 신살 정보 리스트
      * @return 종합 점수
      */
-    private int calculateTotalScore(SajuResult saju, String dayPillar, List<SinsalInfo> sinsals) {
+    private int calculatePersonalFortuneScore(
+            SajuResult saju,
+            String dayPillar,
+            List<SinsalInfo> sinsals) {
         /* 1. 기본 점수 (일간 기반) */
         int baseScore = BASE_FORTUNE_SCORES.getOrDefault(saju.getDayMaster(), 60);
         /* 2. 일주 상성 점수 */
@@ -144,6 +160,21 @@ public class DailyFortuneService {
         int totalScore = baseScore + pillarScore + sinsalScore + balanceScore;
         /* 6. 0-100 범위로 조정 */
         return Math.max(0, Math.min(100, totalScore));
+    }
+
+    private int combineScores(int dayFortuneScore, int personalFortuneScore) {
+        return Math.round((
+                dayFortuneScore * DAY_SCORE_WEIGHT
+                        + personalFortuneScore * PERSONAL_SCORE_WEIGHT) / 100.0f);
+    }
+
+    private String scoreBasis(
+            int dayFortuneScore,
+            int personalFortuneScore,
+            int totalScore) {
+        return "일진 기본점수 " + dayFortuneScore + "점 × " + DAY_SCORE_WEIGHT
+                + "% + 개인화 점수 " + personalFortuneScore + "점 × "
+                + PERSONAL_SCORE_WEIGHT + "% = 최종 " + totalScore + "점";
     }
     /**
      * 일주 상성 점수 계산

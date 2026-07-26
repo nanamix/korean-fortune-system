@@ -2,6 +2,7 @@ package com.fortune.service;
 
 import com.fortune.dto.DailyFortuneResult;
 import com.fortune.dto.SajuResult;
+import com.fortune.dto.SinsalInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,6 +31,9 @@ public class DailyFortuneServiceTest {
 
     @Mock
     private SinsalService sinsalService;
+
+    @Mock
+    private GanjiCalendarService ganjiCalendarService;
 
     @InjectMocks
     private DailyFortuneService dailyFortuneService;
@@ -133,5 +137,33 @@ public class DailyFortuneServiceTest {
             System.out.println(dayMaster + "일간 운세 - 총점: " + result.getTotalScore() +
                     ", 길방위: " + result.getLuckyDirection());
         }
+    }
+
+    @Test
+    void combinesCalendarDayScoreWithPersonalizedScore() {
+        LocalDate targetDate = LocalDate.of(2026, 7, 26);
+        SajuResult saju = SajuResult.builder()
+                .dayMaster("병")
+                .dayPillar("병인")
+                .yearPillar("갑자")
+                .monthPillar("을축")
+                .timePillar("정묘")
+                .build();
+        when(ganjiCalculatorService.calculateDayPillar(targetDate)).thenReturn("병인");
+        when(ganjiCalendarService.calculateDayFortuneScore(targetDate)).thenReturn(82);
+        when(sinsalService.calculateDailySinsals(targetDate, saju))
+                .thenReturn(java.util.List.of(
+                        new SinsalInfo("천을귀인", "도움을 받는 흐름", true, 10)));
+
+        DailyFortuneResult result =
+                dailyFortuneService.calculateDailyFortune(saju, targetDate);
+
+        assertEquals(82, result.getDayFortuneScore());
+        assertEquals(100, result.getPersonalFortuneScore());
+        assertEquals(89, result.getTotalScore());
+        assertEquals(
+                "일진 기본점수 82점 × 60% + 개인화 점수 100점 × 40% = 최종 89점",
+                result.getScoreBasis());
+        verify(ganjiCalendarService).calculateDayFortuneScore(targetDate);
     }
 }

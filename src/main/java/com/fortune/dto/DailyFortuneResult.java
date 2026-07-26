@@ -19,7 +19,10 @@ import java.util.List;
 public class DailyFortuneResult {
     private LocalDate date;
     private String dayPillar;
+    private int dayFortuneScore;
+    private int personalFortuneScore;
     private int totalScore;
+    private String scoreBasis;
     private FortuneByCategory categoryFortune;
     private List<SinsalInfo> sinsals;
     private String advice;

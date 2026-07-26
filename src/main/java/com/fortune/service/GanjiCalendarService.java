@@ -141,7 +141,7 @@ public class GanjiCalendarService {
         String dayPillar = ganjiCalculatorService.calculateDayPillar(date);
             String dayStem = dayPillar.substring(0, 1);
             /* 2. 운세 점수 계산 */
-            int fortuneScore = calculateDayFortuneScore(date, dayPillar);
+            int fortuneScore = calculateDayFortuneScore(dayPillar);
             /* 3. 길일 여부 판단 */
             boolean isLuckyDay = isLuckyDay(date, fortuneScore);
             /* 4. 길방위 및 길한 색깔 */
@@ -195,8 +195,19 @@ public class GanjiCalendarService {
      * @param dayPillar 해당 날짜의 일주
      * @return 운세 점수 (0-100)
      */
-    private int calculateDayFortuneScore(LocalDate date, String dayPillar) {
+    private int calculateDayFortuneScore(String dayPillar) {
         return baseScoreFromPillar(dayPillar);
+    }
+
+    /**
+     * 간지달력과 다른 운세 기능이 함께 사용하는 날짜별 일진 기본점수.
+     *
+     * @param date 계산할 날짜
+     * @return 일진 천간·지지 오행 관계 점수
+     */
+    public int calculateDayFortuneScore(LocalDate date) {
+        String dayPillar = ganjiCalculatorService.calculateDayPillar(date);
+        return calculateDayFortuneScore(dayPillar);
     }
     /**
      * 일진 간지의 오행 균형 기반 기본 점수 (난수 대체, 결정론적).
@@ -426,7 +437,8 @@ public class GanjiCalendarService {
         /* 날짜 반복 */
         for (LocalDate date = firstDay; !date.isAfter(lastDay); date = date.plusDays(1)) {
             /* 운세 점수 계산 */
-            int fortuneScore = calculateDayFortuneScore(date, ganjiCalculatorService.calculateDayPillar(date));
+            int fortuneScore = calculateDayFortuneScore(
+                    ganjiCalculatorService.calculateDayPillar(date));
             /* 길일 여부 판단 */
             if (isLuckyDay(date, fortuneScore)) {
                 /* 길일 목록 추가 */
@@ -449,8 +461,10 @@ public class GanjiCalendarService {
             List<LocalDate> monthlyLuckyDates = getLuckyDatesOfMonth(year, month);
             /* 각 월에서 점수가 높은 상위 3일만 선별 */
             monthlyLuckyDates.sort((d1, d2) -> {
-                int score1 = calculateDayFortuneScore(d1, ganjiCalculatorService.calculateDayPillar(d1));
-                int score2 = calculateDayFortuneScore(d2, ganjiCalculatorService.calculateDayPillar(d2));
+                int score1 = calculateDayFortuneScore(
+                        ganjiCalculatorService.calculateDayPillar(d1));
+                int score2 = calculateDayFortuneScore(
+                        ganjiCalculatorService.calculateDayPillar(d2));
                 return Integer.compare(score2, score1); /* 내림차순 */
             });
             /* 상위 3일 선별 */

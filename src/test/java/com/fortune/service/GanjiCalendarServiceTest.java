@@ -46,4 +46,14 @@ class GanjiCalendarServiceTest {
         assertTrue(january.getSolarTerms().contains("6일 소한"));
         assertTrue(january.getSolarTerms().contains("20일 대한"));
     }
+
+    @Test
+    void exposesTheSameDayScoreUsedByMonthlyCalendar() {
+        java.time.LocalDate date = java.time.LocalDate.of(2026, 7, 26);
+        GanjiCalendarResponse calendar = service.generateMonthlyCalendar(2026, 7);
+
+        assertEquals(
+                calendar.getDays().get(date.getDayOfMonth() - 1).getFortuneScore(),
+                service.calculateDayFortuneScore(date));
+    }
 }

@@ -1653,7 +1653,7 @@ function renderDaily(d) {
   return `
     <div class="daily-overview">
       <div class="daily-score-card">
-        <div style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">${escHtml(d.date || '오늘')} 종합 점수</div>
+        <div style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">${escHtml(d.date || '오늘')} 개인화 종합 점수</div>
         <div style="font-size:3rem;font-weight:900;color:${score>=70?'var(--success)':score>=45?'var(--warning)':'var(--error)'};">${score}</div>
         <div style="font-size:0.85rem;color:var(--text-muted);">/ 100점</div>
         <span class="daily-grade">${grade}</span>
@@ -1663,6 +1663,19 @@ function renderDaily(d) {
         <p>${escHtml(d.advice || '오늘의 흐름을 차분하게 살피며 우선순위에 집중하세요.')}</p>
       </div>
     </div>
+    <div class="info-grid" style="margin-top:0.75rem;">
+      <div class="info-item"><div class="label">간지달력 일진 기본점수</div><div class="value">${d.dayFortuneScore ?? 0}점 · 60%</div></div>
+      <div class="info-item"><div class="label">사주 개인화 점수</div><div class="value">${d.personalFortuneScore ?? 0}점 · 40%</div></div>
+    </div>
+    <details class="zodiac-score-basis" open>
+      <summary>종합 점수는 어떻게 산출되나요?</summary>
+      <div class="zodiac-score-basis-body">
+        <div class="zodiac-score-basis-item">
+          <strong>일진 기본점수와 개인화 점수의 가중 결합</strong>
+          <p>${escHtml(d.scoreBasis || '간지달력의 일진 기본점수 60%와 사주 개인화 점수 40%를 결합합니다.')}</p>
+        </div>
+      </div>
+    </details>
     ${scoreBar('연애운', cat.loveScore||0)}
     ${scoreBar('직장운', cat.careerScore||0)}
     ${scoreBar('건강운', cat.healthScore||0)}

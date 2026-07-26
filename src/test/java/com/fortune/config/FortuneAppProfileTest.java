@@ -60,6 +60,16 @@ class FortuneAppProfileTest {
                 .doesNotContain("const shouldOpen = isCurrent || month === bestMonth;");
     }
 
+    @Test
+    void explainsHowDailyScoreCombinesCalendarAndPersonalFactors() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("일진 기본점수")
+                .contains("개인화 점수")
+                .contains("d.scoreBasis");
+    }
+
     private String loadFortuneApp() throws IOException {
         return new ClassPathResource("static/fortune-app.html")
                 .getContentAsString(StandardCharsets.UTF_8);
