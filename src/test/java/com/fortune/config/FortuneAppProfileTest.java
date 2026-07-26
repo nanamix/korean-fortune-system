@@ -18,6 +18,7 @@ class FortuneAppProfileTest {
                 .contains("1. 공통 사용자 정보")
                 .contains("2. 공통 알림 발송 정보")
                 .contains(".profile-field-group .form-row { grid-template-columns:repeat(auto-fit,minmax(140px,1fr));")
+                .contains("background: #fff; width: 100%; min-height:43px;")
                 .contains("설정을 적용하는 것만으로는 발송되지 않습니다")
                 .contains("현재 알림 미사용");
     }
