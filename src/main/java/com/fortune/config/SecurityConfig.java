@@ -115,7 +115,8 @@ public class SecurityConfig {
                 "http://localhost:*",
                 "https://localhost:*",
                 "http://127.0.0.1:*",
-                "https://127.0.0.1:*"
+                "https://127.0.0.1:*",
+                "https://saju.jyha.net"
         ));
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"

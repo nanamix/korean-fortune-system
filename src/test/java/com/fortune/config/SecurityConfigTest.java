@@ -16,7 +16,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = "app.fortune.security.enabled=true")
@@ -60,5 +62,14 @@ class SecurityConfigTest {
                 .getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(html.split("credentials: 'same-origin'", -1)).hasSize(3);
+    }
+
+    @Test
+    void permitsProductionOriginForFortuneApiPosts() throws Exception {
+        mockMvc.perform(options("/api/fortune/zodiac")
+                        .header("Origin", "https://saju.jyha.net")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "https://saju.jyha.net"));
     }
 }
