@@ -1,15 +1,20 @@
 package com.fortune.config;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import com.fortune.security.JwtTokenUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,5 +52,13 @@ class SecurityConfigTest {
     @Test
     void keepsNonHealthActuatorEndpointsProtected() throws Exception {
         mockMvc.perform(get("/actuator/info")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void sendsCloudflareAccessCookieWithApiRequests() throws IOException {
+        String html = new ClassPathResource("static/fortune-app.html")
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        assertThat(html.split("credentials: 'same-origin'", -1)).hasSize(3);
     }
 }
