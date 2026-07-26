@@ -1720,7 +1720,6 @@ async function calcTojeong() {
 function renderTojeong(d) {
   const monthly = d.monthlyFortune || [];
   const sortedMonths = [...monthly].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const bestMonth = sortedMonths[0];
   const cautionMonth = sortedMonths[sortedMonths.length - 1];
   const currentMonth = Number(d.targetYear) === new Date().getFullYear() ? new Date().getMonth() + 1 : -1;
   const quarterFlow = [0, 1, 2, 3].map(quarter => {
@@ -1732,9 +1731,8 @@ function renderTojeong(d) {
     const score = month.score || 0;
     const color = score >= 70 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--error)';
     const isCurrent = month.month === currentMonth;
-    const shouldOpen = isCurrent || month === bestMonth;
     return `
-      <details class="tojeong-month${isCurrent ? ' current' : ''}"${shouldOpen ? ' open' : ''}>
+      <details class="tojeong-month${isCurrent ? ' current' : ''}" open>
         <summary>
           <span class="tojeong-month-name">${month.month}월</span>
           <span class="tojeong-month-tags">${(month.keywords || []).slice(0, 3).map(keyword => `<span>${escHtml(keyword)}</span>`).join('')}</span>

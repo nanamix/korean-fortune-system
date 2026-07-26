@@ -50,6 +50,15 @@ class FortuneAppProfileTest {
                 .contains("leapMonth:");
     }
 
+    @Test
+    void showsEveryTojeongMonthDetailInitially() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("<details class=\"tojeong-month${isCurrent ? ' current' : ''}\" open>")
+                .doesNotContain("const shouldOpen = isCurrent || month === bestMonth;");
+    }
+
     private String loadFortuneApp() throws IOException {
         return new ClassPathResource("static/fortune-app.html")
                 .getContentAsString(StandardCharsets.UTF_8);
