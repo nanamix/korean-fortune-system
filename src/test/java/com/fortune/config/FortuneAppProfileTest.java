@@ -84,6 +84,19 @@ class FortuneAppProfileTest {
                 .contains("색상 코드");
     }
 
+    @Test
+    void rendersAiMarkdownWithoutTrustingRawHtml() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("function renderAiMarkdown(markdown)")
+                .contains("function renderAiInlineMarkdown(value)")
+                .contains("AI 출력의 HTML은 먼저 escape")
+                .contains(".replace(/\\*\\*([^*\\n]+)\\*\\*/g, '<strong>$1</strong>')")
+                .contains("class=\"ai-markdown\"")
+                .doesNotContain("`상세 ${index + 1}`");
+    }
+
     private String loadFortuneApp() throws IOException {
         return new ClassPathResource("static/fortune-app.html")
                 .getContentAsString(StandardCharsets.UTF_8);

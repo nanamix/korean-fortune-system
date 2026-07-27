@@ -267,6 +267,12 @@ korean-fortune-system/
 
 ## 🔄 최근 변경사항
 
+### v3.1.1 (2026-07-27)
+- ✅ **AI 운세 Markdown 표시 개선** — 제목, 굵은 강조, 번호·글머리표, 인라인 코드를 안전한 HTML로 렌더링
+- ✅ **AI 출력 보안 강화** — 원문 HTML을 먼저 escape하고 허용된 Markdown 표현만 변환하여 XSS 방지
+- ✅ **AI 응답 구조 개선** — `상세 N` 임의 제목을 제거하고 질문 요약·사주 해석·행동 제안·주의사항 구조를 그대로 표시
+- ✅ **PWA 캐시 갱신** — Service Worker 캐시를 `korean-fortune-v27`로 올려 변경된 UI를 오프라인 캐시에도 반영
+
 ### v3.1.0 (2026-07-26)
 - ✅ **Discord 알림 연동** — 채널 웹후크 발송(SSRF 방지 allowlist), `notificationType` `discord`·`all`, `POST /api/fortune/discord/test`
 - ✅ **PostgreSQL 지원** — `postgres` 프로파일(비밀번호 env 필수, `ddl-auto`/`show-sql` override)

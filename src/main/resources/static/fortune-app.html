@@ -565,7 +565,7 @@ body {
 .ai-prompts { display:flex; flex-wrap:wrap; gap:.45rem; margin:.8rem 0; }.ai-prompt-chip { border:1px solid #c3dafe; border-radius:20px; padding:.4rem .7rem; background:#fff; color:var(--primary-dark); font-size:.72rem; cursor:pointer; }.ai-prompt-chip:hover { background:#edf2ff; }
 .ai-question-wrap { position:relative; }.ai-question-wrap textarea { width:100%; min-height:112px; resize:vertical; padding:.8rem .9rem 1.7rem; border:2px solid var(--border); border-radius:12px; font:inherit; line-height:1.55; }.ai-question-wrap textarea:focus { outline:0; border-color:var(--primary); box-shadow:0 0 0 3px rgba(102,126,234,.14); }.ai-count { position:absolute; right:.7rem; bottom:.5rem; color:var(--text-muted); font-size:.68rem; }
 .ai-result-meta { display:flex; justify-content:space-between; align-items:center; gap:.7rem; margin-bottom:1rem; }.ai-mode { padding:.3rem .65rem; border-radius:20px; background:#edf2ff; color:var(--primary-dark); font-size:.7rem; font-weight:800; }.ai-mode.fallback { background:#fefcbf; color:#744210; }
-.ai-answer { display:grid; gap:.7rem; }.ai-answer-block { padding:1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }.ai-answer-block h3 { margin:0 0 .5rem; color:var(--primary-dark); font-size:.9rem; }.ai-answer-block p { margin:.3rem 0; color:var(--text-muted); font-size:.82rem; line-height:1.75; white-space:pre-wrap; }.ai-disclaimer { margin-top:.8rem; color:var(--text-muted); font-size:.68rem; line-height:1.55; }
+.ai-answer { display:grid; gap:.7rem; }.ai-answer-block { padding:1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }.ai-markdown h3,.ai-markdown h4 { margin:1rem 0 .5rem; color:var(--primary-dark); line-height:1.45; }.ai-markdown h3:first-child,.ai-markdown h4:first-child { margin-top:0; }.ai-markdown h3 { font-size:.95rem; }.ai-markdown h4 { font-size:.86rem; }.ai-markdown p { margin:.4rem 0; color:var(--text-muted); font-size:.82rem; line-height:1.75; }.ai-markdown ol,.ai-markdown ul { margin:.45rem 0 .75rem; padding-left:1.35rem; color:var(--text-muted); }.ai-markdown li { margin:.35rem 0; padding-left:.15rem; font-size:.82rem; line-height:1.7; }.ai-markdown strong { color:var(--text-dark); font-weight:850; }.ai-markdown code { padding:.1rem .3rem; border-radius:5px; background:#edf2f7; color:#553c9a; font-size:.78rem; }.ai-disclaimer { margin-top:.8rem; color:var(--text-muted); font-size:.68rem; line-height:1.55; }
 .ai-provider-panel { margin-top:1rem; padding:1rem; border:1px solid var(--border); border-radius:14px; background:#fff; }
 .ai-provider-head { display:flex; justify-content:space-between; align-items:center; gap:.7rem; margin-bottom:.75rem; }
 .ai-provider-head h3 { margin:0; font-size:.88rem; color:var(--primary-dark); }
@@ -2131,15 +2131,84 @@ function renderAiProviderStatus(status) {
 function renderAiAnswer(answer, question) {
   const text = String(answer || '').trim();
   const fallback = /폴백|규칙 기반 기본 해석|외부 AI 제공자를 사용하지 않은/.test(text);
-  const sections = text.split(/\n\s*\n/).filter(Boolean).map((section, index) => {
-    const lines = section.split('\n').filter(Boolean);
-    const first = lines[0].replace(/^#+\s*/, '').replace(/:$/, '');
-    const looksLikeTitle = lines.length > 1 && first.length <= 30;
-    const title = looksLikeTitle ? first : (index === 0 ? '해석 결과' : `상세 ${index + 1}`);
-    const body = looksLikeTitle ? lines.slice(1).join('\n') : lines.join('\n');
-    return `<section class="ai-answer-block"><h3>${escHtml(title)}</h3><p>${escHtml(body)}</p></section>`;
-  }).join('');
-  return `<div class="ai-result-meta"><strong>${question ? '맞춤 질문 해석' : '사주 종합 해석'}</strong><span class="ai-mode${fallback ? ' fallback' : ''}">${fallback ? '규칙 기반 기본 해석' : '외부 AI 해석'}</span></div><div class="ai-answer">${sections}</div><p class="ai-disclaimer">AI 운세는 참고용 해석이며 미래를 확정하지 않습니다. 건강·법률·재정에 관한 중요한 결정은 전문가와 객관적인 자료를 우선하세요.</p>`;
+  const content = renderAiMarkdown(text);
+  return `<div class="ai-result-meta"><strong>${question ? '맞춤 질문 해석' : '사주 종합 해석'}</strong><span class="ai-mode${fallback ? ' fallback' : ''}">${fallback ? '규칙 기반 기본 해석' : '외부 AI 해석'}</span></div><div class="ai-answer"><section class="ai-answer-block"><div class="ai-markdown">${content}</div></section></div><p class="ai-disclaimer">AI 운세는 참고용 해석이며 미래를 확정하지 않습니다. 건강·법률·재정에 관한 중요한 결정은 전문가와 객관적인 자료를 우선하세요.</p>`;
+}
+
+function renderAiMarkdown(markdown) {
+  const lines = String(markdown || '').replace(/\r\n?/g, '\n').trim().split('\n');
+  const html = [];
+  let paragraph = [];
+  let listType = '';
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    html.push(`<p>${renderAiInlineMarkdown(paragraph.join(' '))}</p>`);
+    paragraph = [];
+  };
+  const closeList = () => {
+    if (!listType) return;
+    html.push(`</${listType}>`);
+    listType = '';
+  };
+  const openList = (type, start) => {
+    if (listType === type) return;
+    closeList();
+    const startAttribute = type === 'ol' && start > 1 ? ` start="${start}"` : '';
+    html.push(`<${type}${startAttribute}>`);
+    listType = type;
+  };
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      closeList();
+      return;
+    }
+
+    const heading = line.match(/^#{1,6}\s+(.+)$/);
+    const plainSectionTitle = line.replace(/:$/, '').match(/^(질문 요약|사주 관점의 해석|현실적인 행동 제안(?:\s*\d+가지)?|주의할 점|핵심 성향|강점|주의점|오늘부터 할 수 있는 조언|조언)$/);
+    if (heading || plainSectionTitle) {
+      flushParagraph();
+      closeList();
+      const headingText = heading ? heading[1] : plainSectionTitle[1];
+      const tag = heading && heading[0].startsWith('####') ? 'h4' : 'h3';
+      html.push(`<${tag}>${renderAiInlineMarkdown(headingText)}</${tag}>`);
+      return;
+    }
+
+    const orderedItem = line.match(/^(\d+)\.\s+(.+)$/);
+    if (orderedItem) {
+      flushParagraph();
+      openList('ol', Number(orderedItem[1]));
+      html.push(`<li>${renderAiInlineMarkdown(orderedItem[2])}</li>`);
+      return;
+    }
+
+    const unorderedItem = line.match(/^[-*]\s+(.+)$/);
+    if (unorderedItem) {
+      flushParagraph();
+      openList('ul', 1);
+      html.push(`<li>${renderAiInlineMarkdown(unorderedItem[1])}</li>`);
+      return;
+    }
+
+    closeList();
+    paragraph.push(line);
+  });
+
+  flushParagraph();
+  closeList();
+  return html.join('') || '<p>해석 결과가 없습니다.</p>';
+}
+
+function renderAiInlineMarkdown(value) {
+  // AI 출력의 HTML은 먼저 escape하고, 표시를 허용한 Markdown만 태그로 바꾼다.
+  return escHtml(String(value || ''))
+    .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
 }
 
 // ── SYSTEM STATUS ─────────────────────────────────────

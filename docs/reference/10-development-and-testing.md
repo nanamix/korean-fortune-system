@@ -131,6 +131,9 @@ src/main/resources/
 - 통합 테스트 예시에는 세부 태그도 사용됩니다: `@Tag("performance")`, `@Tag("security")`, `@Tag("validation")`, `@Tag("concurrency")`, `@Tag("accuracy")`, `@Tag("error-handling")`, `@Tag("scenario")`.
 - 웹 계층 테스트는 `MockMvc` + Jackson `ObjectMapper` 로 JSON 요청/응답을 검증합니다.
 - 테스트는 `test` 프로필에서 AI가 강제 비활성화되므로, AI 경로는 fallback 동작을 전제로 작성합니다.
+- AI 결과 UI는 `FortuneAppProfileTest.rendersAiMarkdownWithoutTrustingRawHtml`과
+  인라인 JavaScript 문법 검사로 Markdown 함수·HTML escape 계약을 검증합니다.
+  렌더러를 바꿀 때는 제목·굵게·번호·글머리표와 raw HTML 비실행을 함께 확인합니다.
 - 테스트 소스 위치: `src/test/java/com/fortune/` (하위 `controller/`, `service/`, `ai/`, `config/`).
 
 ---

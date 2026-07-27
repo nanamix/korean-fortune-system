@@ -54,9 +54,10 @@ docker compose -f docker/docker-compose.yaml down
 ## 4. GitHub Actions CI/CD
 
 `.github/workflows/ci.yml` 파이프라인:
-1. **Build & Test** — `main`, `develop` 브랜치 push/PR 시 자동 실행
-2. **Docker Build & Push** — `main` 브랜치 push 시 `ghcr.io/nanamix/korean-fortune-system:latest` 에 게시
-3. **Notification** — 배포 성공/실패 로그 출력
+1. **Build & Test** — `master`, `develop` 브랜치 push 및 `master` 대상 PR에서 자동 실행
+2. **Docker Build & Push** — `master` 브랜치 push 시 `ghcr.io/nanamix/korean-fortune-system:latest` 에 게시
+3. **Deploy to Production** — 테스트·이미지 게시 성공 후 SSH로 운영 Compose 갱신
+4. **Discord Deployment Status** — 전체 배포 성공/실패 결과 알림
 
 서버에서 새 이미지를 당겨 재시작:
 ```bash

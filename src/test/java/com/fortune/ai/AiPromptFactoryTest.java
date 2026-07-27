@@ -32,6 +32,7 @@ class AiPromptFactoryTest {
 
         assertThat(prompt.model()).isEqualTo("gpt-5-mini");
         assertThat(prompt.system()).contains("한국 전통 사주");
+        assertThat(prompt.system()).contains("응답은 Markdown 본문", "HTML 태그는 출력하지 마세요");
         assertThat(prompt.user()).contains("갑", "경오 신사 갑자 신미");
         assertThat(prompt.user()).contains("단정적인 의학, 법률, 투자 조언은 피하세요");
     }
