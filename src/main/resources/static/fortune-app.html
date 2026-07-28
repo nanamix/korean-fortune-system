@@ -527,8 +527,14 @@ body {
 .zodiac-card.selected { box-shadow:0 0 0 3px rgba(102,126,234,.14); transform:translateY(-2px); }
 .zodiac-guide { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:.8rem 1rem; margin-bottom:.8rem; border-radius:12px; background:#f7f8ff; color:var(--text-muted); font-size:.78rem; }
 .zodiac-target { display:flex; align-items:center; gap:.55rem; margin:1rem 0; padding:.85rem 1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }
+.zodiac-target-copy { display:grid; gap:.2rem; }
 .zodiac-target label { font-size:.8rem; font-weight:800; color:var(--text-dark); }
-.zodiac-target input { margin-left:auto; max-width:180px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; font:inherit; }
+.zodiac-target small { color:var(--text-muted); font-size:.68rem; line-height:1.45; }
+.zodiac-target-controls { display:flex; align-items:center; gap:.45rem; margin-left:auto; }
+.zodiac-target input { max-width:180px; min-height:42px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; font:inherit; }
+.zodiac-today-btn { min-height:42px; padding:.55rem .8rem; border:1px solid #c3dafe; border-radius:9px; background:#edf2ff; color:var(--primary-dark); font:inherit; font-size:.72rem; font-weight:900; cursor:pointer; white-space:nowrap; }
+.zodiac-today-btn:hover { border-color:var(--primary); background:#e9d8fd; }
+.zodiac-today-btn:focus-visible { outline:3px solid rgba(102,126,234,.28); outline-offset:2px; }
 .zodiac-location-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; padding:0 1rem 1rem; }
 .zodiac-location-grid label { display:grid; gap:.35rem; color:var(--text-muted); font-size:.72rem; font-weight:800; }
 .zodiac-location-grid input { width:100%; min-height:42px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; background:#fff; font:inherit; }
@@ -694,6 +700,9 @@ body {
   .zodiac-location-grid, .zodiac-chart-grid { grid-template-columns:1fr; }
   .zodiac-lucky-grid { grid-template-columns:repeat(2,1fr); }
   .zodiac-guide { align-items:flex-start; flex-direction:column; }
+  .zodiac-target { align-items:stretch; flex-direction:column; }
+  .zodiac-target-controls { width:100%; margin-left:0; }
+  .zodiac-target input { flex:1; max-width:none; min-width:0; }
   .daily-overview, .fortune-detail-grid { grid-template-columns: 1fr; }
   .distribution-grid { grid-template-columns:repeat(2,1fr); }
   .sipsin-glossary { grid-template-columns:1fr; }
@@ -930,8 +939,14 @@ body {
         <div class="zodiac-grid" id="zodiacGrid"></div>
 
         <div class="zodiac-target">
-          <label for="zodiac-target-date">운세를 볼 날짜</label>
-          <input type="date" id="zodiac-target-date" aria-label="점성술 운세 대상 날짜">
+          <div class="zodiac-target-copy">
+            <label for="zodiac-target-date">운세 기준 날짜</label>
+            <small id="zodiac-target-help">선택한 날짜를 기준으로 일일·주간·월간·연간 운세를 계산합니다.</small>
+          </div>
+          <div class="zodiac-target-controls">
+            <input type="date" id="zodiac-target-date" aria-label="점성술 운세 기준 날짜" aria-describedby="zodiac-target-help">
+            <button type="button" class="zodiac-today-btn" onclick="setZodiacTargetToday()" aria-label="운세 기준 날짜를 오늘로 설정">오늘로 이동</button>
+          </div>
         </div>
 
         <div class="uses-common-profile">👤 내 정보의 공통 출생일·시각·도시·위치·역법과 알림 설정을 사용합니다.</div>
@@ -1152,6 +1167,23 @@ function initCalendar() {
 function localDateValue(date = new Date()) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
+}
+
+function setZodiacTargetToday() {
+  const targetDateInput = document.getElementById('zodiac-target-date');
+  targetDateInput.value = localDateValue();
+  targetDateInput.focus();
+}
+
+function formatAstrologyTargetDate(dateValue) {
+  if (!dateValue) return '선택일';
+  const date = new Date(`${dateValue}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
+  return new Intl.DateTimeFormat('ko-KR', {
+    year:'numeric',
+    month:'long',
+    day:'numeric'
+  }).format(date);
 }
 
 function setTojeongCurrentYear() {
@@ -2069,7 +2101,7 @@ async function calcZodiac() {
     const profile = buildCommonProfile(true);
     const notif = profile.notification;
     const targetDate = document.getElementById('zodiac-target-date').value;
-    if (!targetDate) throw new Error('운세를 볼 날짜를 선택해 주세요.');
+    if (!targetDate) throw new Error('운세 기준 날짜를 선택해 주세요.');
     const body = buildAstrologyRequest(profile, targetDate, notif);
     let resp;
     if (notif) {
@@ -2114,6 +2146,13 @@ function renderZodiac(d) {
   const weekly = d.weeklyFortune || {};
   const monthly = d.monthlyFortune || {};
   const annual = d.annualFortune || {};
+  const targetDate = d.targetDate || '';
+  const isToday = targetDate === localDateValue();
+  const targetDateLabel = formatAstrologyTargetDate(targetDate);
+  const dailySectionTitle = isToday ? '☀️ 오늘의 점성술' : `☀️ ${targetDateLabel} 점성술 운세`;
+  const dailySectionSubtitle = isToday
+    ? '오늘의 관계·일·건강·재정 흐름'
+    : '선택한 날짜의 관계·일·건강·재정 흐름';
   const categories = [
     { icon:'💗', name:'관계·연애', score:daily.loveScore || 0, message:daily.loveMessage },
     { icon:'💼', name:'일·성취', score:daily.careerScore || 0, message:daily.careerMessage },
@@ -2160,7 +2199,7 @@ function renderZodiac(d) {
     ${transitCards ? `<div class="zodiac-transit-list">${transitCards}</div>` : '<div class="alert alert-info">설정한 orb 안에 들어오는 주요 각이 없습니다.</div>'}
     <div class="summary-text" style="margin-top:.7rem">${escHtml(d.transitSummary || '')}</div>`;
   const dailyContent = `
-    <div class="zodiac-overall">${escHtml(daily.overallMessage || '오늘의 종합 해석 정보가 없습니다.')}</div>
+    <div class="zodiac-overall">${escHtml(daily.overallMessage || '선택일 종합 해석 정보가 없습니다.')}</div>
     <div class="zodiac-score-grid" style="margin-top:.75rem">${scoreCards}</div>
     ${daily.scoreBasis ? `
       <details class="zodiac-score-basis" open>
@@ -2188,13 +2227,13 @@ function renderZodiac(d) {
   return `
     <div class="zodiac-hero">
       <div class="zodiac-hero-symbol" aria-hidden="true">${zodiac.symbol || '⭐'}</div>
-      <div><h2>${escHtml(d.zodiacKoreanName || '-')}</h2><p>${escHtml(d.targetDate || '')} · ${zodiac.start || '-'} ~ ${zodiac.end || '-'}</p></div>
-      <div class="zodiac-average"><strong>${average}</strong><span>선택일 점성술 점수</span></div>
+      <div><h2>${escHtml(d.zodiacKoreanName || '-')}</h2><p>${escHtml(targetDate)} · ${zodiac.start || '-'} ~ ${zodiac.end || '-'}</p></div>
+      <div class="zodiac-average"><strong>${average}</strong><span>${isToday ? '오늘' : '선택일'} 점성술 점수</span></div>
     </div>
     ${reportSection('☉ 개인 출생 차트', 'Sun·Moon·Rising과 기본 성향', chartContent)}
     ${reportSection('🪐 대상일 트랜짓', '출생 차트와 대상일 태양·달의 주요 각', transitContent)}
-    ${reportSection('☀️ 선택일 운세', '관계·일·건강·재정의 상세 흐름', dailyContent)}
-    ${reportSection('📅 주간 운세', `${escHtml(weekly.startDate || '-')} ~ ${escHtml(weekly.endDate || '-')}`, renderAstrologyWeek(weekly, d.targetDate))}
+    ${reportSection(dailySectionTitle, dailySectionSubtitle, dailyContent)}
+    ${reportSection('📅 주간 운세', `${escHtml(weekly.startDate || '-')} ~ ${escHtml(weekly.endDate || '-')}`, renderAstrologyWeek(weekly, targetDate))}
     ${reportSection(`🗓️ ${monthly.month || ''}월 운세`, '선택일이 포함된 달의 큰 흐름', monthlyContent)}
     ${reportSection(`📆 ${annual.year || ''}년 연간 운세`, '12개월 흐름과 활용·점검 시기', renderAstrologyYear(annual))}
     ${reportSection('🧭 성향과 참고 요소', '출생 차트 기반 성향과 문화적 참고값', referenceContent)}

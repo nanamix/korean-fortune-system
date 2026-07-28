@@ -143,6 +143,23 @@ class FortuneAppProfileTest {
     }
 
     @Test
+    void explainsAstrologyReferenceDateAndLabelsDailyResultBySelectedDate() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("<label for=\"zodiac-target-date\">운세 기준 날짜</label>")
+                .contains("선택한 날짜를 기준으로 일일·주간·월간·연간 운세를 계산합니다.")
+                .contains("aria-describedby=\"zodiac-target-help\"")
+                .contains("onclick=\"setZodiacTargetToday()\"")
+                .contains(">오늘로 이동</button>")
+                .contains("function formatAstrologyTargetDate(dateValue)")
+                .contains("const isToday = targetDate === localDateValue();")
+                .contains("isToday ? '☀️ 오늘의 점성술'")
+                .contains("`☀️ ${targetDateLabel} 점성술 운세`")
+                .doesNotContain("<label for=\"zodiac-target-date\">운세를 볼 날짜</label>");
+    }
+
+    @Test
     void searchesAndAppliesBirthLocationFromCommonProfile() throws IOException {
         String html = loadFortuneApp();
 
