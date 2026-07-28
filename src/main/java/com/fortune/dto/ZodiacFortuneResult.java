@@ -21,6 +21,7 @@ public class ZodiacFortuneResult {
     private String zodiacKoreanName;
     private LocalDate targetDate;
     private ZodiacDailyFortune todayFortune;
+    private ZodiacWeeklyFortune weeklyFortune;
     private ZodiacMonthlyFortune monthlyFortune;
     private List<com.fortune.enums.Zodiac> compatibleZodiacs;
     private List<Integer> luckyNumbers;

@@ -19,8 +19,11 @@ class FortuneAppProfileTest {
                 .contains("2. 공통 알림 발송 정보")
                 .contains("<legend>출생 도시와 위치</legend>")
                 .contains("id=\"profile-birth-city\"")
-                .contains(".profile-field-group .form-row { grid-template-columns:repeat(auto-fit,minmax(140px,1fr));")
-                .contains("background: #fff; width: 100%; min-height:43px;")
+                .contains(".profile-field-group .form-row { grid-template-columns:repeat(4,minmax(0,1fr));")
+                .contains("@media (max-width: 640px)")
+                .contains(".profile-field-group .form-row { grid-template-columns:1fr 1fr; }")
+                .contains(".form-group { display: flex; flex-direction: column; gap: 0.4rem; min-width:0; }")
+                .contains("width:100%; height:43px; min-height:43px; min-width:0;")
                 .contains("설정을 적용하는 것만으로는 발송되지 않습니다")
                 .contains("현재 알림 미사용");
     }
@@ -104,18 +107,35 @@ class FortuneAppProfileTest {
         String html = loadFortuneApp();
 
         assertThat(html)
+                .contains("<span class=\"tab-icon\" aria-hidden=\"true\">⭐</span> 점성술")
+                .contains("<div class=\"card-title\">⭐ 서양 점성술</div>")
                 .contains("id=\"profile-birth-latitude\"")
                 .contains("id=\"profile-birth-longitude\"")
                 .contains("id=\"profile-birth-timezone\"")
                 .contains("function buildBirthLocation()")
-                .contains("const birthLocation = buildBirthLocation();")
+                .contains("function buildAstrologyRequest(profile, targetDate, notification = null)")
                 .contains("birthTime:")
                 .contains("calendarType: profile.calendarType")
-                .contains("개인 출생 차트 핵심")
-                .contains("대상일 주요 트랜짓")
+                .contains("☉ 개인 출생 차트")
+                .contains("🪐 대상일 트랜짓")
                 .contains("astrologyProfile")
                 .contains("majorTransits")
                 .contains("orb ");
+    }
+
+    @Test
+    void addsDailyAstrologyAndWeeklyAstrologyWithoutDuplicatingNotifications() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("Promise.all([dailyRequest, astrologyRequest])")
+                .contains("apiPost('/api/fortune/zodiac', astrologyBody)")
+                .contains("function renderAstrologyToday(d)")
+                .contains("⭐ 오늘의 점성술")
+                .contains("function renderAstrologyWeek(weekly, targetDate)")
+                .contains("📅 주간 운세")
+                .contains("주간 점수는 어떻게 산출되나요?")
+                .contains("function localDateValue(date = new Date())");
     }
 
     @Test

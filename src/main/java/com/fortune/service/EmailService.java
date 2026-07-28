@@ -148,10 +148,10 @@ public class EmailService {
     }
 
     /**
-     * 별자리 운세 결과를 이메일로 발송
+     * 점성술 운세 결과를 이메일로 발송
      * 
      * @param toEmail 수신자 이메일
-     * @param zodiacResult 별자리 운세 결과
+     * @param zodiacResult 점성술 운세 결과
      * @param recipientName 수신자 이름
      */
     @Async
@@ -167,14 +167,14 @@ public class EmailService {
             model.put("zodiacResult", zodiacResult);
             model.put("currentDate", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")));
 
-            String subject = "⭐ " + recipientName + "님의 " + zodiacResult.getZodiacKoreanName() + " 운세";
+            String subject = "⭐ " + recipientName + "님의 " + zodiacResult.getZodiacKoreanName() + " 점성술 운세";
             String htmlContent = generateZodiacEmailTemplate(model);
 
             sendEmail(toEmail, subject, htmlContent);
-            log.info("별자리 운세 결과 이메일 발송 완료: {}", toEmail);
+            log.info("점성술 운세 결과 이메일 발송 완료: {}", toEmail);
 
         } catch (Exception e) {
-            log.error("별자리 운세 결과 이메일 발송 실패: {}", toEmail, e);
+            log.error("점성술 운세 결과 이메일 발송 실패: {}", toEmail, e);
         }
     }
 
@@ -225,7 +225,7 @@ public class EmailService {
     }
 
     /**
-     * 별자리 운세 이메일 템플릿 생성
+     * 점성술 운세 이메일 템플릿 생성
      */
     private String generateZodiacEmailTemplate(Map<String, Object> model) {
         Context context = new Context();

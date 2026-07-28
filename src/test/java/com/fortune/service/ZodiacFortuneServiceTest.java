@@ -50,6 +50,18 @@ class ZodiacFortuneServiceTest {
         assertTrue(first.getTodayFortune().getScoreBasis().contains("출생 차트"));
         assertTrue(first.getTodayFortune().getScoreBasis().contains("transit"));
         assertTrue(first.getTodayFortune().getScoreBasis().contains("날짜 리듬"));
+        assertEquals(LocalDate.of(2026, 7, 13), first.getWeeklyFortune().getStartDate());
+        assertEquals(LocalDate.of(2026, 7, 19), first.getWeeklyFortune().getEndDate());
+        assertEquals(7, first.getWeeklyFortune().getDays().size());
+        assertEquals(first.getWeeklyFortune(), second.getWeeklyFortune());
+        int expectedWeeklyAverage = Math.round((float) first.getWeeklyFortune().getDays().stream()
+                .mapToInt(day -> day.getOverallScore())
+                .average()
+                .orElse(0));
+        assertEquals(expectedWeeklyAverage, first.getWeeklyFortune().getOverallScore());
+        assertTrue(first.getWeeklyFortune().getScoreBasis().contains("7일 종합 점수"));
+        assertTrue(first.getWeeklyFortune().getOverview().contains("이번 주의 평균"));
+        assertTrue(first.getWeeklyFortune().getBestDate() != null);
         assertTrue(first.getMonthlyFortune().getDetailedMessage().length() >= 180);
         assertTrue(first.getMonthlyFortune().getOpportunity().length() >= 120);
         assertTrue(first.getMonthlyFortune().getCaution().length() >= 120);

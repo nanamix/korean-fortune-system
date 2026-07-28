@@ -7,6 +7,7 @@ import com.fortune.dto.SajuResult;
 import com.fortune.dto.TojeongResult;
 import com.fortune.dto.ZodiacDailyFortune;
 import com.fortune.dto.ZodiacFortuneResult;
+import com.fortune.dto.ZodiacWeeklyFortune;
 import com.fortune.dto.WesternAstrologyProfile;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -181,6 +182,22 @@ public record AiFactPacket(
                     today.getCareerScore(),
                     today.getHealthScore(),
                     today.getMoneyScore()));
+        }
+        ZodiacWeeklyFortune weekly = result.getWeeklyFortune();
+        if (weekly != null) {
+            facts.put("weekly_period", weekly.getStartDate() + "~" + weekly.getEndDate());
+            facts.put("weekly_score", String.valueOf(weekly.getOverallScore()));
+            facts.put("weekly_score_basis", safe(weekly.getScoreBasis()));
+            facts.put("weekly_overview", safe(weekly.getOverview()));
+            facts.put("weekly_best_date", String.valueOf(weekly.getBestDate()));
+            if (weekly.getDays() != null && !weekly.getDays().isEmpty()) {
+                facts.put("weekly_days", weekly.getDays().stream()
+                        .map(day -> "%s:%d:%s".formatted(
+                                day.getDate(),
+                                day.getOverallScore(),
+                                safe(day.getHeadline())))
+                        .collect(Collectors.joining("|")));
+            }
         }
         return packet("zodiac", facts);
     }

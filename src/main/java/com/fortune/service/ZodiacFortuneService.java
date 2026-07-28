@@ -4,8 +4,10 @@ import com.fortune.enums.Zodiac;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.MonthDay;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 /**
  * 별자리 운세 서비스
@@ -88,12 +90,15 @@ public class ZodiacFortuneService {
             /* 2. 오늘의 운세 계산 */
             ZodiacDailyFortune dailyFortune =
                     calculateDetailedDailyFortune(zodiac, targetDate, astrology);
-            /* 3. 월별 운세 계산 */
+            /* 3. 주간 운세 계산 */
+            ZodiacWeeklyFortune weeklyFortune =
+                    calculateWeeklyFortune(request, birthDate, targetDate, dailyFortune, astrology);
+            /* 4. 월별 운세 계산 */
             ZodiacMonthlyFortune monthlyFortune =
                     calculateMonthlyFortune(zodiac, targetDate, astrology);
-            /* 4. 궁합 별자리 조회 */
+            /* 5. 궁합 별자리 조회 */
             List<Zodiac> compatibleZodiacs = ZODIAC_COMPATIBILITY.getOrDefault(zodiac, new ArrayList<>());
-            /* 5. 행운의 숫자 생성 */
+            /* 6. 행운의 숫자 생성 */
             List<Integer> luckyNumbers = generateLuckyNumbers(birthDate);
             /* 별자리 운세 결과 생성 */
             ZodiacFortuneResult result = ZodiacFortuneResult.builder()
@@ -101,6 +106,7 @@ public class ZodiacFortuneService {
                     .zodiacKoreanName(zodiac.getKoreanName())
                     .targetDate(targetDate)
                     .todayFortune(dailyFortune)
+                    .weeklyFortune(weeklyFortune)
                     .monthlyFortune(monthlyFortune)
                     .compatibleZodiacs(compatibleZodiacs)
                     .luckyNumbers(luckyNumbers)
@@ -227,6 +233,96 @@ public class ZodiacFortuneService {
                 .moneyScore(moneyScore)
                 .moneyMessage(moneyMessage)
                 .build();
+    }
+
+    private ZodiacWeeklyFortune calculateWeeklyFortune(
+            ZodiacRequest request,
+            LocalDate birthDate,
+            LocalDate targetDate,
+            ZodiacDailyFortune targetDaily,
+            WesternAstrologyService.Analysis targetAstrology) {
+        LocalDate startDate = targetDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endDate = startDate.plusDays(6);
+        List<ZodiacWeeklyDay> days = new ArrayList<>();
+        List<ZodiacDailyFortune> dailyFortunes = new ArrayList<>();
+
+        for (int offset = 0; offset < 7; offset++) {
+            LocalDate date = startDate.plusDays(offset);
+            WesternAstrologyService.Analysis dayAstrology = date.equals(targetDate)
+                    ? targetAstrology
+                    : westernAstrologyService.analyze(requestForDate(request, date), birthDate);
+            ZodiacDailyFortune daily = date.equals(targetDate)
+                    ? targetDaily
+                    : calculateDetailedDailyFortune(
+                            dayAstrology.profile().getSunSign(), date, dayAstrology);
+            dailyFortunes.add(daily);
+            days.add(ZodiacWeeklyDay.builder()
+                    .date(date)
+                    .overallScore(daily.getOverallScore())
+                    .headline(weeklyDayHeadline(daily))
+                    .transitSummary(dayAstrology.transitSummary())
+                    .build());
+        }
+
+        int weeklyScore = Math.round((float) dailyFortunes.stream()
+                .mapToInt(ZodiacDailyFortune::getOverallScore)
+                .average()
+                .orElse(0));
+        ZodiacWeeklyDay bestDay = Collections.max(
+                days, Comparator.comparingInt(ZodiacWeeklyDay::getOverallScore));
+        ZodiacWeeklyDay cautiousDay = Collections.min(
+                days, Comparator.comparingInt(ZodiacWeeklyDay::getOverallScore));
+        String overview = "이번 주의 평균은 " + weeklyScore + "점으로 "
+                + scoreLabel(weeklyScore) + "입니다. "
+                + bestDay.getDate() + "(" + bestDay.getOverallScore()
+                + "점)은 중요한 일에 추진력을 쓰기 좋고, "
+                + cautiousDay.getDate() + "(" + cautiousDay.getOverallScore()
+                + "점)은 일정을 넉넉히 잡고 확인 절차를 강화하는 편이 좋습니다. "
+                + "하루 점수의 높고 낮음을 결과의 보장으로 받아들이기보다, "
+                + "집중할 날과 회복할 날을 배치하는 주간 계획의 참고값으로 활용하세요.";
+        return ZodiacWeeklyFortune.builder()
+                .startDate(startDate)
+                .endDate(endDate)
+                .overallScore(weeklyScore)
+                .scoreBasis("문화·오락용 결정론적 점수입니다. 월요일부터 일요일까지 각 날짜의 "
+                        + "관계·일·건강·재정 점수를 같은 일일 점성술 산식으로 계산하고, "
+                        + "7일 종합 점수의 산술평균을 반올림해 " + weeklyScore
+                        + "점으로 표시합니다. 출생 차트, 날짜별 transit와 날짜 리듬을 사용하므로 "
+                        + "같은 출생정보와 기준 주에는 항상 같은 결과가 나옵니다.")
+                .overview(overview)
+                .bestDate(bestDay.getDate())
+                .bestDayReason(bestDay.getHeadline())
+                .caution(cautiousDay.getDate() + "에는 " + cautiousDay.getHeadline()
+                        + " 중요한 결정은 최신 조건과 일정 여유를 확인한 뒤 진행하세요.")
+                .days(List.copyOf(days))
+                .build();
+    }
+
+    private ZodiacRequest requestForDate(ZodiacRequest request, LocalDate targetDate) {
+        return ZodiacRequest.builder()
+                .birthDate(request.getBirthDate())
+                .targetDate(targetDate)
+                .birthTime(request.getBirthTime())
+                .birthLatitude(request.getBirthLatitude())
+                .birthLongitude(request.getBirthLongitude())
+                .timeZone(request.getTimeZone())
+                .calendarType(request.getCalendarType())
+                .leapMonth(request.getLeapMonth())
+                .build();
+    }
+
+    private String weeklyDayHeadline(ZodiacDailyFortune daily) {
+        Map<String, Integer> scores = new LinkedHashMap<>();
+        scores.put("관계", daily.getLoveScore());
+        scores.put("일·성취", daily.getCareerScore());
+        scores.put("건강·생활", daily.getHealthScore());
+        scores.put("재정", daily.getMoneyScore());
+        Map.Entry<String, Integer> strongest = Collections.max(
+                scores.entrySet(), Map.Entry.comparingByValue());
+        Map.Entry<String, Integer> weakest = Collections.min(
+                scores.entrySet(), Map.Entry.comparingByValue());
+        return strongest.getKey() + " 영역의 강점을 활용하고 " + weakest.getKey()
+                + " 영역은 확인과 여유를 우선하세요.";
     }
     /**
      * 문화·오락용 결정론적 점수 생성.

@@ -196,8 +196,8 @@ public class FortuneController {
     }
 
     /**
-     * ⭐ 별자리 운세 계산
-     * <p>생년월일과 대상날짜를 입력받아 별자리 운세를 계산합니다.</p>
+     * ⭐ 서양 점성술 운세 계산
+     * <p>출생정보와 대상날짜를 입력받아 개인화 점성술 운세를 계산합니다.</p>
      * <h3>요청 예시</h3>
      * <pre>
      * {
@@ -207,23 +207,23 @@ public class FortuneController {
      *   "targetDate": "2025-06-24"
      * }
      * </pre>
-     * @param request 별자리 운세 요청
-     * @return 별자리 운세 결과
+     * @param request 점성술 운세 요청
+     * @return 점성술 운세 결과
      */
     @PostMapping("/zodiac")
     public ResponseEntity<com.fortune.dto.ApiResponse<ZodiacFortuneResult>> calculateZodiacFortune(
             @Valid @RequestBody ZodiacRequest request) {
 
-        log.info("⭐ 별자리 운세 계산 요청: {} -> {}",
+        log.info("⭐ 점성술 운세 계산 요청: {} -> {}",
                 request.getBirthDate(), request.getTargetDate());
 
         try {
             ZodiacFortuneResult result = zodiacFortuneService.calculateZodiacFortune(request);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
         } catch (Exception e) {
-            log.error("❌ 별자리 운세 계산 실패: {}", e.getMessage(), e);
+            log.error("❌ 점성술 운세 계산 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("별자리 운세 계산에 실패했습니다: " + e.getMessage(), "ZODIAC_FORTUNE_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("점성술 운세 계산에 실패했습니다: " + e.getMessage(), "ZODIAC_FORTUNE_ERROR"));
         }
     }
 
@@ -493,9 +493,9 @@ public class FortuneController {
     }
 
     /**
-     * 📧 별자리 운세 결과를 이메일/텔레그램으로 발송
+     * 📧 점성술 운세 결과를 이메일/텔레그램으로 발송
      * 
-     * @param zodiacRequest 별자리 운세 요청
+     * @param zodiacRequest 점성술 운세 요청
      * @param notificationRequest 알림 발송 요청
      * @return 발송 결과
      */
@@ -503,11 +503,11 @@ public class FortuneController {
     public ResponseEntity<com.fortune.dto.ApiResponse<ZodiacFortuneResult>> calculateZodiacFortuneAndSend(
             @Valid @RequestBody ZodiacRequest zodiacRequest) {
 
-        log.info("⭐ 별자리 운세 계산 및 발송 요청: {}님", 
+        log.info("⭐ 점성술 운세 계산 및 발송 요청: {}님",
                 zodiacRequest.getNotification() != null ? zodiacRequest.getNotification().getRecipientName() : "알 수 없음");
 
         try {
-            // 1. 별자리 운세 계산
+            // 1. 점성술 운세 계산
             ZodiacFortuneResult zodiacResult =
                     zodiacFortuneService.calculateZodiacFortune(zodiacRequest);
 
@@ -518,9 +518,9 @@ public class FortuneController {
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(zodiacResult));
         } catch (Exception e) {
-            log.error("❌ 별자리 운세 계산 및 발송 실패: {}", e.getMessage(), e);
+            log.error("❌ 점성술 운세 계산 및 발송 실패: {}", e.getMessage(), e);
             return ResponseEntity.badRequest()
-                    .body(com.fortune.dto.ApiResponse.error("별자리 운세 계산 및 발송에 실패했습니다: " + e.getMessage(), "ZODIAC_SEND_ERROR"));
+                    .body(com.fortune.dto.ApiResponse.error("점성술 운세 계산 및 발송에 실패했습니다: " + e.getMessage(), "ZODIAC_SEND_ERROR"));
         }
     }
 
@@ -856,11 +856,11 @@ public class FortuneController {
     }
 
     /**
-     * 별자리 운세 텔레그램 메시지 생성
+     * 점성술 운세 텔레그램 메시지 생성
      */
     private String generateZodiacTelegramMessage(ZodiacFortuneResult zodiacResult, String recipientName) {
         return String.format("""
-            ⭐ %s님의 %s 운세
+            ⭐ %s님의 %s 점성술 운세
             
             📅 대상일: %s
             🎯 총점: %d점
