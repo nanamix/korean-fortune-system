@@ -273,6 +273,8 @@ korean-fortune-system/
 - ✅ **개인정보 최소 전송** — 이름·생년월일·보정 일시·역법·성별·알림 대상을 AI provider payload에서 제외
 - ✅ **프롬프트·출력 경계 강화** — fact packet과 사용자 질문 구분자 이스케이프, 위험 HTML·빈 응답·과도한 길이 차단
 - ✅ **AI 캐시 버전 분리** — fact packet 또는 엔진 계약 변경 시 이전 AI 서술 캐시를 재사용하지 않도록 namespace 적용
+- ✅ **도메인 golden fixture** — 외부 교차 확인값, 진태양시 시각 경계, 한국 음력 설날 변환을 `saju-golden/v1`로 고정
+- ✅ **개인정보 비포함 실행 영수증** — fact 원문·질문·응답을 저장하지 않고 SHA-256 fact hash와 버전·검증·fallback 상태만 감사 로그에 기록
 
 ### v3.1.1 (2026-07-27)
 - ✅ **AI 운세 Markdown 표시 개선** — 제목, 굵은 강조, 번호·글머리표, 인라인 코드를 안전한 HTML로 렌더링

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "saju-golden/v1",
+  "cases": [
+    {
+      "id": "verified-1981-03-20",
+      "evidence": "척척사주 및 lunar-java 교차 확인",
+      "input": {
+        "year": 1981,
+        "month": 3,
+        "day": 20,
+        "hour": 1,
+        "minute": 59,
+        "gender": "M",
+        "calendarType": "SOLAR",
+        "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "신유",
+        "monthPillar": "신묘",
+        "dayPillar": "정유",
+        "timePillar": "신축",
+        "dayMaster": "정",
+        "daeunForward": false,
+        "daeunStartAge": 5,
+        "firstDaeun": "경인",
+        "yearStemSipsin": "편재",
+        "dayTwelveStage": "장생"
+      }
+    },
+    {
+      "id": "true-solar-hour-before-boundary",
+      "evidence": "경도 보정 -30분 적용 시 02:59 축시 경계 회귀값",
+      "input": {
+        "year": 1981,
+        "month": 3,
+        "day": 20,
+        "hour": 3,
+        "minute": 29,
+        "gender": "M",
+        "calendarType": "SOLAR",
+        "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "신유",
+        "monthPillar": "신묘",
+        "dayPillar": "정유",
+        "timePillar": "신축",
+        "dayMaster": "정"
+      }
+    },
+    {
+      "id": "true-solar-hour-at-boundary",
+      "evidence": "경도 보정 -30분 적용 시 03:00 인시 경계 회귀값",
+      "input": {
+        "year": 1981,
+        "month": 3,
+        "day": 20,
+        "hour": 3,
+        "minute": 30,
+        "gender": "M",
+        "calendarType": "SOLAR",
+        "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "신유",
+        "monthPillar": "신묘",
+        "dayPillar": "정유",
+        "timePillar": "임인",
+        "dayMaster": "정"
+      }
+    },
+    {
+      "id": "lunar-new-year-2024",
+      "evidence": "한국 음력 2024-01-01 = 양력 2024-02-10 변환 회귀값",
+      "input": {
+        "year": 2024,
+        "month": 1,
+        "day": 1,
+        "hour": 12,
+        "minute": 0,
+        "gender": "M",
+        "calendarType": "LUNAR",
+        "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "갑진",
+        "monthPillar": "병인",
+        "dayPillar": "갑진",
+        "timePillar": "경오",
+        "dayMaster": "갑"
+      }
+    }
+  ]
+}

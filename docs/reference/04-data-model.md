@@ -52,7 +52,8 @@
 
 ### 4.2.3 `SecurityAuditLog` (`entity/SecurityAuditLog.java`)
 
-보안 이벤트 기록. `@Table(name = "security_audit_log")`.
+보안 이벤트와 개인정보 비포함 AI provider 실행 영수증 기록.
+`@Table(name = "security_audit_log")`.
 
 | 필드 | 컬럼 | 제약 |
 |------|------|------|
@@ -67,6 +68,18 @@
 | `details` | details | JSON |
 
 조회는 `SecurityAuditLogRepository` 의 count/집계 쿼리(실패 로그인 IP TOP N, 사용자별 최근 로그 등, `SecurityAuditLogRepository.java:76-94`)로 수행합니다.
+
+AI 실행 영수증은 기존 테이블에 다음 형태로 저장합니다.
+
+- `action`: `AI_NARRATION_RECEIPT`
+- `resource`: `saju`, `daily`, `zodiac`, `tojeong`
+- `success`: 외부 AI 서술 검증 통과 여부
+- `details`: schema/engine version, SHA-256 `factHash`, provider/model,
+  provider 호출 여부, 검증 통과 여부, fallback 여부, validation code
+
+`details`에는 fact packet 원문, 사용자 질문, 모델 응답, 이름, 생년월일시,
+성별, 역법, 알림 대상을 저장하지 않습니다. 영수증 저장 실패는 운세 응답을
+실패시키지 않으며 도메인만 남긴 경고 로그로 격리합니다.
 
 ### 4.2.4 `TojeongGwaEntity` (`entity/TojeongGwaEntity.java`)
 

@@ -69,4 +69,17 @@ class AiFactPacketTest {
         assertThat(prompt).doesNotContain("<script>");
         assertThat(prompt.split("</fortune-fact-packet>", -1)).hasSize(2);
     }
+
+    @Test
+    void createsStableHashThatChangesWithDeterministicFacts() {
+        AiFactPacket first = AiFactPacket.forSaju(
+                SajuResult.builder().dayMaster("갑").dayPillar("갑자").build());
+        AiFactPacket same = AiFactPacket.forSaju(
+                SajuResult.builder().dayMaster("갑").dayPillar("갑자").build());
+        AiFactPacket changed = AiFactPacket.forSaju(
+                SajuResult.builder().dayMaster("을").dayPillar("을축").build());
+
+        assertThat(first.factHash()).hasSize(64).isEqualTo(same.factHash());
+        assertThat(changed.factHash()).hasSize(64).isNotEqualTo(first.factHash());
+    }
 }

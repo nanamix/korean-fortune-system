@@ -160,6 +160,9 @@ system 프롬프트는 응답 형식을 Markdown으로 제한합니다. 제목�
 - **출력 안전 검사**: 빈 응답, 12,000자 초과 응답, `script`·`iframe`·`object`·`embed`·`style`·`link`·`meta` 태그를 차단합니다.
 - **최소 권한**: provider는 chat completion 텍스트 생성만 수행하며 도구·함수 호출 권한이 없습니다.
 - **로그 최소화**: 차단 로그에는 도메인과 사유 코드만 기록하고 모델 원문이나 프로필 정보는 기록하지 않습니다.
+- **실행 영수증**: provider 시도마다 fact 원문 대신 SHA-256 hash와
+  schema/engine version, provider/model, validation code, fallback 여부만
+  `security_audit_log`에 기록합니다.
 
 검사 실패 시 외부 응답은 사용자에게 노출하지 않고 즉시 로컬 결정적 폴백으로 전환하며, provider 상태 API에는 실패 코드와 일반화한 사유를 남깁니다. 현재 구현은 추가 provider 재시도를 하지 않아 비용과 지연을 늘리지 않습니다.
 
@@ -167,6 +170,27 @@ system 프롬프트는 응답 형식을 Markdown으로 제한합니다. 제목�
 
 - 검증기는 모델이 명시적으로 언급한 핵심 사실의 **충돌**을 차단합니다. 모든 문장의 의미적 진실성이나 누락을 완전히 판정하지는 않습니다.
 - 사용자가 질문 본문에 직접 입력한 개인정보까지 자동 비식별화하지는 않습니다. UI와 운영 정책에서 불필요한 개인정보 입력을 피해야 합니다.
-- 도메인 엔진의 정답성은 LLM 게이트와 별개입니다. 엔진 회귀는 golden fixture와 경계값 테스트로 계속 보강해야 합니다.
+- golden fixture는 현재 사주 대표값·진태양시 시각 경계·한국 음력 설날 변환을
+  포함합니다. 출생지별 경도·서머타임·절입 초단위 경계는 아직 추가 검증이 필요합니다.
 
 > 요약: system 지침만 신뢰하지 않고 `엔진 사실 계약 → 제한된 서술 → 코드 검증 → 안전 폴백`을 강제합니다.
+
+## 6.7 AI 실행 영수증
+
+`AiNarrationReceipt`는 AI provider 호출과 검증 결과를 재현 가능한 메타데이터로
+남깁니다. `JpaAiNarrationReceiptAdapter`가 기존 `SecurityAuditLogRepository`를
+사용하므로 운영 `ddl-auto=validate` 환경에 신규 테이블 변경이 필요하지 않습니다.
+
+| 필드 | 의미 |
+|---|---|
+| `schemaVersion` / `engineVersion` | 적용된 fact·엔진 계약 |
+| `domain` | 사주·일일·별자리·토정비결 |
+| `factHash` | fact packet 전체의 SHA-256, 원문 미저장 |
+| `provider` / `model` | 적용 설정 |
+| `providerCalled` | 외부 provider 실제 호출 여부 |
+| `accepted` | 서술 검증 통과 여부 |
+| `fallbackUsed` | 로컬 규칙 기반 결과 반환 여부 |
+| `validationCode` | `OK`, `FACT_ALIGNMENT_FAILED`, provider 오류 코드 등 |
+
+캐시 hit는 provider를 다시 호출하지 않으므로 새 영수증을 만들지 않습니다.
+영수증은 사용자 행동 감사가 아니라 **provider 시도 감사** 단위입니다.

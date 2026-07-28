@@ -173,6 +173,22 @@ rel = (대상오행 − 일간오행) mod 5
 
 회귀 테스트: `GanjiCalculatorServiceTest` (신유/신묘/정유/신축 + 십신 편재 + 12운성 장생 + 대운 역행·대운수 5·첫 대운 경인).
 
+### 버전 기반 golden fixture
+
+`src/test/resources/fixtures/saju-golden-v1.json`은 계산 결과의 정본 회귀값을
+입력·기대 결과·근거와 함께 저장합니다. `SajuGoldenFixtureTest`가 모든 fixture를
+실제 `GanjiCalculatorService`로 다시 계산해 다음 항목을 비교합니다.
+
+| fixture | 목적 | 증거 수준 |
+|---|---|---|
+| `verified-1981-03-20` | 4주·일간·대운·십신·12운성 | 척척사주/lunar-java 교차 확인 |
+| `true-solar-hour-before-boundary` | −30분 보정 후 02:59 축시 | 경계 회귀값 |
+| `true-solar-hour-at-boundary` | −30분 보정 후 03:00 인시 | 경계 회귀값 |
+| `lunar-new-year-2024` | 한국 음력 2024-01-01 변환 | 양력 2024-02-10 변환 회귀값 |
+
+fixture 계약이 바뀌면 파일명을 `saju-golden/v2.json`처럼 올리고 변경 이유와
+외부 근거를 함께 갱신합니다. 테스트를 맞추기 위해 기대값을 임의 변경해서는 안 됩니다.
+
 ## 절기·절입 정밀도
 
 절기 절입 시각은 lunar-java 가 천문 계산으로 산출한다(별도 하드코딩 테이블 없음). 라이브러리는 널리 사용·검증된 구현이며, 4주·대운 경계를 자체 처리한다.
@@ -198,3 +214,4 @@ rel = (대상오행 − 일간오행) mod 5
 | 대운 12운성·십신 파생 | `GanjiCalculatorService.twelveStage` / `sipsin` |
 | 절기 | lunar-java 내부 |
 | 음양력(한국) | `LunarSolarConverter` (Time4J) |
+| 버전 기반 회귀 정본 | `fixtures/saju-golden-v1.json` / `SajuGoldenFixtureTest` |

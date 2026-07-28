@@ -4,6 +4,8 @@ import com.fortune.dto.SajuResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +27,8 @@ class AiFortuneFacadeTest {
                 new AiPromptFactory(properties),
                 new FallbackFortuneInterpreter(),
                 new AiNarrationValidator(),
-                Optional.of(request -> new AiPromptResponse("provider response", "test", false))
+                Optional.of(request -> new AiPromptResponse("provider response", "test", false)),
+                Optional.empty()
         );
 
         String result = facade.interpretSaju(SajuResult.builder()
@@ -55,7 +58,8 @@ class AiFortuneFacadeTest {
                 new AiNarrationValidator(),
                 Optional.of(request -> {
                     throw new IllegalStateException("provider failed");
-                })
+                }),
+                Optional.empty()
         );
 
         String result = facade.interpretSaju(SajuResult.builder()
@@ -77,12 +81,14 @@ class AiFortuneFacadeTest {
                 null,
                 true
         );
+        List<AiNarrationReceipt> receipts = new ArrayList<>();
         AiFortuneFacade facade = new AiFortuneFacade(
                 properties,
                 new AiPromptFactory(properties),
                 new FallbackFortuneInterpreter(),
                 new AiNarrationValidator(),
-                Optional.of(request -> new AiPromptResponse("현대적 AI 해석", "openai", false))
+                Optional.of(request -> new AiPromptResponse("현대적 AI 해석", "openai", false)),
+                Optional.of(receipts::add)
         );
 
         String result = facade.interpretSaju(SajuResult.builder()
@@ -91,6 +97,13 @@ class AiFortuneFacadeTest {
                 .build());
 
         assertThat(result).isEqualTo("현대적 AI 해석");
+        assertThat(receipts).singleElement().satisfies(receipt -> {
+            assertThat(receipt.accepted()).isTrue();
+            assertThat(receipt.fallbackUsed()).isFalse();
+            assertThat(receipt.providerCalled()).isTrue();
+            assertThat(receipt.validationCode()).isEqualTo("OK");
+            assertThat(receipt.factHash()).hasSize(64);
+        });
     }
 
     @Test
@@ -104,6 +117,7 @@ class AiFortuneFacadeTest {
                 null,
                 true
         );
+        List<AiNarrationReceipt> receipts = new ArrayList<>();
         AiFortuneFacade facade = new AiFortuneFacade(
                 properties,
                 new AiPromptFactory(properties),
@@ -112,7 +126,8 @@ class AiFortuneFacadeTest {
                 Optional.of(request -> new AiPromptResponse(
                         "당신은 정화(丁) 일간이며 정유 일주입니다.",
                         "openai",
-                        false))
+                        false)),
+                Optional.of(receipts::add)
         );
 
         String result = facade.interpretSaju(SajuResult.builder()
@@ -126,5 +141,33 @@ class AiFortuneFacadeTest {
         assertThat(result).contains("AI 폴백");
         assertThat(result).doesNotContain("정화(丁) 일간");
         assertThat(facade.providerStatus().reasonCode()).isEqualTo("FACT_ALIGNMENT_FAILED");
+        assertThat(receipts).singleElement().satisfies(receipt -> {
+            assertThat(receipt.accepted()).isFalse();
+            assertThat(receipt.fallbackUsed()).isTrue();
+            assertThat(receipt.validationCode()).isEqualTo("FACT_ALIGNMENT_FAILED");
+        });
+    }
+
+    @Test
+    void keepsProviderResponseWhenReceiptStorageFails() {
+        AiFortuneProperties properties = new AiFortuneProperties(
+                true, "openai", "gpt-5-mini", "https://api.openai.com/v1",
+                "test-key", null, true);
+        AiFortuneFacade facade = new AiFortuneFacade(
+                properties,
+                new AiPromptFactory(properties),
+                new FallbackFortuneInterpreter(),
+                new AiNarrationValidator(),
+                Optional.of(request -> new AiPromptResponse("검증된 AI 해석", "openai", false)),
+                Optional.of(receipt -> {
+                    throw new IllegalStateException("receipt store unavailable");
+                }));
+
+        String result = facade.interpretSaju(SajuResult.builder()
+                .dayMaster("갑")
+                .dayPillar("갑자")
+                .build());
+
+        assertThat(result).isEqualTo("검증된 AI 해석");
     }
 }

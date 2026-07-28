@@ -13,6 +13,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.stream.Collectors;
 
 /**
@@ -183,6 +187,19 @@ public record AiFactPacket(
 
     public String fact(String key) {
         return facts.getOrDefault(key, "");
+    }
+
+    /**
+     * 원문 사실을 저장하지 않고 동일한 결정론 결과를 식별하는 SHA-256 영수증 값.
+     */
+    public String factHash() {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(promptBlock().getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 algorithm is unavailable", exception);
+        }
     }
 
     private static AiFactPacket packet(String domain, Map<String, String> facts) {

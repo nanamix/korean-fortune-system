@@ -18,6 +18,7 @@ public class AiFortuneFacade {
     private final FallbackFortuneInterpreter fallbackInterpreter;
     private final AiNarrationValidator narrationValidator;
     private final Optional<AiProviderPort> provider;
+    private final Optional<AiNarrationReceiptPort> receiptPort;
     private volatile Attempt lastAttempt = Attempt.notAttempted();
 
     public AiFortuneFacade(
@@ -25,12 +26,14 @@ public class AiFortuneFacade {
             AiPromptFactory promptFactory,
             FallbackFortuneInterpreter fallbackInterpreter,
             AiNarrationValidator narrationValidator,
-            Optional<AiProviderPort> provider) {
+            Optional<AiProviderPort> provider,
+            Optional<AiNarrationReceiptPort> receiptPort) {
         this.properties = properties;
         this.promptFactory = promptFactory;
         this.fallbackInterpreter = fallbackInterpreter;
         this.narrationValidator = narrationValidator;
         this.provider = provider;
+        this.receiptPort = receiptPort;
     }
 
     public String interpretSaju(SajuResult sajuResult) {
@@ -81,6 +84,8 @@ public class AiFortuneFacade {
 
     private String completeOrFallback(AiPromptRequest request, FallbackSupplier fallback) {
         if (!properties.providerCallsEnabled() || provider.isEmpty()) {
+            recordReceipt(request, false, false, true,
+                    properties.providerCallsEnabled() ? "PROVIDER_MISSING" : "PROVIDER_DISABLED");
             return fallback.get();
         }
         try {
@@ -89,17 +94,42 @@ public class AiFortuneFacade {
             AiNarrationValidator.ValidationResult validation = narrationValidator.validate(request, content);
             if (!validation.valid()) {
                 lastAttempt = Attempt.failure(validation.code(), validation.reason());
+                recordReceipt(request, true, false, true, validation.code());
                 log.warn("AI narration rejected; domain={}, reason={}",
                         request.factPacket().domain(), validation.code());
                 return fallback.get();
             }
             lastAttempt = Attempt.success();
+            recordReceipt(request, true, true, false, validation.code());
             return content;
         } catch (Exception e) {
             lastAttempt = classifyFailure(e);
+            recordReceipt(request, true, false, true, lastAttempt.reasonCode());
             log.warn("AI provider failed; using fallback: {}", e.getMessage());
             return fallback.get();
         }
+    }
+
+    private void recordReceipt(
+            AiPromptRequest request,
+            boolean providerCalled,
+            boolean accepted,
+            boolean fallbackUsed,
+            String validationCode) {
+        receiptPort.ifPresent(port -> {
+            try {
+                port.record(AiNarrationReceipt.from(
+                        request,
+                        properties,
+                        providerCalled,
+                        accepted,
+                        fallbackUsed,
+                        validationCode));
+            } catch (Exception exception) {
+                log.warn("AI narration receipt write failed; domain={}",
+                        request.factPacket().domain());
+            }
+        });
     }
 
     private Attempt classifyFailure(Exception exception) {
