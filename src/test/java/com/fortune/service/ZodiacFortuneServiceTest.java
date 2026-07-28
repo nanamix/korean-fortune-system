@@ -5,6 +5,7 @@ import com.fortune.enums.Zodiac;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,8 +19,17 @@ class ZodiacFortuneServiceTest {
         LocalDate birthDate = LocalDate.of(1981, 9, 1);
         LocalDate targetDate = LocalDate.of(2026, 7, 15);
 
-        ZodiacFortuneResult first = service.calculateZodiacFortune(birthDate, targetDate);
-        ZodiacFortuneResult second = service.calculateZodiacFortune(birthDate, targetDate);
+        var request = com.fortune.dto.ZodiacRequest.builder()
+                .birthDate(birthDate)
+                .birthTime(LocalTime.of(9, 30))
+                .birthLatitude(37.5665)
+                .birthLongitude(126.978)
+                .timeZone("Asia/Seoul")
+                .calendarType("SOLAR")
+                .targetDate(targetDate)
+                .build();
+        ZodiacFortuneResult first = service.calculateZodiacFortune(request);
+        ZodiacFortuneResult second = service.calculateZodiacFortune(request);
 
         assertEquals(Zodiac.VIRGO, first.getZodiac());
         assertEquals(targetDate, first.getTargetDate());
@@ -37,12 +47,19 @@ class ZodiacFortuneServiceTest {
                         + first.getTodayFortune().getMoneyScore()) / 4.0f);
         assertEquals(expectedAverage, first.getTodayFortune().getOverallScore());
         assertTrue(first.getTodayFortune().getScoreBasis().contains("중립 기준 60점"));
-        assertTrue(first.getTodayFortune().getScoreBasis().contains("별자리 리듬"));
+        assertTrue(first.getTodayFortune().getScoreBasis().contains("출생 차트"));
+        assertTrue(first.getTodayFortune().getScoreBasis().contains("transit"));
         assertTrue(first.getTodayFortune().getScoreBasis().contains("날짜 리듬"));
         assertTrue(first.getMonthlyFortune().getDetailedMessage().length() >= 180);
         assertTrue(first.getMonthlyFortune().getOpportunity().length() >= 120);
         assertTrue(first.getMonthlyFortune().getCaution().length() >= 120);
         assertTrue(first.getMonthlyFortune().getScoreBasis().contains("중립 기준 60점"));
+        assertTrue(first.getMonthlyFortune().getScoreBasis().contains("tropical-approx-v1"));
         assertTrue(first.getPersonality().length() >= 140);
+        assertEquals("BIRTH_TIME_LOCATION", first.getAstrologyProfile().getPrecision());
+        assertEquals(Zodiac.VIRGO, first.getAstrologyProfile().getSunSign());
+        assertTrue(first.getAstrologyProfile().getMoonSign() != null);
+        assertTrue(first.getAstrologyProfile().getRisingSign() != null);
+        assertTrue(first.getTransitSummary().length() >= 30);
     }
 }

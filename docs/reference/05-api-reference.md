@@ -42,13 +42,24 @@ AI 3종 엔드포인트는 `AIFortuneService` 가 미주입(비활성)이면 `er
 |-----|------------------|------|
 | `SajuRequest` | `birthYear`(1900–2100), `birthMonth`(1–12), `birthDay`(1–31), `birthHour`(0–23), `birthMinute`(0–59), `gender`(`M`/`F`), `calendarType`(`SOLAR`/`LUNAR`), 선택 `birthSecond`·`leapMonth`·`birthLongitude`(124–132)·`applyEquationOfTime`·`applyHistoricalDst`·`notification` | `SajuRequest.java` |
 | `TojeongRequest` | `birthYear`(1900–2030), `birthMonth`, `birthDay`, `targetYear`(2020–2040) + 선택 `notification` | `TojeongRequest.java:21-43` |
-| `ZodiacRequest` | `birthDate`(LocalDate), `targetDate`(LocalDate) + 선택 `notification` | `ZodiacRequest.java:22-30` |
+| `ZodiacRequest` | `birthDate`, `targetDate` + 선택 `birthTime`, `birthLatitude`(-90~90), `birthLongitude`(-180~180), `timeZone`(IANA), `calendarType`(`SOLAR`/`LUNAR`), `leapMonth`, `notification` | `ZodiacRequest.java` |
 | `NotificationRequest` | `recipientName`(필수), `email`(형식), `telegramChatId`(숫자), 선택 `discordWebhookUrl`, `notificationType`(`email`/`telegram`/`discord`/`both`/`all`) | `NotificationRequest.java` |
 | `TelegramTestRequest` | `chatId`(long, nullable), `message` | `dto/TelegramTestRequest.java` |
 
 ### 발송(`*-and-send`) 동작
 
 `notification` 이 있을 때만 발송하며, `notificationType` 에 따라 이메일·텔레그램·Discord 또는 조합으로 분기합니다 ([02 §2.3](02-architecture.md)). 성공 시 `data` 는 일반 계산 API와 같은 운세 결과 객체이므로, 클라이언트는 발송을 사용해도 화면 결과를 동일하게 렌더링할 수 있습니다.
+
+### 별자리 개인화 계약
+
+- `birthTime`, `birthLatitude`, `birthLongitude`가 모두 있으면 `astrologyProfile.precision=BIRTH_TIME_LOCATION`이며 상승궁까지 계산합니다.
+- 셋 중 하나라도 없으면 `precision=DATE_ONLY`이며 태양궁·달궁만 계산합니다. 시간대가 없으면 `Asia/Seoul`을 사용합니다.
+- `calendarType=LUNAR`이면 `leapMonth`를 포함해 먼저 양력으로 변환합니다.
+- 결과의 `astrologyProfile`에는 Sun·Moon·Rising의 별자리와 별자리 내 각도, 원소·양상·주인 행성·데칸·출생 달 위상이 포함됩니다.
+- `majorTransits`에는 대상일 이동 태양·달과 출생 태양·달·상승궁 사이의 주요 각, orb, 점수 가감값, 해석이 포함됩니다.
+- `todayFortune.scoreBasis`와 `monthlyFortune.scoreBasis`는 중립 기준점과 출생 차트·transit·날짜 리듬의 실제 가감값을 제공합니다.
+
+계산 모델과 한계는 [14. 서양 점성술 계산](14-western-astrology.md)을 참고하세요.
 
 ### 요청/응답 예시 — `POST /api/fortune/saju/calculate`
 

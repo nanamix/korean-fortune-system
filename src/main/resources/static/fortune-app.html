@@ -528,6 +528,12 @@ body {
 .zodiac-target { display:flex; align-items:center; gap:.55rem; margin:1rem 0; padding:.85rem 1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }
 .zodiac-target label { font-size:.8rem; font-weight:800; color:var(--text-dark); }
 .zodiac-target input { margin-left:auto; max-width:180px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; font:inherit; }
+.zodiac-birth-location { margin:.8rem 0 1rem; border:1px solid #c3dafe; border-radius:12px; background:#f7f8ff; }
+.zodiac-birth-location summary { padding:.8rem 1rem; color:var(--primary-dark); font-size:.8rem; font-weight:900; cursor:pointer; }
+.zodiac-location-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; padding:0 1rem 1rem; }
+.zodiac-location-grid label { display:grid; gap:.35rem; color:var(--text-muted); font-size:.72rem; font-weight:800; }
+.zodiac-location-grid input { width:100%; min-height:42px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; background:#fff; font:inherit; }
+.zodiac-location-note { grid-column:1/-1; margin:0; color:var(--text-muted); font-size:.69rem; line-height:1.55; }
 .zodiac-hero { display:grid; grid-template-columns:84px 1fr auto; align-items:center; gap:1rem; padding:1.2rem; border-radius:16px; background:linear-gradient(135deg,#2d3748,#667eea); color:#fff; }
 .zodiac-hero-symbol { display:grid; place-items:center; width:76px; height:76px; border-radius:50%; background:rgba(255,255,255,.14); font-size:2.8rem; }
 .zodiac-hero h2 { margin:0 0 .25rem; font-size:1.5rem; }
@@ -545,6 +551,17 @@ body {
 .zodiac-score-track { height:7px; margin-bottom:.65rem; overflow:hidden; border-radius:8px; background:#edf2f7; }
 .zodiac-score-track i { display:block; height:100%; border-radius:8px; background:linear-gradient(90deg,#667eea,#48bb78); }
 .zodiac-score-card p { margin:0; color:var(--text-muted); font-size:.78rem; line-height:1.65; }
+.zodiac-chart-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.65rem; }
+.zodiac-chart-card { padding:.9rem; border:1px solid #d6bcfa; border-radius:13px; background:#faf5ff; text-align:center; }
+.zodiac-chart-card span { display:block; color:var(--text-muted); font-size:.68rem; }
+.zodiac-chart-card strong { display:block; margin:.25rem 0; color:#553c9a; font-size:.9rem; }
+.zodiac-chart-card small { color:var(--text-muted); font-size:.65rem; }
+.zodiac-transit-list { display:grid; gap:.55rem; }
+.zodiac-transit { padding:.85rem 1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }
+.zodiac-transit-head { display:flex; justify-content:space-between; gap:.7rem; margin-bottom:.35rem; }
+.zodiac-transit-head strong { color:var(--primary-dark); font-size:.8rem; }
+.zodiac-transit-head span { color:var(--text-muted); font-size:.7rem; }
+.zodiac-transit p { margin:0; color:var(--text-muted); font-size:.74rem; line-height:1.6; }
 .zodiac-month-card { padding:1rem; border:1px solid #d6bcfa; border-radius:14px; background:linear-gradient(135deg,#faf5ff,#f7f8ff); }
 .zodiac-month-head { display:flex; justify-content:space-between; gap:1rem; align-items:center; margin-bottom:.65rem; }
 .zodiac-month-head strong { color:#553c9a; }
@@ -640,6 +657,7 @@ body {
   .zodiac-hero-symbol { width:58px; height:58px; font-size:2.1rem; }
   .zodiac-average { grid-column:1/-1; display:flex; justify-content:center; align-items:baseline; gap:.35rem; padding-top:.65rem; border-top:1px solid rgba(255,255,255,.18); }
   .zodiac-score-grid { grid-template-columns:1fr; }
+  .zodiac-location-grid, .zodiac-chart-grid { grid-template-columns:1fr; }
   .zodiac-lucky-grid { grid-template-columns:repeat(2,1fr); }
   .zodiac-guide { align-items:flex-start; flex-direction:column; }
   .daily-overview, .fortune-detail-grid { grid-template-columns: 1fr; }
@@ -854,7 +872,23 @@ body {
           <input type="date" id="zodiac-target-date" aria-label="별자리 운세 대상 날짜">
         </div>
 
-        <div class="uses-common-profile">👤 상단의 공통 출생정보와 알림 설정을 사용합니다.</div>
+        <details class="zodiac-birth-location" open>
+          <summary>개인화 출생 위치 · 시간대</summary>
+          <div class="zodiac-location-grid">
+            <label for="zodiac-latitude">출생 위도
+              <input type="number" id="zodiac-latitude" value="37.5665" min="-90" max="90" step="0.0001" inputmode="decimal">
+            </label>
+            <label for="zodiac-longitude">출생 경도
+              <input type="number" id="zodiac-longitude" value="126.9780" min="-180" max="180" step="0.0001" inputmode="decimal">
+            </label>
+            <label for="zodiac-timezone">IANA 시간대
+              <input type="text" id="zodiac-timezone" value="Asia/Seoul" maxlength="64" spellcheck="false" placeholder="Asia/Seoul">
+            </label>
+            <p class="zodiac-location-note">기본값은 서울입니다. 공통 출생 시각과 함께 상승궁을 계산하므로 실제 출생 도시의 위도·경도·당시 시간대를 입력하면 개인화가 더 정확해집니다. 입력값은 현재 요청에만 사용됩니다.</p>
+          </div>
+        </details>
+
+        <div class="uses-common-profile">👤 상단의 공통 출생일·시각·역법과 알림 설정을 사용합니다.</div>
 
         <button class="btn-action" id="zodiac-btn" onclick="calcZodiac()">
           <span class="spinner" id="zodiac-spin"></span>
@@ -1852,7 +1886,27 @@ async function calcZodiac() {
     const birthDate = [profile.birthYear, String(profile.birthMonth).padStart(2, '0'), String(profile.birthDay).padStart(2, '0')].join('-');
     const targetDate = document.getElementById('zodiac-target-date').value;
     if (!targetDate) throw new Error('운세를 볼 날짜를 선택해 주세요.');
-    const body = { birthDate, targetDate, notification: notif };
+    const birthLatitude = Number(document.getElementById('zodiac-latitude').value);
+    const birthLongitude = Number(document.getElementById('zodiac-longitude').value);
+    const timeZone = document.getElementById('zodiac-timezone').value.trim();
+    if (!Number.isFinite(birthLatitude) || birthLatitude < -90 || birthLatitude > 90) {
+      throw validationError('출생 위도는 -90~90 범위로 입력하세요.', 'zodiac-latitude');
+    }
+    if (!Number.isFinite(birthLongitude) || birthLongitude < -180 || birthLongitude > 180) {
+      throw validationError('출생 경도는 -180~180 범위로 입력하세요.', 'zodiac-longitude');
+    }
+    if (!timeZone) throw validationError('IANA 시간대를 입력하세요. 예: Asia/Seoul', 'zodiac-timezone');
+    const body = {
+      birthDate,
+      targetDate,
+      birthTime: `${String(profile.birthHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')}`,
+      birthLatitude,
+      birthLongitude,
+      timeZone,
+      calendarType: profile.calendarType,
+      leapMonth: profile.leapMonth,
+      notification: notif
+    };
     let resp;
     if (notif) {
       resp = await apiPost('/api/fortune/zodiac/calculate-and-send', body);
@@ -1887,6 +1941,25 @@ function renderZodiac(d) {
   const nums = (d.luckyNumbers || []).join(' · ') || '-';
   const compat = (d.compatibleZodiacs || []).map(zodiacDisplayName).join(' · ') || '-';
   const zodiac = ZODIACS.find(item => item.name === d.zodiacKoreanName) || {};
+  const astrology = d.astrologyProfile || {};
+  const chartCards = [
+    { label:'태양궁 · 정체성과 목표', sign:astrology.sunSign, degree:astrology.sunDegree },
+    { label:'달궁 · 감정과 안정', sign:astrology.moonSign, degree:astrology.moonDegree },
+    { label:'상승궁 · 첫인상과 접근', sign:astrology.risingSign, degree:astrology.risingDegree }
+  ].map(point => `
+    <article class="zodiac-chart-card">
+      <span>${point.label}</span>
+      <strong>${escHtml(point.sign ? zodiacDisplayName(point.sign) : '정보 없음')}</strong>
+      <small>${Number.isFinite(Number(point.degree)) ? `${Number(point.degree).toFixed(1)}°` : '출생 시각·위치 필요'}</small>
+    </article>`).join('');
+  const transitCards = (d.majorTransits || []).map(transit => `
+    <article class="zodiac-transit">
+      <div class="zodiac-transit-head">
+        <strong>${escHtml(transit.transitingBody || '-')} ↔ ${escHtml(transit.natalPoint || '-')} · ${escHtml(transit.aspect || '-')}</strong>
+        <span>orb ${Number(transit.orb || 0).toFixed(1)}° · 점수 ${Number(transit.scoreAdjustment || 0) >= 0 ? '+' : ''}${Number(transit.scoreAdjustment || 0)}</span>
+      </div>
+      <p>${escHtml(transit.interpretation || '')}</p>
+    </article>`).join('');
   const scoreCards = categories.map(category => `
     <article class="zodiac-score-card">
       <div class="zodiac-score-head"><strong>${category.icon} ${category.name}</strong><span>${category.score}점</span></div>
@@ -1899,6 +1972,15 @@ function renderZodiac(d) {
       <div><h2>${escHtml(d.zodiacKoreanName || '-')}</h2><p>${escHtml(d.targetDate || '')} · ${zodiac.start || '-'} ~ ${zodiac.end || '-'}</p></div>
       <div class="zodiac-average"><strong>${average}</strong><span>오늘의 평균 점수</span></div>
     </div>
+
+    <h3 class="zodiac-title">개인 출생 차트 핵심</h3>
+    <div class="zodiac-chart-grid">${chartCards}</div>
+    <div class="summary-text" style="margin-top:.7rem">${escHtml(astrology.summary || '출생 차트 요약 정보가 없습니다.')}</div>
+    <div class="alert alert-info" style="margin-top:.7rem">원소 ${escHtml(astrology.element || '-')} · ${escHtml(astrology.modality || '-')} · 주인 행성 ${escHtml(astrology.rulingPlanet || '-')} · ${astrology.decan || '-'}데칸 · 출생 달 위상 ${escHtml(astrology.natalMoonPhase || '-')}</div>
+
+    <h3 class="zodiac-title">대상일 주요 트랜짓</h3>
+    ${transitCards ? `<div class="zodiac-transit-list">${transitCards}</div>` : '<div class="alert alert-info">설정한 orb 안에 들어오는 주요 각이 없습니다.</div>'}
+    <div class="summary-text" style="margin-top:.7rem">${escHtml(d.transitSummary || '')}</div>
 
     <h3 class="zodiac-title">오늘의 전체 흐름</h3>
     <div class="zodiac-overall">${escHtml(daily.overallMessage || '오늘의 종합 해석 정보가 없습니다.')}</div>
@@ -1932,7 +2014,7 @@ function renderZodiac(d) {
       <div class="zodiac-lucky-item"><span>행운의 숫자</span><strong>${escHtml(nums)}</strong></div>
       <div class="zodiac-lucky-item"><span>조화로운 별자리</span><strong>${escHtml(compat)}</strong></div>
     </div>
-    <p class="zodiac-disclaimer">별자리 운세는 날짜와 별자리 기반의 문화·오락적 참고 정보입니다. 건강·금융·법률에 관한 중요한 판단은 관련 전문가와 객관적인 자료를 우선하세요.</p>
+    <p class="zodiac-disclaimer">이 결과는 열대황도 Sun·Moon·Rising과 대상일 transit를 저차 천문 근사식으로 계산한 문화·오락적 참고 정보입니다. 전문 Swiss Ephemeris 차트나 과학적 예측을 대신하지 않으며, 건강·금융·법률에 관한 중요한 판단은 관련 전문가와 객관적인 자료를 우선하세요.</p>
   `;
 }
 

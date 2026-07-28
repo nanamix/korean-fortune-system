@@ -27,4 +27,7 @@ public class ZodiacFortuneResult {
     private String luckyColor;
     private String luckyStone;
     private String personality;
+    private WesternAstrologyProfile astrologyProfile;
+    private List<AstrologyTransit> majorTransits;
+    private String transitSummary;
 }

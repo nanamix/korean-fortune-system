@@ -218,8 +218,7 @@ public class FortuneController {
                 request.getBirthDate(), request.getTargetDate());
 
         try {
-            ZodiacFortuneResult result = zodiacFortuneService.calculateZodiacFortune(
-                    request.getBirthDate(), request.getTargetDate());
+            ZodiacFortuneResult result = zodiacFortuneService.calculateZodiacFortune(request);
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(result));
         } catch (Exception e) {
             log.error("❌ 별자리 운세 계산 실패: {}", e.getMessage(), e);
@@ -509,8 +508,8 @@ public class FortuneController {
 
         try {
             // 1. 별자리 운세 계산
-            ZodiacFortuneResult zodiacResult = zodiacFortuneService.calculateZodiacFortune(
-                    zodiacRequest.getBirthDate(), zodiacRequest.getTargetDate());
+            ZodiacFortuneResult zodiacResult =
+                    zodiacFortuneService.calculateZodiacFortune(zodiacRequest);
 
             // 2. 알림 발송
             if (zodiacRequest.getNotification() != null) {

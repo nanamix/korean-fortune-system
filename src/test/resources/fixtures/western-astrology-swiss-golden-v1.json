@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "western-astrology-swiss-golden/v1",
+  "reference": {
+    "name": "Swiss Ephemeris",
+    "version": "v2.10.3final",
+    "commit": "af9823fe7b06ffefe3d3968fdc5680be8b5eec5f",
+    "source": "https://github.com/aloistr/swisseph",
+    "flags": "SEFLG_SWIEPH|SEFLG_SPEED",
+    "houseFunction": "swe_houses(..., 'P', ...), ascmc[0]",
+    "generationMethod": "swe_julday + swe_calc_ut(SE_SUN/SE_MOON) + swe_houses linked against official libswe.a",
+    "coordinateContract": "UTC Julian day, tropical geocentric longitude, east-positive geographic longitude"
+  },
+  "toleranceDegrees": {
+    "sun": 0.02,
+    "moon": 0.15,
+    "rising": 0.05
+  },
+  "cases": [
+    {
+      "id": "seoul-1981-personalization",
+      "evidence": "Swiss Ephemeris v2.10.3final swe_calc_ut and swe_houses",
+      "input": {
+        "instant": "1981-09-01T00:30:00Z",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "julianDay": 2444848.520833333,
+        "sunLongitude": 158.487903696,
+        "moonLongitude": 187.069703346,
+        "risingLongitude": 200.031249851
+      }
+    },
+    {
+      "id": "j2000-greenwich",
+      "evidence": "Swiss Ephemeris v2.10.3final J2000 reference instant",
+      "input": {
+        "instant": "2000-01-01T12:00:00Z",
+        "latitude": 51.4779,
+        "longitude": 0.0
+      },
+      "expected": {
+        "julianDay": 2451545.0,
+        "sunLongitude": 280.368918670,
+        "moonLongitude": 223.323751446,
+        "risingLongitude": 24.266189203
+      }
+    },
+    {
+      "id": "vernal-equinox-boundary-2024",
+      "evidence": "Swiss Ephemeris v2.10.3final tropical Aries-point boundary",
+      "input": {
+        "instant": "2024-03-20T03:06:00Z",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "julianDay": 2460389.629166667,
+        "sunLongitude": 359.999721184,
+        "moonLongitude": 123.815178709,
+        "risingLongitude": 99.878681812
+      }
+    },
+    {
+      "id": "sydney-southern-hemisphere-2026",
+      "evidence": "Swiss Ephemeris v2.10.3final southern-hemisphere geometry",
+      "input": {
+        "instant": "2026-07-28T03:15:00Z",
+        "latitude": -33.8688,
+        "longitude": 151.2093
+      },
+      "expected": {
+        "julianDay": 2461249.635416667,
+        "sunLongitude": 125.095066054,
+        "moonLongitude": 288.673279838,
+        "risingLongitude": 253.231455019
+      }
+    },
+    {
+      "id": "seoul-historical-1948",
+      "evidence": "Swiss Ephemeris v2.10.3final historical instant",
+      "input": {
+        "instant": "1948-06-01T03:00:00Z",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "julianDay": 2432703.625,
+        "sunLongitude": 70.517242683,
+        "moonLongitude": 353.493750932,
+        "risingLongitude": 156.768708558
+      }
+    },
+    {
+      "id": "reykjavik-high-latitude-1960",
+      "evidence": "Swiss Ephemeris v2.10.3final high-latitude geometry",
+      "input": {
+        "instant": "1960-06-01T12:00:00Z",
+        "latitude": 64.1466,
+        "longitude": -21.9426
+      },
+      "expected": {
+        "julianDay": 2437087.0,
+        "sunLongitude": 70.978755935,
+        "moonLongitude": 147.635936896,
+        "risingLongitude": 156.013984203
+      }
+    }
+  ]
+}

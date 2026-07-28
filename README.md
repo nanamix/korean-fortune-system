@@ -21,7 +21,7 @@
 - **🔮 사주팔자 계산**: 전통 사주팔자 계산 및 오행 분석 (십신·지장간·12운성·대운 포함)
 - **📅 오늘의 운세**: 생년월일 기반 맞춤 일일 운세
 - **📜 토정비결**: 144괘(상8×중6×하3) 기반 연간 토정비결 운세
-- **⭐ 별자리 운세**: 서양 별자리 운세
+- **⭐ 개인화 서양 점성술**: 열대황도 Sun·Moon·Rising, 대상일 주요 transit·orb와 공개된 점수 산식
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
 - **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
@@ -99,7 +99,7 @@ docker compose \
 | 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 계산 후 발송 |
 | 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 144괘 운세 |
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 계산 후 발송 |
-| 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
+| 별자리 운세 | POST | `/api/fortune/zodiac` | Sun·Moon·Rising 및 주요 transit 기반 개인화 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 계산 후 발송 |
 | 간지달력 API | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 JSON 조회 |
 | 간지달력 뷰 | GET | `/api/calendar/view/{year}/{month}` | 간지달력 HTML 뷰 |
@@ -267,6 +267,13 @@ korean-fortune-system/
 
 ## 🔄 최근 변경사항
 
+### v3.1.4 (2026-07-28)
+- ✅ **서양 점성술 출생 차트** — 출생일·시각·위치·IANA 시간대로 열대황도 Sun·Moon·Rising, 원소·양상·데칸·출생 달 위상 계산
+- ✅ **대상일 transit와 점수 영수증** — 이동 태양·달과 출생 태양·달·상승궁의 합·육합·사각·삼합·충, orb 및 실제 분야별 가감값 표시
+- ✅ **Swiss Ephemeris golden fixture** — 공식 v2.10.3final 기준 6건으로 Sun 0.02°·Moon 0.15°·Rising 0.05° 허용 오차 회귀 검증
+- ✅ **AI fact packet v5** — 계산된 점성술 사실만 전달하고 출생시각·위치·시간대는 외부 AI payload에서 제외
+- ✅ **PWA 캐시 v28** — 배포 후 별자리 UI 변경이 즉시 반영되도록 정적 캐시 namespace 갱신
+
 ### v3.1.3 (2026-07-28)
 - ✅ **한국 출생시각 정밀 보정** — `Asia/Seoul` tzdb로 역사적 서머타임과 표준 자오선을 반영하고, 출생지 경도·선택형 균시차·출생초 입력 지원
 - ✅ **Golden fixture v2** — 서울·부산 경도/균시차, 1948·1960·1988 서머타임, 입춘 직전/경계 1초, 2023 윤2월을 포함한 12건으로 확대
@@ -351,7 +358,7 @@ Apache License 2.0
 - **📊 사주팔자 계산**: 전통 사주팔자 계산 및 분석
 - **📅 일일/월별 운세**: 개인별 맞춤 운세 제공
 - **📜 토정비결**: 144괘(상8×중6×하3) 기반 토정비결 운세
-- **⭐ 별자리 운세**: 서양 별자리 운세
+- **⭐ 개인화 서양 점성술**: 열대황도 Sun·Moon·Rising, 대상일 주요 transit·orb와 공개된 점수 산식
 - **📆 간지달력**: 간지 달력 및 길일 조회 (실제 달력 형태 뷰잉)
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
 - **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
@@ -439,7 +446,7 @@ open http://localhost:18080/api/docs/test
 | 오늘의 운세 발송 | POST | `/api/fortune/daily/today-and-send` | 오늘의 운세 계산 후 이메일/텔레그램 발송 |
 | 토정비결 | POST | `/api/fortune/tojeong` | 토정비결 144괘 운세 |
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 토정비결 계산 후 이메일/텔레그램 발송 |
-| 별자리 운세 | POST | `/api/fortune/zodiac` | 서양 별자리 운세 |
+| 별자리 운세 | POST | `/api/fortune/zodiac` | Sun·Moon·Rising 및 주요 transit 기반 개인화 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 별자리 운세 계산 후 이메일/텔레그램 발송 |
 | 간지달력 API | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 JSON 조회 |
 | 간지달력 뷰 | GET | `/api/calendar/view/{year}/{month}` | 간지달력 HTML 뷰 |

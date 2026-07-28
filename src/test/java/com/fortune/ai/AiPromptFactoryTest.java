@@ -45,11 +45,12 @@ class AiPromptFactoryTest {
         assertThat(prompt.user()).contains(
                 "<fortune-fact-packet>",
                 "schema_version=fortune-fact-packet/v1",
-                "engine_version=lunar-java-1.7.4+fortune-rules-v4",
+                "engine_version=lunar-java-1.7.4+fortune-rules-v5",
                 "can_override_engine=false",
                 "day_master=갑",
                 "pillars=경오 신사 갑자 신미",
-                "privacy_excluded=name,birth_date,adjusted_datetime,calendar_type,gender,notification_targets");
+                "privacy_excluded=name,birth_date,birth_time,birth_location,time_zone,"
+                        + "adjusted_datetime,calendar_type,gender,notification_targets");
         assertThat(prompt.user()).contains("단정적인 의학, 법률, 투자 조언은 피하세요");
         assertThat(prompt.user())
                 .doesNotContain("1981-03-20", "01:30", "birth_date=", "adjusted_datetime=", "calendar_type=", "gender=");

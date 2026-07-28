@@ -97,6 +97,23 @@ class FortuneAppProfileTest {
                 .doesNotContain("`상세 ${index + 1}`");
     }
 
+    @Test
+    void submitsAndRendersPersonalizedWesternAstrology() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("id=\"zodiac-latitude\"")
+                .contains("id=\"zodiac-longitude\"")
+                .contains("id=\"zodiac-timezone\"")
+                .contains("birthTime:")
+                .contains("calendarType: profile.calendarType")
+                .contains("개인 출생 차트 핵심")
+                .contains("대상일 주요 트랜짓")
+                .contains("astrologyProfile")
+                .contains("majorTransits")
+                .contains("orb ");
+    }
+
     private String loadFortuneApp() throws IOException {
         return new ClassPathResource("static/fortune-app.html")
                 .getContentAsString(StandardCharsets.UTF_8);

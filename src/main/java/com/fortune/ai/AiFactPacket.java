@@ -7,6 +7,7 @@ import com.fortune.dto.SajuResult;
 import com.fortune.dto.TojeongResult;
 import com.fortune.dto.ZodiacDailyFortune;
 import com.fortune.dto.ZodiacFortuneResult;
+import com.fortune.dto.WesternAstrologyProfile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,11 +31,14 @@ public record AiFactPacket(
         List<String> excludedSensitiveFields
 ) {
     public static final String SCHEMA_VERSION = "fortune-fact-packet/v1";
-    public static final String ENGINE_VERSION = "lunar-java-1.7.4+fortune-rules-v4";
-    public static final String CACHE_NAMESPACE = "fact-v1-engine-v4";
+    public static final String ENGINE_VERSION = "lunar-java-1.7.4+fortune-rules-v5";
+    public static final String CACHE_NAMESPACE = "fact-v1-engine-v5";
     private static final List<String> DEFAULT_EXCLUSIONS = List.of(
             "name",
             "birth_date",
+            "birth_time",
+            "birth_location",
+            "time_zone",
             "adjusted_datetime",
             "calendar_type",
             "gender",
@@ -141,6 +145,33 @@ public record AiFactPacket(
         facts.put("lucky_stone", safe(result.getLuckyStone()));
         facts.put("personality", safe(result.getPersonality()));
 
+        WesternAstrologyProfile profile = result.getAstrologyProfile();
+        if (profile != null) {
+            facts.put("astrology_model", safe(profile.getCalculationModel()));
+            facts.put("astrology_precision", safe(profile.getPrecision()));
+            facts.put("sun_sign", zodiac(profile.getSunSign(), profile.getSunDegree()));
+            facts.put("moon_sign", zodiac(profile.getMoonSign(), profile.getMoonDegree()));
+            facts.put("rising_sign", profile.getRisingSign() == null
+                    ? "정보 없음"
+                    : zodiac(profile.getRisingSign(), profile.getRisingDegree()));
+            facts.put("sun_element_modality",
+                    safe(profile.getElement()) + "," + safe(profile.getModality()));
+            facts.put("ruling_planet", safe(profile.getRulingPlanet()));
+            facts.put("decan", String.valueOf(profile.getDecan()));
+            facts.put("natal_moon_phase", safe(profile.getNatalMoonPhase()));
+        }
+        if (result.getMajorTransits() != null && !result.getMajorTransits().isEmpty()) {
+            facts.put("major_transits", result.getMajorTransits().stream()
+                    .map(transit -> "%s:%s:%s:orb%.1f:score%+d".formatted(
+                            safe(transit.getTransitingBody()),
+                            safe(transit.getNatalPoint()),
+                            safe(transit.getAspect()),
+                            transit.getOrb(),
+                            transit.getScoreAdjustment()))
+                    .collect(Collectors.joining("|")));
+        }
+        facts.put("transit_summary", safe(result.getTransitSummary()));
+
         ZodiacDailyFortune today = result.getTodayFortune();
         if (today != null) {
             facts.put("total_score", String.valueOf(today.getOverallScore()));
@@ -212,6 +243,13 @@ public record AiFactPacket(
                 fortune.getScore(),
                 safe(fortune.getMessage()),
                 join(fortune.getKeywords()));
+    }
+
+    private static String zodiac(com.fortune.enums.Zodiac zodiac, Number degree) {
+        if (zodiac == null) {
+            return "정보 없음";
+        }
+        return zodiac.getKoreanName() + ":" + (degree == null ? "정보 없음" : degree + "deg");
     }
 
     private static String join(List<?> values) {

@@ -23,6 +23,7 @@
 | 11 | [Docker 배포](./11-deployment-docker.md) | 멀티스테이지 이미지 빌드, Compose 스택(standalone/dev/prod), 환경변수, 헬스체크 |
 | 12 | [CI/CD 및 운영](./12-cicd-and-operations.md) | GitHub Actions CI/CD 파이프라인, 배포 흐름, 운영 점검(health·로그) |
 | 13 | [알림 연동 가이드](./13-notifications-guide.md) | 이메일(Gmail 앱 비밀번호·AWS SES SMTP·기타 SMTP), 텔레그램, Discord 설정 |
+| 14 | [서양 점성술 계산](./14-western-astrology.md) | 열대황도 Sun·Moon·Rising, transit·orb, 점수 산식과 정확도 경계 |
 
 > 01·02·03·04·05·06 문서는 다른 작업자가 작성합니다. 07~12는 본 세트에서 제공됩니다.
 
@@ -39,3 +40,4 @@
 | CI/CD·운영 점검 | [12. CI/CD 및 운영](./12-cicd-and-operations.md) |
 | 이메일(Gmail/SES)·텔레그램·Discord 발송 | [13. 알림 연동 가이드](./13-notifications-guide.md) |
 | 인증·모니터링·추적 | [07. 보안 및 관측성](./07-security-and-observability.md) |
+| 별자리 계산식과 점수 근거 확인 | [14. 서양 점성술 계산](./14-western-astrology.md) |

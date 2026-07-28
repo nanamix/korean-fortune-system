@@ -2,6 +2,7 @@ package com.fortune.service;
 import com.fortune.dto.*;
 import com.fortune.enums.Zodiac;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.MonthDay;
@@ -16,6 +17,17 @@ import java.util.*;
 @Slf4j
 @Service
 public class ZodiacFortuneService {
+    private final WesternAstrologyService westernAstrologyService;
+
+    public ZodiacFortuneService() {
+        this(new WesternAstrologyService());
+    }
+
+    @Autowired
+    public ZodiacFortuneService(WesternAstrologyService westernAstrologyService) {
+        this.westernAstrologyService = westernAstrologyService;
+    }
+
     /**
      * 별자리 날짜 범위
      */
@@ -59,14 +71,26 @@ public class ZodiacFortuneService {
      * @return 별자리 운세 결과
      */
     public ZodiacFortuneResult calculateZodiacFortune(LocalDate birthDate, LocalDate targetDate) {
-        log.info("⭐ 별자리 운세 계산 시작: {} -> {}", birthDate, targetDate);
+        return calculateZodiacFortune(ZodiacRequest.builder()
+                .birthDate(birthDate)
+                .targetDate(targetDate)
+                .build());
+    }
+
+    public ZodiacFortuneResult calculateZodiacFortune(ZodiacRequest request) {
+        LocalDate birthDate = solarBirthDate(request);
+        LocalDate targetDate = request.getTargetDate();
+        log.info("⭐ 개인화 별자리 운세 계산 시작: birthDate=provided, targetDate={}", targetDate);
         try {
-            /* 1. 별자리 판정 */
-            Zodiac zodiac = determineZodiac(birthDate);
+            WesternAstrologyService.Analysis astrology =
+                    westernAstrologyService.analyze(request, birthDate);
+            Zodiac zodiac = astrology.profile().getSunSign();
             /* 2. 오늘의 운세 계산 */
-            ZodiacDailyFortune dailyFortune = calculateDetailedDailyFortune(zodiac, targetDate);
+            ZodiacDailyFortune dailyFortune =
+                    calculateDetailedDailyFortune(zodiac, targetDate, astrology);
             /* 3. 월별 운세 계산 */
-            ZodiacMonthlyFortune monthlyFortune = calculateMonthlyFortune(zodiac, targetDate);
+            ZodiacMonthlyFortune monthlyFortune =
+                    calculateMonthlyFortune(zodiac, targetDate, astrology);
             /* 4. 궁합 별자리 조회 */
             List<Zodiac> compatibleZodiacs = ZODIAC_COMPATIBILITY.getOrDefault(zodiac, new ArrayList<>());
             /* 5. 행운의 숫자 생성 */
@@ -82,7 +106,11 @@ public class ZodiacFortuneService {
                     .luckyNumbers(luckyNumbers)
                     .luckyColor(ZODIAC_LUCKY_COLORS.getOrDefault(zodiac, "흰색"))
                     .luckyStone(ZODIAC_LUCKY_STONES.getOrDefault(zodiac, "수정"))
-                    .personality(expandPersonality(zodiac))
+                    .personality(expandPersonality(zodiac)
+                            + " " + astrology.profile().getSummary())
+                    .astrologyProfile(astrology.profile())
+                    .majorTransits(astrology.transits())
+                    .transitSummary(astrology.transitSummary())
                     .build();
             /* 별자리 운세 결과 반환 */
             log.info("✅ 별자리 운세 계산 완료: {}", zodiac.getKoreanName());
@@ -91,6 +119,21 @@ public class ZodiacFortuneService {
             log.error("❌ 별자리 운세 계산 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("별자리 운세 계산 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
+    }
+
+    private LocalDate solarBirthDate(ZodiacRequest request) {
+        if (request == null || request.getBirthDate() == null || request.getTargetDate() == null) {
+            throw new IllegalArgumentException("출생일자와 대상일자는 필수입니다.");
+        }
+        if ("LUNAR".equalsIgnoreCase(request.getCalendarType())) {
+            LocalDate lunar = request.getBirthDate();
+            return LunarSolarConverter.lunarToSolar(
+                    lunar.getYear(),
+                    lunar.getMonthValue(),
+                    lunar.getDayOfMonth(),
+                    Boolean.TRUE.equals(request.getLeapMonth()));
+        }
+        return request.getBirthDate();
     }
     /**
      * 별자리 판정
@@ -145,11 +188,14 @@ public class ZodiacFortuneService {
      * @param targetDate 대상 날짜
      * @return 일일 운세 결과
      */
-    private ZodiacDailyFortune calculateDetailedDailyFortune(Zodiac zodiac, LocalDate targetDate) {
-        ScoreComponents love = calculateDailyScore(zodiac, targetDate, 0);
-        ScoreComponents career = calculateDailyScore(zodiac, targetDate, 1);
-        ScoreComponents health = calculateDailyScore(zodiac, targetDate, 2);
-        ScoreComponents money = calculateDailyScore(zodiac, targetDate, 3);
+    private ZodiacDailyFortune calculateDetailedDailyFortune(
+            Zodiac zodiac,
+            LocalDate targetDate,
+            WesternAstrologyService.Analysis astrology) {
+        ScoreComponents love = calculateDailyScore(astrology, targetDate, 0);
+        ScoreComponents career = calculateDailyScore(astrology, targetDate, 1);
+        ScoreComponents health = calculateDailyScore(astrology, targetDate, 2);
+        ScoreComponents money = calculateDailyScore(astrology, targetDate, 3);
         int loveScore = love.score();
         int careerScore = career.score();
         int healthScore = health.score();
@@ -163,7 +209,9 @@ public class ZodiacFortuneService {
         String healthMessage = generateDetailedMessage(zodiac, "health", healthScore);
         /* 금전 메시지 생성 */
         String moneyMessage = generateDetailedMessage(zodiac, "money", moneyScore);
-        String overall = generateDailyOverview(zodiac, loveScore, careerScore, healthScore, moneyScore);
+        String overall = generateDailyOverview(
+                zodiac, loveScore, careerScore, healthScore, moneyScore)
+                + " 오늘의 주요 점성술 흐름은 " + astrology.transitSummary();
         return ZodiacDailyFortune.builder()
                 .overallMessage(overall)
                 .overallScore(overallScore)
@@ -183,27 +231,30 @@ public class ZodiacFortuneService {
     /**
      * 문화·오락용 결정론적 점수 생성.
      *
-     * <p>모든 별자리가 같은 중립 기준점(60점)에서 시작하며, 별자리·분야 조합 리듬과
-     * 대상 날짜·분야 조합 리듬만 가감한다. 같은 입력은 항상 같은 결과를 반환한다.</p>
+     * <p>중립 기준점(60점)에 출생 차트의 태양궁 원소·양상과 대상일 행성 각을
+     * 가감한다. 같은 입력은 항상 같은 결과를 반환한다.</p>
      *
-     * @param zodiac 별자리
+     * @param astrology 출생 차트와 대상일 transit
      * @param targetDate 대상 날짜
      * @param categoryIndex 관계0·일1·건강2·재정3
      * @return 점수와 실제 가감 요소
      */
     private ScoreComponents calculateDailyScore(
-            Zodiac zodiac, LocalDate targetDate, int categoryIndex) {
-        int zodiacRhythm = Math.floorMod(
-                (zodiac.ordinal() + 1) * 7 + categoryIndex * 5, 21) - 10;
-        int dateRhythm = Math.floorMod(
-                targetDate.getYear() * 3
-                        + targetDate.getDayOfYear() * 5
-                        + categoryIndex * 11,
-                31) - 15;
+            WesternAstrologyService.Analysis astrology,
+            LocalDate targetDate,
+            int categoryIndex) {
+        int natalAdjustment = astrology.natalAdjustments()[categoryIndex];
+        int transitAdjustment = astrology.transitAdjustments()[categoryIndex];
+        int seasonalAdjustment = Math.floorMod(
+                targetDate.getDayOfYear()
+                        + astrology.profile().getSunSign().ordinal() * 3
+                        + categoryIndex * 5,
+                9) - 4;
         return new ScoreComponents(
-                clampScore(60 + zodiacRhythm + dateRhythm),
-                zodiacRhythm,
-                dateRhythm);
+                clampScore(60 + natalAdjustment + transitAdjustment + seasonalAdjustment),
+                natalAdjustment,
+                transitAdjustment,
+                seasonalAdjustment);
     }
 
     private String dailyScoreBasis(
@@ -212,11 +263,10 @@ public class ZodiacFortuneService {
             int overallScore, int loveScore, int careerScore,
             int healthScore, int moneyScore) {
         return "문화·오락용 결정론적 점수입니다. 각 분야는 중립 기준 60점에서 "
-                + "별자리와 분야 조합으로 만든 별자리 리듬(-10~+10), 대상 날짜와 분야 조합으로 만든 "
-                + "날짜 리듬(-15~+15)을 더한 뒤 0~100점으로 보정합니다. "
-                + "별자리 리듬은 ((별자리 순번×7 + 분야 순번×5) mod 21)-10, "
-                + "날짜 리듬은 ((연도×3 + 연중 일수×5 + 분야 순번×11) mod 31)-15이며, "
-                + "별자리는 양자리부터 1~12, 분야는 관계·일·건강·재정 순으로 0~3을 사용합니다. "
+                + "출생 태양궁의 원소·양상 조정값, 대상일 태양·달과 출생 태양·달·상승궁의 "
+                + "주요 각 조정값, 대상 날짜 기반 리듬(-4~+4)을 더한 뒤 "
+                + "0~100점으로 보정합니다. transit는 합·육합·사각·삼합·충과 orb를 사용하며, "
+                + "상승궁은 출생 시각·위치가 있을 때만 반영합니다. "
                 + "실제 가감은 관계 " + componentsText(love)
                 + ", 일·성취 " + componentsText(career)
                 + ", 건강 " + componentsText(health)
@@ -227,8 +277,9 @@ public class ZodiacFortuneService {
     }
 
     private String componentsText(ScoreComponents components) {
-        return "(별자리 " + signed(components.zodiacRhythm())
-                + ", 날짜 " + signed(components.dateRhythm()) + ")";
+        return "(출생 차트 " + signed(components.natalAdjustment())
+                + ", transit " + signed(components.transitAdjustment())
+                + ", 날짜 리듬 " + signed(components.seasonalAdjustment()) + ")";
     }
 
     private int clampScore(int score) {
@@ -239,7 +290,11 @@ public class ZodiacFortuneService {
         return value >= 0 ? "+" + value : Integer.toString(value);
     }
 
-    private record ScoreComponents(int score, int zodiacRhythm, int dateRhythm) {
+    private record ScoreComponents(
+            int score,
+            int natalAdjustment,
+            int transitAdjustment,
+            int seasonalAdjustment) {
     }
     /**
      * 상세 메시지 생성
@@ -339,13 +394,19 @@ public class ZodiacFortuneService {
      * @param targetDate 대상 날짜
      * @return 월별 운세 결과
      */
-    private ZodiacMonthlyFortune calculateMonthlyFortune(Zodiac zodiac, LocalDate targetDate) {
+    private ZodiacMonthlyFortune calculateMonthlyFortune(
+            Zodiac zodiac,
+            LocalDate targetDate,
+            WesternAstrologyService.Analysis astrology) {
         int month = targetDate.getMonthValue();
-        int zodiacMonthRhythm = Math.floorMod(
-                (zodiac.ordinal() + 1) * 7 + month * 5, 21) - 10;
-        int yearMonthRhythm = Math.floorMod(
-                targetDate.getYear() * 3 + month * 11, 31) - 15;
-        int overallScore = clampScore(60 + zodiacMonthRhythm + yearMonthRhythm);
+        int natalMonthAdjustment = Math.round(Arrays.stream(
+                astrology.natalAdjustments()).sum() / 4.0f);
+        int transitMonthAdjustment = Math.round(Arrays.stream(
+                astrology.transitAdjustments()).sum() / 4.0f);
+        int seasonalAdjustment = Math.floorMod(
+                targetDate.getYear() + month * 3 + zodiac.ordinal(), 11) - 5;
+        int overallScore = clampScore(
+                60 + natalMonthAdjustment + transitMonthAdjustment + seasonalAdjustment);
         String theme = generateMonthlyTheme(zodiac, month);
         String detailedMessage = generateMonthlyMessage(zodiac, month, overallScore);
         String caution = generateCaution(overallScore);
@@ -354,13 +415,12 @@ public class ZodiacFortuneService {
                 .month(month)
                 .overallScore(overallScore)
                 .scoreBasis("문화·오락용 결정론적 점수입니다. 중립 기준 60점에 "
-                        + zodiac.getKoreanName() + "와 " + month + "월 조합의 별자리 리듬 "
-                        + signed(zodiacMonthRhythm) + "점, " + targetDate.getYear() + "년과 "
-                        + month + "월 조합의 날짜 리듬 " + signed(yearMonthRhythm)
-                        + "점을 더해 " + overallScore + "점으로 계산했습니다. "
-                        + "별자리 리듬은 ((별자리 순번×7 + 월×5) mod 21)-10, "
-                        + "날짜 리듬은 ((연도×3 + 월×11) mod 31)-15를 사용합니다. "
-                        + "같은 별자리와 대상 연월에는 항상 같은 점수가 나오며, 천문학적 예측이나 "
+                        + "출생 차트 평균 " + signed(natalMonthAdjustment) + "점, 대상일 transit 평균 "
+                        + signed(transitMonthAdjustment) + "점, 대상 연월 기반 날짜 리듬 "
+                        + signed(seasonalAdjustment) + "점을 더해 " + overallScore
+                        + "점으로 계산했습니다. 태양·달·상승궁과 주요 각의 근사 위치는 "
+                        + WesternAstrologyService.MODEL + " 모델을 사용합니다. "
+                        + "같은 출생정보와 대상일에는 항상 같은 점수가 나오며, 천문학적 예측이나 "
                         + "의학·재정 판단 지표가 아닌 서비스 내부의 오락용 참고 산식입니다.")
                 .theme(theme)
                 .detailedMessage(detailedMessage)

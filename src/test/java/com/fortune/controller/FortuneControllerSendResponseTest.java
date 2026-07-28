@@ -143,8 +143,7 @@ class FortuneControllerSendResponseTest {
         ZodiacFortuneResult expected = ZodiacFortuneResult.builder()
                 .targetDate(request.getTargetDate())
                 .build();
-        when(zodiacFortuneService.calculateZodiacFortune(
-                request.getBirthDate(), request.getTargetDate())).thenReturn(expected);
+        when(zodiacFortuneService.calculateZodiacFortune(request)).thenReturn(expected);
 
         ResponseEntity<ApiResponse<ZodiacFortuneResult>> response =
                 controller.calculateZodiacFortuneAndSend(request);
