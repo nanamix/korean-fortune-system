@@ -24,6 +24,7 @@ class AiFortuneFacadeTest {
                 properties,
                 new AiPromptFactory(properties),
                 new FallbackFortuneInterpreter(),
+                new AiNarrationValidator(),
                 Optional.of(request -> new AiPromptResponse("provider response", "test", false))
         );
 
@@ -51,6 +52,7 @@ class AiFortuneFacadeTest {
                 properties,
                 new AiPromptFactory(properties),
                 new FallbackFortuneInterpreter(),
+                new AiNarrationValidator(),
                 Optional.of(request -> {
                     throw new IllegalStateException("provider failed");
                 })
@@ -79,6 +81,7 @@ class AiFortuneFacadeTest {
                 properties,
                 new AiPromptFactory(properties),
                 new FallbackFortuneInterpreter(),
+                new AiNarrationValidator(),
                 Optional.of(request -> new AiPromptResponse("현대적 AI 해석", "openai", false))
         );
 
@@ -88,5 +91,40 @@ class AiFortuneFacadeTest {
                 .build());
 
         assertThat(result).isEqualTo("현대적 AI 해석");
+    }
+
+    @Test
+    void rejectsNarrationThatOverridesDeterministicSajuFacts() {
+        AiFortuneProperties properties = new AiFortuneProperties(
+                true,
+                "openai",
+                "gpt-5-mini",
+                "https://api.openai.com/v1",
+                "test-key",
+                null,
+                true
+        );
+        AiFortuneFacade facade = new AiFortuneFacade(
+                properties,
+                new AiPromptFactory(properties),
+                new FallbackFortuneInterpreter(),
+                new AiNarrationValidator(),
+                Optional.of(request -> new AiPromptResponse(
+                        "당신은 정화(丁) 일간이며 정유 일주입니다.",
+                        "openai",
+                        false))
+        );
+
+        String result = facade.interpretSaju(SajuResult.builder()
+                .yearPillar("경오")
+                .monthPillar("신사")
+                .dayPillar("갑자")
+                .timePillar("신미")
+                .dayMaster("갑")
+                .build());
+
+        assertThat(result).contains("AI 폴백");
+        assertThat(result).doesNotContain("정화(丁) 일간");
+        assertThat(facade.providerStatus().reasonCode()).isEqualTo("FACT_ALIGNMENT_FAILED");
     }
 }

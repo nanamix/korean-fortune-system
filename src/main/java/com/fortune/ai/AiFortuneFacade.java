@@ -16,6 +16,7 @@ public class AiFortuneFacade {
     private final AiFortuneProperties properties;
     private final AiPromptFactory promptFactory;
     private final FallbackFortuneInterpreter fallbackInterpreter;
+    private final AiNarrationValidator narrationValidator;
     private final Optional<AiProviderPort> provider;
     private volatile Attempt lastAttempt = Attempt.notAttempted();
 
@@ -23,10 +24,12 @@ public class AiFortuneFacade {
             AiFortuneProperties properties,
             AiPromptFactory promptFactory,
             FallbackFortuneInterpreter fallbackInterpreter,
+            AiNarrationValidator narrationValidator,
             Optional<AiProviderPort> provider) {
         this.properties = properties;
         this.promptFactory = promptFactory;
         this.fallbackInterpreter = fallbackInterpreter;
+        this.narrationValidator = narrationValidator;
         this.provider = provider;
     }
 
@@ -82,12 +85,16 @@ public class AiFortuneFacade {
         }
         try {
             AiPromptResponse response = provider.get().complete(request);
-            if (response == null || response.content() == null || response.content().isBlank()) {
-                lastAttempt = Attempt.failure("EMPTY_RESPONSE", "외부 AI가 빈 응답을 반환했습니다.");
+            String content = response == null ? null : response.content();
+            AiNarrationValidator.ValidationResult validation = narrationValidator.validate(request, content);
+            if (!validation.valid()) {
+                lastAttempt = Attempt.failure(validation.code(), validation.reason());
+                log.warn("AI narration rejected; domain={}, reason={}",
+                        request.factPacket().domain(), validation.code());
                 return fallback.get();
             }
             lastAttempt = Attempt.success();
-            return response.content();
+            return content;
         } catch (Exception e) {
             lastAttempt = classifyFailure(e);
             log.warn("AI provider failed; using fallback: {}", e.getMessage());
