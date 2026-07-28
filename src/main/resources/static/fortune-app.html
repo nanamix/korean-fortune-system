@@ -585,6 +585,17 @@ body {
 .zodiac-week-day.target { box-shadow:inset 0 0 0 2px var(--primary); }
 .zodiac-week-day span, .zodiac-week-day small { display:block; color:var(--text-muted); font-size:.65rem; line-height:1.45; }
 .zodiac-week-day strong { display:block; margin:.25rem 0; color:var(--primary-dark); font-size:1rem; }
+.zodiac-year-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.6rem; margin-top:.75rem; }
+.zodiac-year-month { min-width:0; padding:.8rem; border:1px solid var(--border); border-radius:12px; background:#fff; }
+.zodiac-year-month.best { border-color:#68d391; background:#f0fff4; }
+.zodiac-year-month.caution { border-color:#f6ad55; background:#fffaf0; }
+.zodiac-year-month-head { display:flex; justify-content:space-between; gap:.5rem; align-items:center; }
+.zodiac-year-month-head strong { color:var(--primary-dark); font-size:.82rem; }
+.zodiac-year-month-head span { color:var(--primary); font-size:.9rem; font-weight:900; }
+.zodiac-year-month > small { display:block; min-height:2.4em; margin-top:.35rem; color:var(--text-muted); font-size:.68rem; line-height:1.4; }
+.zodiac-year-month details { margin-top:.5rem; border-top:1px solid var(--border); }
+.zodiac-year-month summary { padding-top:.45rem; color:var(--primary); font-size:.67rem; font-weight:800; cursor:pointer; }
+.zodiac-year-month details p { margin:.45rem 0 0; color:var(--text-muted); font-size:.68rem; line-height:1.55; }
 .daily-astrology-summary { margin-top:1.2rem; padding-top:.2rem; border-top:1px solid var(--border); }
 .zodiac-score-basis { margin-top:.8rem; border:1px solid #c3dafe; border-radius:12px; background:#f7f8ff; }
 .zodiac-score-basis summary { padding:.8rem 1rem; color:var(--primary-dark); font-size:.8rem; font-weight:900; cursor:pointer; }
@@ -679,6 +690,7 @@ body {
   .zodiac-score-grid { grid-template-columns:1fr; }
   .zodiac-week-grid { grid-template-columns:repeat(2,1fr); }
   .zodiac-week-day:last-child { grid-column:1/-1; }
+  .zodiac-year-grid { grid-template-columns:repeat(2,1fr); }
   .zodiac-location-grid, .zodiac-chart-grid { grid-template-columns:1fr; }
   .zodiac-lucky-grid { grid-template-columns:repeat(2,1fr); }
   .zodiac-guide { align-items:flex-start; flex-direction:column; }
@@ -913,7 +925,7 @@ body {
     <div class="section" id="sec-zodiac" role="tabpanel" aria-labelledby="tab-zodiac" tabindex="-1" hidden>
       <div class="card">
         <div class="card-title">⭐ 서양 점성술</div>
-        <div class="zodiac-guide"><span>공통 출생일·시각·도시로 Sun·Moon·Rising과 트랜짓을 계산합니다.</span><span>선택한 날짜를 기준으로 일일·주간·월간 운세를 함께 제공합니다.</span></div>
+        <div class="zodiac-guide"><span>공통 출생일·시각·도시로 Sun·Moon·Rising과 트랜짓을 계산합니다.</span><span>선택한 날짜를 기준으로 일일·주간·월간·연간 운세를 함께 제공합니다.</span></div>
 
         <div class="zodiac-grid" id="zodiacGrid"></div>
 
@@ -2101,6 +2113,7 @@ function renderZodiac(d) {
   const daily = d.todayFortune || {};
   const weekly = d.weeklyFortune || {};
   const monthly = d.monthlyFortune || {};
+  const annual = d.annualFortune || {};
   const categories = [
     { icon:'💗', name:'관계·연애', score:daily.loveScore || 0, message:daily.loveMessage },
     { icon:'💼', name:'일·성취', score:daily.careerScore || 0, message:daily.careerMessage },
@@ -2183,6 +2196,7 @@ function renderZodiac(d) {
     ${reportSection('☀️ 선택일 운세', '관계·일·건강·재정의 상세 흐름', dailyContent)}
     ${reportSection('📅 주간 운세', `${escHtml(weekly.startDate || '-')} ~ ${escHtml(weekly.endDate || '-')}`, renderAstrologyWeek(weekly, d.targetDate))}
     ${reportSection(`🗓️ ${monthly.month || ''}월 운세`, '선택일이 포함된 달의 큰 흐름', monthlyContent)}
+    ${reportSection(`📆 ${annual.year || ''}년 연간 운세`, '12개월 흐름과 활용·점검 시기', renderAstrologyYear(annual))}
     ${reportSection('🧭 성향과 참고 요소', '출생 차트 기반 성향과 문화적 참고값', referenceContent)}
     <p class="zodiac-disclaimer">이 결과는 열대황도 Sun·Moon·Rising과 대상일 transit를 저차 천문 근사식으로 계산한 문화·오락적 참고 정보입니다. 전문 Swiss Ephemeris 차트나 과학적 예측을 대신하지 않으며, 건강·금융·법률에 관한 중요한 판단은 관련 전문가와 객관적인 자료를 우선하세요.</p>
   `;
@@ -2214,6 +2228,37 @@ function renderAstrologyWeek(weekly, targetDate) {
     ${weekly.bestDate ? `<div class="alert alert-success">✨ 활용일 ${escHtml(weekly.bestDate)}: ${escHtml(weekly.bestDayReason || '')}</div>` : ''}
     ${weekly.caution ? `<div class="alert alert-warn">⚠️ 주간 점검: ${escHtml(weekly.caution)}</div>` : ''}
     ${weekly.scoreBasis ? `<details class="zodiac-score-basis"><summary>주간 점수는 어떻게 산출되나요?</summary><div class="zodiac-score-basis-body"><div class="zodiac-score-basis-item"><p>${escHtml(weekly.scoreBasis)}</p></div></div></details>` : ''}`;
+}
+
+function renderAstrologyYear(annual) {
+  const months = annual.months || [];
+  if (!months.length) return '<div class="alert alert-info">연간 운세 정보가 없습니다.</div>';
+  const cards = months.map(month => {
+    const classes = [
+      'zodiac-year-month',
+      month.month === annual.bestMonth ? 'best' : '',
+      month.month === annual.cautionMonth ? 'caution' : ''
+    ].filter(Boolean).join(' ');
+    return `<article class="${classes}">
+      <div class="zodiac-year-month-head"><strong>${month.month}월</strong><span>${month.overallScore ?? 0}점</span></div>
+      <small>${escHtml(month.theme || '')}</small>
+      <details>
+        <summary>월별 상세 보기</summary>
+        <p>${escHtml(month.summary || '')}</p>
+        ${month.opportunity ? `<p><strong>기회</strong> ${escHtml(month.opportunity)}</p>` : ''}
+        ${month.caution ? `<p><strong>주의</strong> ${escHtml(month.caution)}</p>` : ''}
+      </details>
+    </article>`;
+  }).join('');
+  return `
+    <div class="zodiac-month-card">
+      <div class="zodiac-month-head"><strong>${annual.year || ''}년 종합 흐름</strong><span class="zodiac-month-score">${annual.overallScore ?? 0}점</span></div>
+      <p>${escHtml(annual.overview || '')}</p>
+    </div>
+    <div class="zodiac-year-grid">${cards}</div>
+    ${annual.bestMonth ? `<div class="alert alert-success">✨ 활용월 ${annual.bestMonth}월: ${escHtml(annual.bestMonthReason || '')}</div>` : ''}
+    ${annual.cautionMonth ? `<div class="alert alert-warn">⚠️ 점검월 ${annual.cautionMonth}월: ${escHtml(annual.caution || '')}</div>` : ''}
+    ${annual.scoreBasis ? `<details class="zodiac-score-basis"><summary>연간 점수는 어떻게 산출되나요?</summary><div class="zodiac-score-basis-body"><div class="zodiac-score-basis-item"><p>${escHtml(annual.scoreBasis)}</p></div></div></details>` : ''}`;
 }
 
 function zodiacDisplayName(value) {

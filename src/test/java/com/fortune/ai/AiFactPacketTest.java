@@ -116,6 +116,19 @@ class AiFactPacketTest {
                         .scoreAdjustment(6)
                         .build()))
                 .transitSummary("이동 태양과 출생 태양의 합")
+                .annualFortune(com.fortune.dto.ZodiacAnnualFortune.builder()
+                        .year(2026)
+                        .overallScore(67)
+                        .scoreBasis("12개월 점수의 산술평균")
+                        .overview("2026년 연간 흐름")
+                        .bestMonth(9)
+                        .cautionMonth(2)
+                        .months(List.of(com.fortune.dto.ZodiacAnnualMonth.builder()
+                                .month(9)
+                                .overallScore(81)
+                                .theme("성과를 정리하는 달")
+                                .build()))
+                        .build())
                 .build();
 
         String prompt = AiFactPacket.forZodiac(result).promptBlock();
@@ -126,6 +139,10 @@ class AiFactPacketTest {
                 .contains("moon_sign=천칭자리:12.3deg")
                 .contains("rising_sign=전갈자리:2.1deg")
                 .contains("major_transits=이동 태양:출생 태양:합:orb0.7:score+6")
+                .contains("annual_year=2026")
+                .contains("annual_score=67")
+                .contains("annual_best_month=9")
+                .contains("annual_months=09:81:성과를 정리하는 달")
                 .doesNotContain("37.5665", "126.978", "Asia/Seoul");
     }
 }

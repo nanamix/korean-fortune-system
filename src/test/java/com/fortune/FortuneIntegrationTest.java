@@ -156,7 +156,9 @@ class FortuneIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.zodiacKoreanName").exists())
-                .andExpect(jsonPath("$.data.luckyColor").exists());
+                .andExpect(jsonPath("$.data.luckyColor").exists())
+                .andExpect(jsonPath("$.data.annualFortune.year").value(LocalDate.now().getYear()))
+                .andExpect(jsonPath("$.data.annualFortune.months.length()").value(12));
 
         // 7. 간지달력 조회
         mockMvc.perform(get("/api/fortune/calendar/ganji/2025/12"))

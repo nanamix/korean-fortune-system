@@ -67,6 +67,26 @@ class ZodiacFortuneServiceTest {
         assertTrue(first.getMonthlyFortune().getCaution().length() >= 120);
         assertTrue(first.getMonthlyFortune().getScoreBasis().contains("중립 기준 60점"));
         assertTrue(first.getMonthlyFortune().getScoreBasis().contains("tropical-approx-v1"));
+        assertEquals(first.getAnnualFortune(), second.getAnnualFortune());
+        assertEquals(2026, first.getAnnualFortune().getYear());
+        assertEquals(12, first.getAnnualFortune().getMonths().size());
+        int expectedAnnualAverage = (int) Math.round(first.getAnnualFortune().getMonths().stream()
+                .mapToInt(month -> month.getOverallScore())
+                .average()
+                .orElse(0));
+        assertEquals(expectedAnnualAverage, first.getAnnualFortune().getOverallScore());
+        assertEquals(
+                java.util.stream.IntStream.rangeClosed(1, 12).boxed().toList(),
+                first.getAnnualFortune().getMonths().stream()
+                        .map(month -> month.getMonth())
+                        .toList());
+        assertTrue(first.getAnnualFortune().getBestMonth() >= 1);
+        assertTrue(first.getAnnualFortune().getBestMonth() <= 12);
+        assertTrue(first.getAnnualFortune().getCautionMonth() >= 1);
+        assertTrue(first.getAnnualFortune().getCautionMonth() <= 12);
+        assertTrue(first.getAnnualFortune().getOverview().contains("12개월 평균"));
+        assertTrue(first.getAnnualFortune().getScoreBasis().contains("각 월 15일"));
+        assertTrue(first.getAnnualFortune().getScoreBasis().contains("12개월 점수의 산술평균"));
         assertTrue(first.getPersonality().length() >= 140);
         assertEquals("BIRTH_TIME_LOCATION", first.getAstrologyProfile().getPrecision());
         assertEquals(Zodiac.VIRGO, first.getAstrologyProfile().getSunSign());

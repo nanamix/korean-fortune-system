@@ -23,6 +23,7 @@ public class ZodiacFortuneResult {
     private ZodiacDailyFortune todayFortune;
     private ZodiacWeeklyFortune weeklyFortune;
     private ZodiacMonthlyFortune monthlyFortune;
+    private ZodiacAnnualFortune annualFortune;
     private List<com.fortune.enums.Zodiac> compatibleZodiacs;
     private List<Integer> luckyNumbers;
     private String luckyColor;

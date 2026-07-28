@@ -124,7 +124,7 @@ class FortuneAppProfileTest {
     }
 
     @Test
-    void addsDailyAstrologyAndWeeklyAstrologyWithoutDuplicatingNotifications() throws IOException {
+    void addsDailyWeeklyAndAnnualAstrologyWithoutDuplicatingNotifications() throws IOException {
         String html = loadFortuneApp();
 
         assertThat(html)
@@ -135,6 +135,10 @@ class FortuneAppProfileTest {
                 .contains("function renderAstrologyWeek(weekly, targetDate)")
                 .contains("📅 주간 운세")
                 .contains("주간 점수는 어떻게 산출되나요?")
+                .contains("function renderAstrologyYear(annual)")
+                .contains("년 연간 운세")
+                .contains("12개월 흐름과 활용·점검 시기")
+                .contains("연간 점수는 어떻게 산출되나요?")
                 .contains("function localDateValue(date = new Date())");
     }
 

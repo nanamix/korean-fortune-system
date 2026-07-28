@@ -96,9 +96,12 @@ public class ZodiacFortuneService {
             /* 4. 월별 운세 계산 */
             ZodiacMonthlyFortune monthlyFortune =
                     calculateMonthlyFortune(zodiac, targetDate, astrology);
-            /* 5. 궁합 별자리 조회 */
+            /* 5. 연간 운세 계산 */
+            ZodiacAnnualFortune annualFortune =
+                    calculateAnnualFortune(request, birthDate, targetDate.getYear());
+            /* 6. 궁합 별자리 조회 */
             List<Zodiac> compatibleZodiacs = ZODIAC_COMPATIBILITY.getOrDefault(zodiac, new ArrayList<>());
-            /* 6. 행운의 숫자 생성 */
+            /* 7. 행운의 숫자 생성 */
             List<Integer> luckyNumbers = generateLuckyNumbers(birthDate);
             /* 별자리 운세 결과 생성 */
             ZodiacFortuneResult result = ZodiacFortuneResult.builder()
@@ -108,6 +111,7 @@ public class ZodiacFortuneService {
                     .todayFortune(dailyFortune)
                     .weeklyFortune(weeklyFortune)
                     .monthlyFortune(monthlyFortune)
+                    .annualFortune(annualFortune)
                     .compatibleZodiacs(compatibleZodiacs)
                     .luckyNumbers(luckyNumbers)
                     .luckyColor(ZODIAC_LUCKY_COLORS.getOrDefault(zodiac, "흰색"))
@@ -232,6 +236,60 @@ public class ZodiacFortuneService {
                 .healthMessage(healthMessage)
                 .moneyScore(moneyScore)
                 .moneyMessage(moneyMessage)
+                .build();
+    }
+
+    private ZodiacAnnualFortune calculateAnnualFortune(
+            ZodiacRequest request,
+            LocalDate birthDate,
+            int targetYear) {
+        List<ZodiacAnnualMonth> months = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            LocalDate representativeDate = LocalDate.of(targetYear, month, 15);
+            WesternAstrologyService.Analysis analysis =
+                    westernAstrologyService.analyze(requestForDate(request, representativeDate), birthDate);
+            ZodiacMonthlyFortune monthly =
+                    calculateMonthlyFortune(analysis.profile().getSunSign(), representativeDate, analysis);
+            months.add(ZodiacAnnualMonth.builder()
+                    .month(month)
+                    .overallScore(monthly.getOverallScore())
+                    .theme(monthly.getTheme())
+                    .summary(monthly.getDetailedMessage())
+                    .opportunity(monthly.getOpportunity())
+                    .caution(monthly.getCaution())
+                    .build());
+        }
+
+        ZodiacAnnualMonth best = months.stream()
+                .max(Comparator.comparingInt(ZodiacAnnualMonth::getOverallScore))
+                .orElseThrow();
+        ZodiacAnnualMonth caution = months.stream()
+                .min(Comparator.comparingInt(ZodiacAnnualMonth::getOverallScore))
+                .orElseThrow();
+        int annualScore = (int) Math.round(months.stream()
+                .mapToInt(ZodiacAnnualMonth::getOverallScore)
+                .average()
+                .orElse(0));
+
+        return ZodiacAnnualFortune.builder()
+                .year(targetYear)
+                .overallScore(annualScore)
+                .scoreBasis("문화·오락용 결정론적 연간 점수입니다. " + targetYear
+                        + "년 각 월 15일을 대표일로 삼아 월간 점수와 동일한 출생 차트·transit·"
+                        + "연월 날짜 리듬 산식을 적용한 뒤, 12개월 점수의 산술평균을 반올림해 "
+                        + annualScore + "점으로 계산했습니다. 같은 출생정보와 대상 연도에는 "
+                        + "항상 같은 결과가 나오며 실제 사건의 발생 가능성을 예측하지 않습니다.")
+                .overview(targetYear + "년의 12개월 평균은 " + annualScore + "점입니다. "
+                        + best.getMonth() + "월은 " + best.getTheme()
+                        + " 흐름을 활용하기 좋고, " + caution.getMonth()
+                        + "월은 속도보다 점검과 조정을 우선하는 편이 좋습니다. "
+                        + "월별 점수는 결과의 좋고 나쁨을 확정하는 등급이 아니라 계획의 강약과 "
+                        + "확인 시점을 정하기 위한 문화적 참고값으로 활용하세요.")
+                .bestMonth(best.getMonth())
+                .bestMonthReason(best.getTheme() + ": " + best.getOpportunity())
+                .cautionMonth(caution.getMonth())
+                .caution(caution.getTheme() + ": " + caution.getCaution())
+                .months(months)
                 .build();
     }
 

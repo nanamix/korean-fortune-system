@@ -6,6 +6,7 @@ import com.fortune.dto.MonthlyFortune;
 import com.fortune.dto.SajuResult;
 import com.fortune.dto.TojeongResult;
 import com.fortune.dto.ZodiacDailyFortune;
+import com.fortune.dto.ZodiacAnnualFortune;
 import com.fortune.dto.ZodiacFortuneResult;
 import com.fortune.dto.ZodiacWeeklyFortune;
 import com.fortune.dto.WesternAstrologyProfile;
@@ -196,6 +197,23 @@ public record AiFactPacket(
                                 day.getDate(),
                                 day.getOverallScore(),
                                 safe(day.getHeadline())))
+                        .collect(Collectors.joining("|")));
+            }
+        }
+        ZodiacAnnualFortune annual = result.getAnnualFortune();
+        if (annual != null) {
+            facts.put("annual_year", String.valueOf(annual.getYear()));
+            facts.put("annual_score", String.valueOf(annual.getOverallScore()));
+            facts.put("annual_score_basis", safe(annual.getScoreBasis()));
+            facts.put("annual_overview", safe(annual.getOverview()));
+            facts.put("annual_best_month", String.valueOf(annual.getBestMonth()));
+            facts.put("annual_caution_month", String.valueOf(annual.getCautionMonth()));
+            if (annual.getMonths() != null && !annual.getMonths().isEmpty()) {
+                facts.put("annual_months", annual.getMonths().stream()
+                        .map(month -> "%02d:%d:%s".formatted(
+                                month.getMonth(),
+                                month.getOverallScore(),
+                                safe(month.getTheme())))
                         .collect(Collectors.joining("|")));
             }
         }
