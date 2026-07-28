@@ -54,6 +54,10 @@ class SecurityConfigTest {
     @Test
     void keepsNonHealthActuatorEndpointsProtected() throws Exception {
         mockMvc.perform(get("/actuator/info")).andExpect(status().isForbidden());
+        mockMvc.perform(get("/actuator/aiNarrationReceipts"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/actuator/aiNarrationCanary"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

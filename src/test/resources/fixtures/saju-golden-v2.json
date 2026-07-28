@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "saju-golden/v2",
+  "cases": [
+    {
+      "id": "verified-1981-03-20",
+      "evidence": "척척사주 및 lunar-java 교차 확인",
+      "input": {
+        "year": 1981, "month": 3, "day": 20, "hour": 1, "minute": 59,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "신유", "monthPillar": "신묘", "dayPillar": "정유",
+        "timePillar": "신축", "dayMaster": "정", "daeunForward": false,
+        "daeunStartAge": 5, "firstDaeun": "경인", "yearStemSipsin": "편재",
+        "dayTwelveStage": "장생", "adjustedDateTime": "1981-03-20T01:29"
+      }
+    },
+    {
+      "id": "true-solar-hour-before-boundary",
+      "evidence": "기본 경도 보정 -30분 적용 시 02:59 축시 경계 회귀값",
+      "input": {
+        "year": 1981, "month": 3, "day": 20, "hour": 3, "minute": 29,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "신유", "monthPillar": "신묘", "dayPillar": "정유",
+        "timePillar": "신축", "dayMaster": "정", "adjustedDateTime": "1981-03-20T02:59"
+      }
+    },
+    {
+      "id": "true-solar-hour-at-boundary",
+      "evidence": "기본 경도 보정 -30분 적용 시 03:00 인시 경계 회귀값",
+      "input": {
+        "year": 1981, "month": 3, "day": 20, "hour": 3, "minute": 30,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "신유", "monthPillar": "신묘", "dayPillar": "정유",
+        "timePillar": "임인", "dayMaster": "정", "adjustedDateTime": "1981-03-20T03:00"
+      }
+    },
+    {
+      "id": "lunar-new-year-2024",
+      "evidence": "한국 음력 2024-01-01 = 양력 2024-02-10 변환 회귀값",
+      "input": {
+        "year": 2024, "month": 1, "day": 1, "hour": 12, "minute": 0,
+        "gender": "M", "calendarType": "LUNAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "갑진", "monthPillar": "병인", "dayPillar": "갑진",
+        "timePillar": "경오", "dayMaster": "갑", "adjustedDateTime": "2024-02-10T11:30"
+      }
+    },
+    {
+      "id": "longitude-equation-of-time-seoul",
+      "evidence": "NOAA 균시차 근사 + 서울시청 경도 126.978도, 2024-11-03 EoT +982초",
+      "input": {
+        "year": 2024, "month": 11, "day": 3, "hour": 12, "minute": 0,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false,
+        "birthLongitude": 126.978, "applyEquationOfTime": true
+      },
+      "expected": {
+        "yearPillar": "갑진", "monthPillar": "갑술", "dayPillar": "신미",
+        "timePillar": "갑오", "dayMaster": "신", "adjustedDateTime": "2024-11-03T11:44:17"
+      }
+    },
+    {
+      "id": "longitude-equation-of-time-busan",
+      "evidence": "NOAA 균시차 근사 + 부산 기준 경도 129.0756도, 출생지별 경도 차이 회귀값",
+      "input": {
+        "year": 2024, "month": 11, "day": 3, "hour": 12, "minute": 0,
+        "gender": "F", "calendarType": "SOLAR", "leapMonth": false,
+        "birthLongitude": 129.0756, "applyEquationOfTime": true
+      },
+      "expected": {
+        "yearPillar": "갑진", "monthPillar": "갑술", "dayPillar": "신미",
+        "timePillar": "갑오", "dayMaster": "신", "adjustedDateTime": "2024-11-03T11:52:40"
+      }
+    },
+    {
+      "id": "korea-dst-1948",
+      "evidence": "IANA Asia/Seoul tzdb: 1948-06-01 daylight saving +1h",
+      "input": {
+        "year": 1948, "month": 6, "day": 1, "hour": 12, "minute": 0,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "무자", "monthPillar": "정사", "dayPillar": "정사",
+        "timePillar": "을사", "dayMaster": "정", "adjustedDateTime": "1948-06-01T10:30"
+      }
+    },
+    {
+      "id": "korea-standard-meridian-1960",
+      "evidence": "IANA Asia/Seoul tzdb: 1960 DST +1h, 표준 오프셋 +08:30의 자오선 127.5도",
+      "input": {
+        "year": 1960, "month": 6, "day": 1, "hour": 12, "minute": 0,
+        "gender": "F", "calendarType": "SOLAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "경자", "monthPillar": "신사", "dayPillar": "경신",
+        "timePillar": "임오", "dayMaster": "경", "adjustedDateTime": "1960-06-01T11:00"
+      }
+    },
+    {
+      "id": "korea-dst-1988",
+      "evidence": "IANA Asia/Seoul tzdb: 1988-07-01 daylight saving +1h",
+      "input": {
+        "year": 1988, "month": 7, "day": 1, "hour": 12, "minute": 0,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false
+      },
+      "expected": {
+        "yearPillar": "무진", "monthPillar": "무오", "dayPillar": "정사",
+        "timePillar": "을사", "dayMaster": "정", "adjustedDateTime": "1988-07-01T10:30"
+      }
+    },
+    {
+      "id": "lichun-second-before-boundary",
+      "evidence": "lunar-java 1.7.4 입춘 2024-02-04 16:26:53 직전 1초",
+      "input": {
+        "year": 2024, "month": 2, "day": 4, "hour": 16, "minute": 26, "second": 52,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false,
+        "birthLongitude": 135.0
+      },
+      "expected": {
+        "yearPillar": "계묘", "monthPillar": "을축", "dayPillar": "무술",
+        "timePillar": "경신", "dayMaster": "무", "adjustedDateTime": "2024-02-04T16:26:52"
+      }
+    },
+    {
+      "id": "lichun-second-at-boundary",
+      "evidence": "lunar-java 1.7.4 입춘 2024-02-04 16:26:53 경계",
+      "input": {
+        "year": 2024, "month": 2, "day": 4, "hour": 16, "minute": 26, "second": 53,
+        "gender": "M", "calendarType": "SOLAR", "leapMonth": false,
+        "birthLongitude": 135.0
+      },
+      "expected": {
+        "yearPillar": "갑진", "monthPillar": "병인", "dayPillar": "무술",
+        "timePillar": "경신", "dayMaster": "무", "adjustedDateTime": "2024-02-04T16:26:53"
+      }
+    },
+    {
+      "id": "korean-lunar-leap-month-2023",
+      "evidence": "Time4J KoreanCalendar: 음력 2023 윤2월 1일 = 양력 2023-03-22",
+      "input": {
+        "year": 2023, "month": 2, "day": 1, "hour": 12, "minute": 0,
+        "gender": "F", "calendarType": "LUNAR", "leapMonth": true
+      },
+      "expected": {
+        "yearPillar": "계묘", "monthPillar": "을묘", "dayPillar": "기묘",
+        "timePillar": "경오", "dayMaster": "기", "adjustedDateTime": "2023-03-22T11:30"
+      }
+    }
+  ]
+}

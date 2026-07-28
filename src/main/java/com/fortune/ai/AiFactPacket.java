@@ -30,8 +30,8 @@ public record AiFactPacket(
         List<String> excludedSensitiveFields
 ) {
     public static final String SCHEMA_VERSION = "fortune-fact-packet/v1";
-    public static final String ENGINE_VERSION = "lunar-java-1.7.4+fortune-rules-v3";
-    public static final String CACHE_NAMESPACE = "fact-v1-engine-v3";
+    public static final String ENGINE_VERSION = "lunar-java-1.7.4+fortune-rules-v4";
+    public static final String CACHE_NAMESPACE = "fact-v1-engine-v4";
     private static final List<String> DEFAULT_EXCLUSIONS = List.of(
             "name",
             "birth_date",

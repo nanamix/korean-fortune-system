@@ -40,7 +40,7 @@ AI 3종 엔드포인트는 `AIFortuneService` 가 미주입(비활성)이면 `er
 
 | DTO | 필수 필드 (검증) | 파일 |
 |-----|------------------|------|
-| `SajuRequest` | `birthYear`(1900–2100), `birthMonth`(1–12), `birthDay`(1–31), `birthHour`(0–23), `birthMinute`(0–59), `gender`(`M`/`F`), `calendarType`(`SOLAR`/`LUNAR`), 선택 `leapMonth` + 선택 `notification` | `SajuRequest.java` |
+| `SajuRequest` | `birthYear`(1900–2100), `birthMonth`(1–12), `birthDay`(1–31), `birthHour`(0–23), `birthMinute`(0–59), `gender`(`M`/`F`), `calendarType`(`SOLAR`/`LUNAR`), 선택 `birthSecond`·`leapMonth`·`birthLongitude`(124–132)·`applyEquationOfTime`·`applyHistoricalDst`·`notification` | `SajuRequest.java` |
 | `TojeongRequest` | `birthYear`(1900–2030), `birthMonth`, `birthDay`, `targetYear`(2020–2040) + 선택 `notification` | `TojeongRequest.java:21-43` |
 | `ZodiacRequest` | `birthDate`(LocalDate), `targetDate`(LocalDate) + 선택 `notification` | `ZodiacRequest.java:22-30` |
 | `NotificationRequest` | `recipientName`(필수), `email`(형식), `telegramChatId`(숫자), 선택 `discordWebhookUrl`, `notificationType`(`email`/`telegram`/`discord`/`both`/`all`) | `NotificationRequest.java` |

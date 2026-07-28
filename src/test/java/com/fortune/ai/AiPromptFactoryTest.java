@@ -45,7 +45,7 @@ class AiPromptFactoryTest {
         assertThat(prompt.user()).contains(
                 "<fortune-fact-packet>",
                 "schema_version=fortune-fact-packet/v1",
-                "engine_version=lunar-java-1.7.4+fortune-rules-v3",
+                "engine_version=lunar-java-1.7.4+fortune-rules-v4",
                 "can_override_engine=false",
                 "day_master=갑",
                 "pillars=경오 신사 갑자 신미",

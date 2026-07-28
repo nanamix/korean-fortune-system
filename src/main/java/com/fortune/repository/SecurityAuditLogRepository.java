@@ -66,6 +66,33 @@ public interface SecurityAuditLogRepository extends JpaRepository<SecurityAuditL
      * @return 시간 이전 이벤트 삭제
      */
     long deleteByTimestampBefore(LocalDateTime cutoffDate);
+
+    /**
+     * 특정 액션의 보존기간이 지난 이벤트만 삭제한다.
+     */
+    long deleteByActionAndTimestampBefore(String action, LocalDateTime cutoffDate);
+
+    /**
+     * 특정 액션의 성공 여부별 기간 집계.
+     */
+    long countByActionAndSuccessAndTimestampAfter(
+            String action, Boolean success, LocalDateTime fromDate);
+
+    boolean existsByActionAndResource(String action, String resource);
+
+    /**
+     * 특정 액션을 리소스(domain)별로 집계한다.
+     */
+    @Query("""
+            SELECT COALESCE(s.resource, 'unknown'), COUNT(s)
+            FROM SecurityAuditLog s
+            WHERE s.action = :action AND s.timestamp > :fromDate
+            GROUP BY s.resource
+            ORDER BY COUNT(s) DESC
+            """)
+    List<Object[]> countByActionGroupedByResource(
+            @Param("action") String action,
+            @Param("fromDate") LocalDateTime fromDate);
     /**
      * 사용자 ID, 시간 이후 접속 IP 목록
      * SQL: SELECT DISTINCT ip_address FROM security_audit_log WHERE user_id = :userId AND timestamp > :fromDate
@@ -92,4 +119,4 @@ public interface SecurityAuditLogRepository extends JpaRepository<SecurityAuditL
      */
     @Query("SELECT s FROM SecurityAuditLog s WHERE s.user.id = :userId ORDER BY s.timestamp DESC")
     List<SecurityAuditLog> findByUserIdOrderByTimestampDesc(@Param("userId") Long userId);
-} 
+}

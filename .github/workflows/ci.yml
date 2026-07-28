@@ -273,6 +273,33 @@ jobs:
               fi
             done
 
+            notify_step "Synthetic AI Canary" "started"
+            echo "🧪 Waiting for the one-time synthetic AI canary receipt..."
+            CANARY_OK=false
+            for i in $(seq 1 20); do
+              CANARY_LINE="$(docker logs --since 5m docker-app-1 2>&1 \
+                | grep -F 'Synthetic AI canary completed;' \
+                | tail -n 1 || true)"
+              if echo "$CANARY_LINE" | grep -Eq 'state=(PASSED|SKIPPED), reason=(OK|ALREADY_COMPLETED),'; then
+                echo "✅ $CANARY_LINE"
+                CANARY_OK=true
+                notify_step "Synthetic AI Canary" "success"
+                break
+              fi
+              if echo "$CANARY_LINE" | grep -Eq 'state=(FAILED|BLOCKED),'; then
+                echo "❌ $CANARY_LINE"
+                notify_step "Synthetic AI Canary" "failure"
+                exit 1
+              fi
+              echo "⏳ Canary attempt $i/20: receipt not ready — retrying in 3s..."
+              sleep 3
+            done
+            if [ "$CANARY_OK" != "true" ]; then
+              echo "❌ Synthetic AI canary receipt was not observed."
+              notify_step "Synthetic AI Canary" "failure"
+              exit 1
+            fi
+
             DEPLOY_COMPLETE=true
             trap - EXIT INT TERM
             "${COMPOSE[@]}" ps

@@ -54,6 +54,14 @@ app:
       api-key: ${DEEPSEEK_API_KEY:${OPENAI_API_KEY:}}
       timeout: ${APP_FORTUNE_AI_TIMEOUT:30s}
       fallback-enabled: true
+      receipt:
+        cleanup-enabled: ${APP_FORTUNE_AI_RECEIPT_CLEANUP_ENABLED:true}
+        retention-days: ${APP_FORTUNE_AI_RECEIPT_RETENTION_DAYS:90}
+        summary-window-days: ${APP_FORTUNE_AI_RECEIPT_SUMMARY_WINDOW_DAYS:7}
+        cleanup-cron: ${APP_FORTUNE_AI_RECEIPT_CLEANUP_CRON:0 15 3 * * *}
+      canary:
+        enabled: ${APP_FORTUNE_AI_CANARY_ENABLED:true}
+        run-on-startup: ${APP_FORTUNE_AI_CANARY_RUN_ON_STARTUP:true}
     cache:
       enabled: true
       ttl: 7200 # 2시간
@@ -91,7 +99,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,caches
+        include: health,info,metrics,prometheus,caches,aiNarrationReceipts,aiNarrationCanary
   endpoint:
     health:
       show-details: when-authorized

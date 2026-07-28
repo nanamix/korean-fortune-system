@@ -45,6 +45,11 @@ public class SajuRequest {
     @Max(value = 59, message = "출생분은 59분 이하여야 합니다")
     private Integer birthMinute;
 
+    /** 초 단위 절입 경계 검증용. 미지정 시 0초. */
+    @Min(value = 0, message = "출생초는 0초 이상이어야 합니다")
+    @Max(value = 59, message = "출생초는 59초 이하여야 합니다")
+    private Integer birthSecond;
+
     @NotNull(message = "성별은 필수입니다")
     @Pattern(regexp = "^(M|F)$", message = "성별은 M(남성) 또는 F(여성)이어야 합니다")
     private String gender;
@@ -55,6 +60,20 @@ public class SajuRequest {
 
     /** 음력 윤달 여부 (LUNAR 입력에서만 의미). 미지정 시 평달. */
     private Boolean leapMonth;
+
+    /**
+     * 한국 내 출생지 경도. 미지정 시 기존 호환값인 동경 127.5도를 사용한다.
+     * 표준시 자오선과의 차이는 경도 1도당 4분으로 보정한다.
+     */
+    @DecimalMin(value = "124.0", message = "출생지 경도는 동경 124도 이상이어야 합니다")
+    @DecimalMax(value = "132.0", message = "출생지 경도는 동경 132도 이하여야 합니다")
+    private Double birthLongitude;
+
+    /** 균시차를 적용해 평균 태양시를 겉보기 태양시로 보정할지 여부. 기본값 false. */
+    private Boolean applyEquationOfTime;
+
+    /** Asia/Seoul tzdb의 역사적 서머타임을 표준시로 환산할지 여부. 기본값 true. */
+    private Boolean applyHistoricalDst;
 
     // 알림 발송 관련 필드 (선택적)
     @Valid

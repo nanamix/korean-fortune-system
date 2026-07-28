@@ -119,7 +119,7 @@ Compose가 이 선택값을 별도 환경변수 기본값으로 덮어쓰지 않
 | 항목 | 현재 값 |
 |------|---------|
 | `schema_version` | `fortune-fact-packet/v1` |
-| `engine_version` | `lunar-java-1.7.4+fortune-rules-v3` |
+| `engine_version` | `lunar-java-1.7.4+fortune-rules-v4` |
 | `can_override_engine` | `false` |
 | 도메인 | `saju`, `daily`, `zodiac`, `tojeong` |
 | 기본 제외 필드 | 이름, 생년월일, 보정 일시, 역법, 성별, 알림 대상 |
@@ -170,8 +170,8 @@ system 프롬프트는 응답 형식을 Markdown으로 제한합니다. 제목�
 
 - 검증기는 모델이 명시적으로 언급한 핵심 사실의 **충돌**을 차단합니다. 모든 문장의 의미적 진실성이나 누락을 완전히 판정하지는 않습니다.
 - 사용자가 질문 본문에 직접 입력한 개인정보까지 자동 비식별화하지는 않습니다. UI와 운영 정책에서 불필요한 개인정보 입력을 피해야 합니다.
-- golden fixture는 현재 사주 대표값·진태양시 시각 경계·한국 음력 설날 변환을
-  포함합니다. 출생지별 경도·서머타임·절입 초단위 경계는 아직 추가 검증이 필요합니다.
+- golden fixture v2는 사주 대표값, 출생지별 경도·균시차, 역사적 한국
+  서머타임/표준 자오선, 절입 초단위 경계, 한국 음력 설날·윤달을 포함합니다.
 
 > 요약: system 지침만 신뢰하지 않고 `엔진 사실 계약 → 제한된 서술 → 코드 검증 → 안전 폴백`을 강제합니다.
 
@@ -194,3 +194,42 @@ system 프롬프트는 응답 형식을 Markdown으로 제한합니다. 제목�
 
 캐시 hit는 provider를 다시 호출하지 않으므로 새 영수증을 만들지 않습니다.
 영수증은 사용자 행동 감사가 아니라 **provider 시도 감사** 단위입니다.
+
+## 6.8 영수증 retention과 집계
+
+`AiNarrationReceiptOperations`는 전체 보안 감사 로그가 아니라
+`action=AI_NARRATION_RECEIPT` 행만 대상으로 합니다.
+
+- 기본 보존기간: 90일
+- 자동 정리: 개발 기본 비활성, 승인된 `prod` 기본 활성
+  (`APP_FORTUNE_AI_RECEIPT_CLEANUP_ENABLED=true`)
+- 정리 시각: 매일 03:15 KST
+- 집계: 기간 내 전체·검증 통과·fallback/거부·domain별 건수
+- 조회: 보호된 `GET /actuator/aiNarrationReceipts?days=7`
+- 조회 범위: 1~365일, fact hash·질문·응답 등 개별 원문은 반환하지 않음
+
+운영 데이터 삭제 승인을 받아 `prod`에서 90일 정책을 활성화했습니다. 긴급 중지는
+`APP_FORTUNE_AI_RECEIPT_CLEANUP_ENABLED=false`로 되돌립니다.
+
+## 6.9 Synthetic AI canary
+
+실제 provider canary는 사용자 프로필 대신 고정 fixture
+golden v2의 검증값으로 고정한 `synthetic-saju-1981-03-20-v1`만 사용합니다.
+결과에는 모델 원문을 반환하지 않고
+상태·reason code·fact hash만 남기며 정상 파이프라인의 영수증 기록을 재사용합니다.
+
+안전 gate:
+
+1. `APP_FORTUNE_AI_CANARY_ENABLED=true`
+2. startup 실행은 `APP_FORTUNE_AI_CANARY_RUN_ON_STARTUP=true`
+3. provider 활성화와 API key 설정 확인
+4. `fixtureId + engineVersion` 성공 영수증이 없을 때만 실행
+5. 동시 실행 차단
+
+운영에서는 application ready 이후 startup canary가 한 번 실행되고,
+`action=AI_NARRATION_CANARY` 성공 영수증이 있으면 이후 재시작에서는
+`ALREADY_COMPLETED`로 건너뜁니다.
+
+준비 상태는 `GET /actuator/aiNarrationCanary`, 실제 실행은
+`POST /actuator/aiNarrationCanary`입니다. 수동 실행에도 요청 본문
+`{"confirmation":"RUN_SYNTHETIC_AI_CANARY"}`와 보호된 Actuator 인증이 필요합니다.

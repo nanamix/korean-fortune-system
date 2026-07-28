@@ -15,7 +15,7 @@
 | `lunar-java` (`com.nlf.calendar`) | 4주·십신·지장간·12운성·대운·절기 표준 계산 엔진 |
 | `LunarSolarConverter` | 한국 음력 입력 → 양력 변환 (Time4J `KoreanCalendar`, KASI 정합) |
 
-> 아래 §1~§8은 lunar-java 가 내부적으로 수행하는 명리 규칙을 설명한 것이며, 애플리케이션 코드가 직접 구현하지는 않는다(십신·대운 12운성 파생 헬퍼 제외). 계산 흐름: `SajuRequest` → (음력이면 Time4J 로 양력화) → 경도보정 −30분 → `new Solar(...)` → `getLunar().getEightChar()` → 한글 매핑.
+> 아래 §1~§8은 lunar-java 가 내부적으로 수행하는 명리 규칙을 설명한 것이며, 애플리케이션 코드가 직접 구현하지는 않는다(십신·대운 12운성 파생 헬퍼 제외). 계산 흐름: `SajuRequest` → (음력이면 Time4J 로 양력화) → 역사적 표준시/DST 정규화 → 출생지 경도·선택형 균시차 보정 → `new Solar(...)` → `getLunar().getEightChar()` → 한글 매핑.
 
 ---
 
@@ -81,12 +81,22 @@ JDN = day + (153·m + 2)/5 + 365·y + y/4 − y/100 + y/400 − 32045
 
 ## 4. 시주(時柱) — 오서둔(五鼠遁) + 진태양시
 
-12시진은 2시간 단위이며 **자시 = 23:00~01:00**이다. 시각은 먼저 경도 보정한다.
+12시진은 2시간 단위이며 **자시 = 23:00~01:00**이다. 시각은
+`KoreanBirthTimeNormalizer`에서 다음 순서로 보정한다.
 
 ```
-진태양시 = 출생시각 − 30분   // 한국(동경135° 표준시) vs 실경도 약 127.5° → 약 −30분
+표준시 = 출생시각 − Asia/Seoul tzdb의 해당 시점 DST
+표준 자오선 = 역사적 표준 UTC offset × 15°
+경도 보정 = (출생지 경도 − 표준 자오선) × 4분
+겉보기 태양시 = 표준시 + 경도 보정 + 선택적 균시차
 시지 index = ((진태양시 시(hour) + 1) / 2) mod 12   // 자시=23~01
 ```
+
+기본 경도는 기존 호환값인 동경 `127.5°`, 균시차는 기본 비활성이다.
+역사적 서머타임 보정은 기본 활성이라 1948~1988 사이 실제 시행 기간은 tzdb
+규칙대로 1시간을 제거한다. 1960년처럼 표준시 자체가 `UTC+08:30`이었던 시기는
+표준 자오선도 `127.5°`로 계산한다. 균시차는 NOAA 저차 근사식을 사용하며,
+절입 검증을 위해 `birthSecond`도 선택 입력할 수 있다.
 
 **시간(時干)은 오서둔(시두법)** 으로 일간에서 유도한다.
 
@@ -175,7 +185,7 @@ rel = (대상오행 − 일간오행) mod 5
 
 ### 버전 기반 golden fixture
 
-`src/test/resources/fixtures/saju-golden-v1.json`은 계산 결과의 정본 회귀값을
+`src/test/resources/fixtures/saju-golden-v2.json`은 계산 결과의 정본 회귀값을
 입력·기대 결과·근거와 함께 저장합니다. `SajuGoldenFixtureTest`가 모든 fixture를
 실제 `GanjiCalculatorService`로 다시 계산해 다음 항목을 비교합니다.
 
@@ -185,8 +195,13 @@ rel = (대상오행 − 일간오행) mod 5
 | `true-solar-hour-before-boundary` | −30분 보정 후 02:59 축시 | 경계 회귀값 |
 | `true-solar-hour-at-boundary` | −30분 보정 후 03:00 인시 | 경계 회귀값 |
 | `lunar-new-year-2024` | 한국 음력 2024-01-01 변환 | 양력 2024-02-10 변환 회귀값 |
+| `longitude-equation-of-time-*` | 서울·부산 경도와 균시차 | NOAA 근사식 + 위치별 보정 |
+| `korea-dst-1948`, `korea-standard-meridian-1960`, `korea-dst-1988` | 역사적 서머타임·표준 자오선 | IANA `Asia/Seoul` tzdb |
+| `lichun-second-*` | 입춘 직전/경계 1초 | lunar-java 1.7.4 절입시각 |
+| `korean-lunar-leap-month-2023` | 한국 음력 윤2월 1일 | Time4J `KoreanCalendar` |
 
-fixture 계약이 바뀌면 파일명을 `saju-golden/v2.json`처럼 올리고 변경 이유와
+v1은 이전 계약 증거로 보존한다. fixture 계약이 바뀌면 파일과
+`schemaVersion`을 함께 올리고 변경 이유와
 외부 근거를 함께 갱신합니다. 테스트를 맞추기 위해 기대값을 임의 변경해서는 안 됩니다.
 
 ## 절기·절입 정밀도
@@ -201,8 +216,9 @@ fixture 계약이 바뀌면 파일명을 `saju-golden/v2.json`처럼 올리고 �
 
 - **자시 처리**: lunar-java 기본 유파(sect) 사용. 야자시/조자시 분리 옵션은 `EightChar.setSect(1|2)`로 확장 가능하나 현재 미노출.
 - **용신(用神)·신강신약 판정 없음**: 오행 개수 집계까지만.
-- **경도 보정 고정(−30분)**: 출생지별 경도 입력·균시차 보정 미구현(한국 출생 가정).
-- **한국 서머타임(1948~1988) 미반영**: 해당 구간 출생자 시각 −1h 보정 로직은 추후 필요.
+- **지원 지역**: 요청 경도는 한국 범위인 동경 124~132도로 제한한다. 해외 출생지는 해당 지역의 역사적 timezone/표준 자오선 계약을 별도로 추가해야 한다.
+- **서머타임 중복시각**: DST 종료로 같은 벽시계 시각이 두 번 존재하거나 시작 gap에 속하면 임의 선택하지 않고 입력을 거부한다.
+- **균시차 근사**: 선택형 NOAA 저차 근사식이며 고정밀 천문 ephemeris는 아니다.
 - **중국력/한국력 경계 차이**: 사주 4주는 lunar-java(중국력 기준 절기), 음력 날짜 입력은 Time4J(한국력)로 처리한다. 두 역법의 삭·절기 경계는 드물게 하루 차가 날 수 있다.
 
 ## 코드 맵
@@ -214,4 +230,5 @@ fixture 계약이 바뀌면 파일명을 `saju-golden/v2.json`처럼 올리고 �
 | 대운 12운성·십신 파생 | `GanjiCalculatorService.twelveStage` / `sipsin` |
 | 절기 | lunar-java 내부 |
 | 음양력(한국) | `LunarSolarConverter` (Time4J) |
-| 버전 기반 회귀 정본 | `fixtures/saju-golden-v1.json` / `SajuGoldenFixtureTest` |
+| 역사적 표준시·경도·균시차 | `KoreanBirthTimeNormalizer` |
+| 버전 기반 회귀 정본 | `fixtures/saju-golden-v2.json` / `SajuGoldenFixtureTest` |

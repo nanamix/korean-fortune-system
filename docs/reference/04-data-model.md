@@ -81,6 +81,14 @@ AI 실행 영수증은 기존 테이블에 다음 형태로 저장합니다.
 성별, 역법, 알림 대상을 저장하지 않습니다. 영수증 저장 실패는 운세 응답을
 실패시키지 않으며 도메인만 남긴 경고 로그로 격리합니다.
 
+`AiNarrationReceiptOperations`는 전용 action만 기간·성공 여부·domain으로
+집계하고, 운영에서 승인된 90일 retention을 제공합니다. 개발 기본값은
+비활성이며 다른 `security_audit_log` action은 삭제하지 않습니다.
+
+Synthetic canary 성공은 `action=AI_NARRATION_CANARY`,
+`resource=<fixtureId>:<engineVersion>`으로 별도 저장하여 같은 계약의 외부 호출을
+재시작마다 반복하지 않습니다. 모델 응답 원문은 저장하지 않습니다.
+
 ### 4.2.4 `TojeongGwaEntity` (`entity/TojeongGwaEntity.java`)
 
 토정비결 64괘 마스터 테이블. `@Table(name = "tojeong_gwa")`.

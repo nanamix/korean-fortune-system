@@ -44,9 +44,6 @@ public class GanjiCalculatorService {
     };
     /** 일간별 12운성 장생지(대운 12운성 산출용). 갑해 을오 병인 정유 무인 기유 경사 신자 임신 계묘 */
     private static final int[] JANGSAENG_BRANCH = {11, 6, 2, 9, 2, 9, 5, 0, 8, 3};
-    /** 한국(동경135°) 진태양시 경도 보정(분). */
-    private static final int KOREA_TIME_CORRECTION_MIN = 30;
-
     // lunar-java 한자(간체) → 한글 매핑
     private static final Map<Character, String> HJ_STEM = buildMap(STEMS_HJ, STEMS);
     private static final Map<Character, String> HJ_BRANCH = buildMap(BRANCHES_HJ, BRANCHES);
@@ -78,8 +75,9 @@ public class GanjiCalculatorService {
                 request.getBirthHour(), request.getBirthMinute());
         try {
             LocalDateTime birthKst = toSolarDateTime(request);
-            // 진태양시 보정(-30분): 한국 경도. lunar-java 는 입력을 지역시로 취급한다.
-            LocalDateTime adj = birthKst.minusMinutes(KOREA_TIME_CORRECTION_MIN);
+            // 역사적 표준시/DST → 출생지 경도 → 선택적 균시차 순으로 보정한다.
+            LocalDateTime adj = KoreanBirthTimeNormalizer.normalize(birthKst, request)
+                    .apparentSolarTime();
             EightChar ec = eightChar(adj);
 
             String yearPillar = pillarKr(ec.getYear());
@@ -161,13 +159,15 @@ public class GanjiCalculatorService {
                 ? LunarSolarConverter.lunarToSolar(request.getBirthYear(), request.getBirthMonth(),
                         request.getBirthDay(), Boolean.TRUE.equals(request.getLeapMonth()))
                 : LocalDate.of(request.getBirthYear(), request.getBirthMonth(), request.getBirthDay());
-        return LocalDateTime.of(date, java.time.LocalTime.of(request.getBirthHour(), request.getBirthMinute()));
+        int second = request.getBirthSecond() == null ? 0 : request.getBirthSecond();
+        return LocalDateTime.of(date, java.time.LocalTime.of(
+                request.getBirthHour(), request.getBirthMinute(), second));
     }
 
     /** LocalDateTime → lunar-java EightChar. */
     private EightChar eightChar(LocalDateTime dt) {
         Solar solar = new Solar(dt.getYear(), dt.getMonthValue(), dt.getDayOfMonth(),
-                dt.getHour(), dt.getMinute(), 0);
+                dt.getHour(), dt.getMinute(), dt.getSecond());
         return solar.getLunar().getEightChar();
     }
 

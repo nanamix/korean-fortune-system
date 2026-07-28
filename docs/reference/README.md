@@ -12,10 +12,10 @@
 |---|------|------|
 | 01 | [프로젝트 개요](./01-project-overview.md) | 시스템 소개, 주요 기능, 기술 스택 개요 |
 | 02 | [아키텍처](./02-architecture.md) | 계층 구조, 컴포넌트 구성, 데이터 흐름 |
-| 03 | [사주 계산 방법론](./03-saju-calculation-methodology.md) | 사주팔자·간지·오행·십신·대운 계산 알고리즘 |
+| 03 | [사주 계산 방법론](./03-saju-calculation-methodology.md) | 사주팔자·간지·오행·십신·대운과 역사적 표준시·경도·균시차 계산 |
 | 04 | [데이터 모델](./04-data-model.md) | JPA 엔티티·DTO·DB 스키마 |
 | 05 | [API 레퍼런스](./05-api-reference.md) | REST API 엔드포인트·요청/응답 스펙 |
-| 06 | [AI 및 Fallback](./06-ai-and-fallback.md) | OpenAI 호환 AI 포트·fact packet·no-override 검증·결정적 fallback 구조 |
+| 06 | [AI 및 Fallback](./06-ai-and-fallback.md) | AI fact packet·no-override·영수증 retention/집계·synthetic canary |
 | 07 | [보안 및 관측성](./07-security-and-observability.md) | JWT 인증, 보안 감사 로그, Actuator·Prometheus·OpenTelemetry 추적, 로그 패턴 |
 | 08 | [설치 가이드](./08-installation-guide.md) | 사전 요구(JDK 21), 클론, 로컬 빌드·실행, 프로필·`.env`, 접속 URL, 트러블슈팅 |
 | 09 | [사용자 가이드](./09-user-guide.md) | 웹 UI(`fortune-app.html`) 사용법, 입력값 의미, 결과 해석, 이메일/텔레그램 발송 |

@@ -98,7 +98,7 @@ JWT 관련 구성요소는 `security/` 패키지에 있습니다.
 
 | 프로필 | 노출 엔드포인트 |
 |--------|-----------------|
-| 기본 / `prod` | `health, info, metrics, prometheus, caches` |
+| 기본 / `prod` | `health, info, metrics, prometheus, caches, aiNarrationReceipts, aiNarrationCanary` |
 | `dev` | 위 + `trace` |
 | Docker dev 오버라이드 | `*` (전체) |
 
@@ -116,7 +116,13 @@ GET /actuator/info         # 빌드/환경 정보
 GET /actuator/metrics      # 메트릭 인덱스
 GET /actuator/prometheus   # Prometheus 포맷 메트릭
 GET /actuator/caches       # Caffeine 캐시 목록
+GET /actuator/aiNarrationReceipts?days=7 # 개인정보 없는 AI 영수증 집계
+GET /actuator/aiNarrationCanary           # synthetic canary 준비 상태
 ```
+
+`aiNarrationReceipts`와 `aiNarrationCanary`는 `/api/fortune/**` 공개 규칙에
+포함되지 않고 `/actuator/**`의 `ROLE_ADMIN` 보호를 받습니다. canary 실행은
+추가로 기능 활성화와 정확한 확인 문구가 필요합니다.
 
 ---
 

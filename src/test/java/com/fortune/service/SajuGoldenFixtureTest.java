@@ -15,12 +15,12 @@ class SajuGoldenFixtureTest {
 
     @Test
     void matchesVersionedGoldenFixtures() {
-        InputStream stream = getClass().getResourceAsStream("/fixtures/saju-golden-v1.json");
+        InputStream stream = getClass().getResourceAsStream("/fixtures/saju-golden-v2.json");
         assertThat(stream).isNotNull();
         GoldenSuite suite = objectMapper.readValue(stream, GoldenSuite.class);
 
-        assertThat(suite.schemaVersion()).isEqualTo("saju-golden/v1");
-        assertThat(suite.cases()).hasSizeGreaterThanOrEqualTo(4);
+        assertThat(suite.schemaVersion()).isEqualTo("saju-golden/v2");
+        assertThat(suite.cases()).hasSizeGreaterThanOrEqualTo(11);
 
         for (GoldenCase fixture : suite.cases()) {
             SajuResult actual = service.calculateSaju(SajuRequest.builder()
@@ -29,9 +29,13 @@ class SajuGoldenFixtureTest {
                     .birthDay(fixture.input().day())
                     .birthHour(fixture.input().hour())
                     .birthMinute(fixture.input().minute())
+                    .birthSecond(fixture.input().second())
                     .gender(fixture.input().gender())
                     .calendarType(fixture.input().calendarType())
                     .leapMonth(fixture.input().leapMonth())
+                    .birthLongitude(fixture.input().birthLongitude())
+                    .applyEquationOfTime(fixture.input().applyEquationOfTime())
+                    .applyHistoricalDst(fixture.input().applyHistoricalDst())
                     .build());
 
             Expected expected = fixture.expected();
@@ -40,6 +44,10 @@ class SajuGoldenFixtureTest {
             assertThat(actual.getDayPillar()).as(fixture.id()).isEqualTo(expected.dayPillar());
             assertThat(actual.getTimePillar()).as(fixture.id()).isEqualTo(expected.timePillar());
             assertThat(actual.getDayMaster()).as(fixture.id()).isEqualTo(expected.dayMaster());
+            if (expected.adjustedDateTime() != null) {
+                assertThat(actual.getAdjustedDateTime().toString())
+                        .as(fixture.id()).isEqualTo(expected.adjustedDateTime());
+            }
             if (expected.daeunForward() != null) {
                 assertThat(actual.isDaeunForward()).as(fixture.id()).isEqualTo(expected.daeunForward());
             }
@@ -73,9 +81,13 @@ class SajuGoldenFixtureTest {
             int day,
             int hour,
             int minute,
+            Integer second,
             String gender,
             String calendarType,
-            boolean leapMonth) {
+            boolean leapMonth,
+            Double birthLongitude,
+            Boolean applyEquationOfTime,
+            Boolean applyHistoricalDst) {
     }
 
     private record Expected(
@@ -88,6 +100,7 @@ class SajuGoldenFixtureTest {
             Integer daeunStartAge,
             String firstDaeun,
             String yearStemSipsin,
-            String dayTwelveStage) {
+            String dayTwelveStage,
+            String adjustedDateTime) {
     }
 }

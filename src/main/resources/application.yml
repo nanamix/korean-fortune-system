@@ -52,6 +52,14 @@ app:
       api-key: ${DEEPSEEK_API_KEY:${OPENAI_API_KEY:}}
       timeout: 30s
       fallback-enabled: true
+      receipt:
+        cleanup-enabled: false
+        retention-days: 90
+        summary-window-days: 7
+        cleanup-cron: "0 15 3 * * *"
+      canary:
+        enabled: false
+        run-on-startup: false
     cache:
       enabled: true
       ttl: 3600
@@ -87,7 +95,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,caches
+        include: health,info,metrics,prometheus,caches,aiNarrationReceipts,aiNarrationCanary
   endpoint:
     health:
       show-details: always

@@ -93,7 +93,10 @@ curl http://localhost:18080/actuator/info           # 빌드 정보
 curl http://localhost:18080/api/system/status       # 애플리케이션 상태 API
 ```
 
-노출된 Actuator 엔드포인트: `health`, `info`, `metrics`, `prometheus`, `caches` (운영 프로필 기준). 상세는 [07. 보안 및 관측성](./07-security-and-observability.md) 참고.
+노출된 Actuator 엔드포인트: `health`, `info`, `metrics`, `prometheus`, `caches`,
+`aiNarrationReceipts`, `aiNarrationCanary`(운영 프로필 기준). health 외 엔드포인트는
+보안 활성 시 `ROLE_ADMIN`이 필요합니다. 상세는
+[07. 보안 및 관측성](./07-security-and-observability.md) 참고.
 
 ### 로그 위치
 
