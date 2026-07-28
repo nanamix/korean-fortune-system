@@ -1,5 +1,5 @@
 // 🔮 한국형 만세력 운세 시스템 - Service Worker
-const CACHE_NAME = 'korean-fortune-v28';
+const CACHE_NAME = 'korean-fortune-v29';
 const STATIC_ASSETS = [
   '/',
   '/fortune-app.html',

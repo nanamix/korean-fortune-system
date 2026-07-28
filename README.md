@@ -101,6 +101,7 @@ docker compose \
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 계산 후 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | Sun·Moon·Rising 및 주요 transit 기반 개인화 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 계산 후 발송 |
+| 출생 위치 검색 | GET | `/api/location/search?q={도시·지역·우편번호}` | WGS84 좌표와 IANA 시간대 조회 |
 | 간지달력 API | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 JSON 조회 |
 | 간지달력 뷰 | GET | `/api/calendar/view/{year}/{month}` | 간지달력 HTML 뷰 |
 | AI 사주 해석 | POST | `/api/fortune/ai/interpret-saju` | AI 기반 사주 해석 |
@@ -272,7 +273,7 @@ korean-fortune-system/
 - ✅ **대상일 transit와 점수 영수증** — 이동 태양·달과 출생 태양·달·상승궁의 합·육합·사각·삼합·충, orb 및 실제 분야별 가감값 표시
 - ✅ **Swiss Ephemeris golden fixture** — 공식 v2.10.3final 기준 6건으로 Sun 0.02°·Moon 0.15°·Rising 0.05° 허용 오차 회귀 검증
 - ✅ **AI fact packet v5** — 계산된 점성술 사실만 전달하고 출생시각·위치·시간대는 외부 AI payload에서 제외
-- ✅ **PWA 캐시 v28** — 배포 후 별자리 UI 변경이 즉시 반영되도록 정적 캐시 namespace 갱신
+- ✅ **PWA 캐시 v29** — 출생 위치 검색 UI가 배포 직후 반영되도록 정적 캐시 namespace 갱신
 
 ### v3.1.3 (2026-07-28)
 - ✅ **한국 출생시각 정밀 보정** — `Asia/Seoul` tzdb로 역사적 서머타임과 표준 자오선을 반영하고, 출생지 경도·선택형 균시차·출생초 입력 지원

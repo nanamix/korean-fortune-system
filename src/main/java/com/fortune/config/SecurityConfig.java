@@ -59,6 +59,7 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**",
                                 "/api/fortune/**",          // 모든 운세 API 허용
+                                "/api/location/**",         // 출생 도시·좌표·시간대 검색
                                 "/api/system/status",       // 공개 시스템 상태
                                 "/api/docs/**",             // API 문서·테스트
                                 "/swagger-ui/**",           // Swagger UI

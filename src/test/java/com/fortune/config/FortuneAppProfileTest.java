@@ -17,6 +17,8 @@ class FortuneAppProfileTest {
         assertThat(html)
                 .contains("1. 공통 사용자 정보")
                 .contains("2. 공통 알림 발송 정보")
+                .contains("<legend>출생 도시와 위치</legend>")
+                .contains("id=\"profile-birth-city\"")
                 .contains(".profile-field-group .form-row { grid-template-columns:repeat(auto-fit,minmax(140px,1fr));")
                 .contains("background: #fff; width: 100%; min-height:43px;")
                 .contains("설정을 적용하는 것만으로는 발송되지 않습니다")
@@ -102,9 +104,11 @@ class FortuneAppProfileTest {
         String html = loadFortuneApp();
 
         assertThat(html)
-                .contains("id=\"zodiac-latitude\"")
-                .contains("id=\"zodiac-longitude\"")
-                .contains("id=\"zodiac-timezone\"")
+                .contains("id=\"profile-birth-latitude\"")
+                .contains("id=\"profile-birth-longitude\"")
+                .contains("id=\"profile-birth-timezone\"")
+                .contains("function buildBirthLocation()")
+                .contains("const birthLocation = buildBirthLocation();")
                 .contains("birthTime:")
                 .contains("calendarType: profile.calendarType")
                 .contains("개인 출생 차트 핵심")
@@ -112,6 +116,21 @@ class FortuneAppProfileTest {
                 .contains("astrologyProfile")
                 .contains("majorTransits")
                 .contains("orb ");
+    }
+
+    @Test
+    void searchesAndAppliesBirthLocationFromCommonProfile() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("onsubmit=\"searchBirthLocation(); return false;\"")
+                .contains("/api/location/search?q=")
+                .contains("function selectBirthLocation(index)")
+                .contains("profile-birth-city")
+                .contains("profile-birth-latitude")
+                .contains("profile-birth-longitude")
+                .contains("profile-birth-timezone")
+                .doesNotContain("id=\"zodiac-location-query\"");
     }
 
     private String loadFortuneApp() throws IOException {

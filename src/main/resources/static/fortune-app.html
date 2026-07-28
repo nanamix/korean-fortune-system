@@ -528,11 +528,22 @@ body {
 .zodiac-target { display:flex; align-items:center; gap:.55rem; margin:1rem 0; padding:.85rem 1rem; border:1px solid var(--border); border-radius:12px; background:#fff; }
 .zodiac-target label { font-size:.8rem; font-weight:800; color:var(--text-dark); }
 .zodiac-target input { margin-left:auto; max-width:180px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; font:inherit; }
-.zodiac-birth-location { margin:.8rem 0 1rem; border:1px solid #c3dafe; border-radius:12px; background:#f7f8ff; }
-.zodiac-birth-location summary { padding:.8rem 1rem; color:var(--primary-dark); font-size:.8rem; font-weight:900; cursor:pointer; }
 .zodiac-location-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.7rem; padding:0 1rem 1rem; }
 .zodiac-location-grid label { display:grid; gap:.35rem; color:var(--text-muted); font-size:.72rem; font-weight:800; }
 .zodiac-location-grid input { width:100%; min-height:42px; padding:.55rem .7rem; border:2px solid var(--border); border-radius:9px; background:#fff; font:inherit; }
+.zodiac-location-search { grid-column:1/-1; display:grid; gap:.5rem; padding:.85rem; border:1px solid #d6bcfa; border-radius:11px; background:#fff; }
+.zodiac-location-search label { color:var(--text-dark); }
+.zodiac-location-search-row { display:flex; gap:.5rem; }
+.zodiac-location-search-row input { flex:1; min-width:0; }
+.zodiac-location-search-row button { min-width:88px; padding:.55rem .85rem; border:0; border-radius:9px; background:var(--primary); color:#fff; font:inherit; font-size:.76rem; font-weight:900; cursor:pointer; }
+.zodiac-location-search-row button:disabled { opacity:.6; cursor:wait; }
+.zodiac-location-search-status { min-height:1.1rem; margin:0; color:var(--text-muted); font-size:.67rem; line-height:1.5; }
+.zodiac-location-results { display:grid; gap:.4rem; }
+.zodiac-location-result { display:grid; grid-template-columns:1fr auto; gap:.25rem .75rem; width:100%; padding:.65rem .75rem; border:1px solid var(--border); border-radius:9px; background:#f8fafc; color:var(--text-dark); text-align:left; cursor:pointer; }
+.zodiac-location-result:hover, .zodiac-location-result.selected { border-color:var(--primary); background:#f0f4ff; }
+.zodiac-location-result strong { font-size:.74rem; }
+.zodiac-location-result span { color:var(--text-muted); font-size:.64rem; }
+.zodiac-location-result .timezone { grid-column:2; grid-row:1/3; align-self:center; color:var(--primary-dark); font-weight:800; }
 .zodiac-location-note { grid-column:1/-1; margin:0; color:var(--text-muted); font-size:.69rem; line-height:1.55; }
 .zodiac-hero { display:grid; grid-template-columns:84px 1fr auto; align-items:center; gap:1rem; padding:1.2rem; border-radius:16px; background:linear-gradient(135deg,#2d3748,#667eea); color:#fff; }
 .zodiac-hero-symbol { display:grid; place-items:center; width:76px; height:76px; border-radius:50%; background:rgba(255,255,255,.14); font-size:2.8rem; }
@@ -757,7 +768,35 @@ body {
           </div>
         </fieldset>
 
-        <p class="common-profile-privacy">입력값은 현재 페이지에서만 공유하며 브라우저 저장소에는 저장하지 않습니다.</p>
+        <fieldset class="profile-field-group">
+          <legend>출생 도시와 위치</legend>
+          <div class="zodiac-location-grid">
+            <form class="zodiac-location-search" onsubmit="searchBirthLocation(); return false;">
+              <label for="profile-location-query">도시 · 지역 · 우편번호 검색</label>
+              <div class="zodiac-location-search-row">
+                <input type="search" id="profile-location-query" minlength="2" maxlength="80" autocomplete="off" spellcheck="false" placeholder="예: 서울특별시, 부산, Berlin, 10117" aria-describedby="profile-location-search-help">
+                <button type="submit" id="profile-location-search-btn">위치 검색</button>
+              </div>
+              <p class="zodiac-location-search-status" id="profile-location-search-help" role="status" aria-live="polite">검색어는 좌표·시간대 확인을 위해 Open-Meteo에 전송되며 저장하지 않습니다. 개인정보 보호를 위해 상세 번지 주소는 입력하지 마세요.</p>
+              <div class="zodiac-location-results" id="profile-location-results"></div>
+            </form>
+            <label for="profile-birth-city">출생 도시
+              <input type="text" id="profile-birth-city" value="서울특별시" maxlength="100" spellcheck="false" required>
+            </label>
+            <label for="profile-birth-latitude">출생 위도
+              <input type="number" id="profile-birth-latitude" value="37.5665" min="-90" max="90" step="0.0001" inputmode="decimal" required>
+            </label>
+            <label for="profile-birth-longitude">출생 경도
+              <input type="number" id="profile-birth-longitude" value="126.9780" min="-180" max="180" step="0.0001" inputmode="decimal" required>
+            </label>
+            <label for="profile-birth-timezone">IANA 시간대
+              <input type="text" id="profile-birth-timezone" value="Asia/Seoul" maxlength="64" spellcheck="false" placeholder="Asia/Seoul" required>
+            </label>
+            <p class="zodiac-location-note">검색 결과를 선택하면 출생 도시·위도·경도·시간대가 함께 입력됩니다. 더 정확한 값을 알고 있다면 직접 수정할 수 있습니다. 위치 데이터: Open-Meteo · GeoNames.</p>
+          </div>
+        </fieldset>
+
+        <p class="common-profile-privacy">입력값은 현재 페이지의 운세 계산에만 공유하며 브라우저 저장소에는 저장하지 않습니다. 위치 검색어만 좌표·시간대 확인을 위해 외부 제공자에 전송됩니다.</p>
       </div>
 
       <div class="card notification-profile" aria-labelledby="common-notification-title">
@@ -872,23 +911,7 @@ body {
           <input type="date" id="zodiac-target-date" aria-label="별자리 운세 대상 날짜">
         </div>
 
-        <details class="zodiac-birth-location" open>
-          <summary>개인화 출생 위치 · 시간대</summary>
-          <div class="zodiac-location-grid">
-            <label for="zodiac-latitude">출생 위도
-              <input type="number" id="zodiac-latitude" value="37.5665" min="-90" max="90" step="0.0001" inputmode="decimal">
-            </label>
-            <label for="zodiac-longitude">출생 경도
-              <input type="number" id="zodiac-longitude" value="126.9780" min="-180" max="180" step="0.0001" inputmode="decimal">
-            </label>
-            <label for="zodiac-timezone">IANA 시간대
-              <input type="text" id="zodiac-timezone" value="Asia/Seoul" maxlength="64" spellcheck="false" placeholder="Asia/Seoul">
-            </label>
-            <p class="zodiac-location-note">기본값은 서울입니다. 공통 출생 시각과 함께 상승궁을 계산하므로 실제 출생 도시의 위도·경도·당시 시간대를 입력하면 개인화가 더 정확해집니다. 입력값은 현재 요청에만 사용됩니다.</p>
-          </div>
-        </details>
-
-        <div class="uses-common-profile">👤 상단의 공통 출생일·시각·역법과 알림 설정을 사용합니다.</div>
+        <div class="uses-common-profile">👤 내 정보의 공통 출생일·시각·도시·위치·역법과 알림 설정을 사용합니다.</div>
 
         <button class="btn-action" id="zodiac-btn" onclick="calcZodiac()">
           <span class="spinner" id="zodiac-spin"></span>
@@ -1164,6 +1187,7 @@ function openProfileSettings() {
 function finishProfileSettings() {
   try {
     buildCommonProfile(true);
+    buildBirthLocation();
     updateProfileSummaries();
     clearProfileSaveStatus();
     showTab(profileReturnTab || 'saju');
@@ -1193,7 +1217,9 @@ function updateProfileSummaries() {
   const calendar = value('profile-calendar') === 'LUNAR' ? '음력' : '양력';
   const leapMonth = value('profile-calendar') === 'LUNAR' && document.getElementById('profile-leap')?.checked ? ' 윤달' : '';
   const notification = {email:'이메일 알림', telegram:'텔레그램 알림', discord:'Discord 알림', both:'이메일·텔레그램 알림', all:'전체 채널 알림'}[value('profile-notif-type')] || '알림 없음';
-  const summary = `${value('profile-year')}-${String(value('profile-month')).padStart(2,'0')}-${String(value('profile-day')).padStart(2,'0')} ${String(value('profile-hour')).padStart(2,'0')}:${String(value('profile-minute')).padStart(2,'0')} · ${gender} · ${calendar}${leapMonth} · ${notification}`;
+  const birthCity = value('profile-birth-city');
+  const timeZone = value('profile-birth-timezone');
+  const summary = `${value('profile-year')}-${String(value('profile-month')).padStart(2,'0')}-${String(value('profile-day')).padStart(2,'0')} ${String(value('profile-hour')).padStart(2,'0')}:${String(value('profile-minute')).padStart(2,'0')} · ${birthCity} (${timeZone}) · ${gender} · ${calendar}${leapMonth} · ${notification}`;
   document.querySelectorAll('.uses-common-profile').forEach(container => {
     const aiNote = container.closest('#sec-ai') ? ' · AI 요청은 알림 미발송' : '';
     container.innerHTML = `<span class="profile-summary-text">👤 <span>${escHtml(summary + aiNote)}</span></span><button type="button" class="profile-edit-btn" onclick="openProfileSettings()">정보 수정</button>`;
@@ -1394,13 +1420,39 @@ function buildCommonProfile(includeNotification = true) {
   return profile;
 }
 
+function buildBirthLocation() {
+  const birthCity = document.getElementById('profile-birth-city').value.trim();
+  const birthLatitude = Number(document.getElementById('profile-birth-latitude').value);
+  const birthLongitude = Number(document.getElementById('profile-birth-longitude').value);
+  const timeZone = document.getElementById('profile-birth-timezone').value.trim();
+  if (!birthCity) throw validationError('출생 도시를 입력하거나 검색 결과를 선택하세요.', 'profile-birth-city');
+  if (!Number.isFinite(birthLatitude) || birthLatitude < -90 || birthLatitude > 90) {
+    throw validationError('출생 위도는 -90~90 범위로 입력하세요.', 'profile-birth-latitude');
+  }
+  if (!Number.isFinite(birthLongitude) || birthLongitude < -180 || birthLongitude > 180) {
+    throw validationError('출생 경도는 -180~180 범위로 입력하세요.', 'profile-birth-longitude');
+  }
+  if (!timeZone) throw validationError('IANA 시간대를 입력하세요. 예: Asia/Seoul', 'profile-birth-timezone');
+  try {
+    new Intl.DateTimeFormat('ko-KR', {timeZone}).format(new Date());
+  } catch (error) {
+    throw validationError('올바른 IANA 시간대를 입력하세요. 예: Asia/Seoul', 'profile-birth-timezone');
+  }
+  return {birthCity, birthLatitude, birthLongitude, timeZone};
+}
+
 function showError(bodyId, message) {
   document.getElementById(bodyId).innerHTML =
     `<div class="alert alert-error">❌ ${escHtml(message)}</div>`;
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
 }
 
 function scoreColor(n) {
@@ -1878,31 +1930,83 @@ function tojeongFlowLabel(score) {
 }
 
 // ── 별자리 운세 ───────────────────────────────────────
+let birthLocationResults = [];
+
+async function searchBirthLocation() {
+  const queryInput = document.getElementById('profile-location-query');
+  const button = document.getElementById('profile-location-search-btn');
+  const status = document.getElementById('profile-location-search-help');
+  const results = document.getElementById('profile-location-results');
+  const query = queryInput.value.trim().replace(/\s+/g, ' ');
+  if (query.length < 2 || query.length > 80) {
+    status.textContent = '도시·지역·우편번호를 2~80자로 입력해 주세요.';
+    queryInput.focus();
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = '검색 중…';
+  results.setAttribute('aria-busy', 'true');
+  status.textContent = '좌표와 시간대를 찾고 있습니다.';
+  try {
+    const response = await apiGet(`/api/location/search?q=${encodeURIComponent(query)}`);
+    birthLocationResults = Array.isArray(response.data) ? response.data : [];
+    renderBirthLocationResults();
+    status.textContent = birthLocationResults.length
+      ? `검색 결과 ${birthLocationResults.length}건입니다. 출생지와 가장 가까운 항목을 선택하세요.`
+      : '검색 결과가 없습니다. 더 넓은 도시·지역명이나 우편번호로 다시 검색하거나 좌표를 직접 입력하세요.';
+  } catch (error) {
+    birthLocationResults = [];
+    results.innerHTML = '';
+    status.textContent = error.message || '위치 검색을 사용할 수 없습니다. 좌표를 직접 입력해 주세요.';
+  } finally {
+    button.disabled = false;
+    button.textContent = '위치 검색';
+    results.removeAttribute('aria-busy');
+  }
+}
+
+function renderBirthLocationResults(selectedIndex = -1) {
+  const results = document.getElementById('profile-location-results');
+  results.innerHTML = birthLocationResults.map((location, index) => `
+    <button type="button" class="zodiac-location-result${index === selectedIndex ? ' selected' : ''}"
+      onclick="selectBirthLocation(${index})" aria-label="${escHtml(location.name)} 선택">
+      <strong>${escHtml(location.name || '이름 없는 위치')}</strong>
+      <span>위도 ${Number(location.latitude).toFixed(4)} · 경도 ${Number(location.longitude).toFixed(4)}</span>
+      <span class="timezone">${escHtml(location.timeZone || '-')}</span>
+    </button>`).join('');
+}
+
+function selectBirthLocation(index) {
+  const location = birthLocationResults[index];
+  if (!location) return;
+  document.getElementById('profile-birth-city').value = location.name || '';
+  document.getElementById('profile-birth-latitude').value = Number(location.latitude).toFixed(4);
+  document.getElementById('profile-birth-longitude').value = Number(location.longitude).toFixed(4);
+  document.getElementById('profile-birth-timezone').value = location.timeZone || '';
+  renderBirthLocationResults(index);
+  updateProfileSummaries();
+  clearProfileSaveStatus();
+  document.getElementById('profile-location-search-help').textContent =
+    `${location.name}의 출생 도시·좌표·시간대를 공통 사용자 정보에 적용했습니다.`;
+}
+
 async function calcZodiac() {
   setLoading('zodiac', true);
   try {
     const profile = buildCommonProfile(true);
+    const birthLocation = buildBirthLocation();
     const notif = profile.notification;
     const birthDate = [profile.birthYear, String(profile.birthMonth).padStart(2, '0'), String(profile.birthDay).padStart(2, '0')].join('-');
     const targetDate = document.getElementById('zodiac-target-date').value;
     if (!targetDate) throw new Error('운세를 볼 날짜를 선택해 주세요.');
-    const birthLatitude = Number(document.getElementById('zodiac-latitude').value);
-    const birthLongitude = Number(document.getElementById('zodiac-longitude').value);
-    const timeZone = document.getElementById('zodiac-timezone').value.trim();
-    if (!Number.isFinite(birthLatitude) || birthLatitude < -90 || birthLatitude > 90) {
-      throw validationError('출생 위도는 -90~90 범위로 입력하세요.', 'zodiac-latitude');
-    }
-    if (!Number.isFinite(birthLongitude) || birthLongitude < -180 || birthLongitude > 180) {
-      throw validationError('출생 경도는 -180~180 범위로 입력하세요.', 'zodiac-longitude');
-    }
-    if (!timeZone) throw validationError('IANA 시간대를 입력하세요. 예: Asia/Seoul', 'zodiac-timezone');
     const body = {
       birthDate,
       targetDate,
       birthTime: `${String(profile.birthHour).padStart(2, '0')}:${String(profile.birthMinute).padStart(2, '0')}`,
-      birthLatitude,
-      birthLongitude,
-      timeZone,
+      birthLatitude: birthLocation.birthLatitude,
+      birthLongitude: birthLocation.birthLongitude,
+      timeZone: birthLocation.timeZone,
       calendarType: profile.calendarType,
       leapMonth: profile.leapMonth,
       notification: notif

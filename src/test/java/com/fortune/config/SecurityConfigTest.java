@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import com.fortune.security.JwtTokenUtil;
+import com.fortune.service.LocationSearchService;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -31,6 +34,9 @@ class SecurityConfigTest {
 
     @MockitoBean
     private JavaMailSender javaMailSender;
+
+    @MockitoBean
+    private LocationSearchService locationSearchService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,6 +55,10 @@ class SecurityConfigTest {
                 .andExpect(jsonPath("$.data.uptime").isNotEmpty())
                 .andExpect(jsonPath("$.data.features").isMap());
         mockMvc.perform(get("/api/docs")).andExpect(status().isOk());
+        when(locationSearchService.search("서울")).thenReturn(List.of());
+        mockMvc.perform(get("/api/location/search").param("q", "서울"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test

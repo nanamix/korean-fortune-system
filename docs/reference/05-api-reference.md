@@ -61,6 +61,17 @@ AI 3종 엔드포인트는 `AIFortuneService` 가 미주입(비활성)이면 `er
 
 계산 모델과 한계는 [14. 서양 점성술 계산](14-western-astrology.md)을 참고하세요.
 
+### 출생 위치 검색 — `/api/location`
+
+| 메서드 | 경로 | 요청 | 응답 data | 비고 |
+|--------|------|------|-----------|------|
+| GET | `/search` | `q`(2~80자 도시·지역·우편번호) | `LocationSearchResult[]` | `name`, `countryCode`, WGS84 `latitude`·`longitude`, IANA `timeZone` |
+
+서버가 고정된 Open-Meteo Geocoding API를 호출하므로 사용자 입력으로 외부 호스트를
+바꿀 수 없습니다. 검색어 원문은 애플리케이션 로그와 DB에 저장하지 않습니다.
+외부 제공자 오류는 HTTP 502와 `LOCATION_SEARCH_UNAVAILABLE`을 반환하며, UI는
+기존 좌표·시간대 직접 입력을 계속 제공해야 합니다.
+
 ### 요청/응답 예시 — `POST /api/fortune/saju/calculate`
 
 ```json
