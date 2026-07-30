@@ -153,6 +153,21 @@ body {
 .notification-state strong { color:var(--text-dark); }
 .notification-state.active { background:#f0fff4; color:#276749; }
 .notification-state.active strong { color:#22543d; }
+.schedule-panel { margin-top:1rem; padding:1rem; border:1px solid #d6bcfa; border-radius:12px; background:#faf5ff; }
+.schedule-panel-head { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:.8rem; }
+.schedule-panel-head h3 { margin:0 0 .2rem; color:#553c9a; font-size:.95rem; }
+.schedule-panel-head p { margin:0; color:var(--text-muted); font-size:.72rem; line-height:1.45; }
+.schedule-create { display:flex; gap:.6rem; align-items:end; flex-wrap:wrap; }
+.schedule-create .form-group { flex:1; min-width:150px; margin:0; }
+.schedule-action { border:0; border-radius:10px; padding:.7rem .9rem; background:#6b46c1; color:#fff; font-size:.76rem; font-weight:800; cursor:pointer; }
+.schedule-action:disabled { opacity:.5; cursor:not-allowed; }
+.schedule-list { display:grid; gap:.55rem; margin-top:.8rem; }
+.schedule-item { display:flex; justify-content:space-between; align-items:center; gap:.8rem; padding:.7rem .8rem; border:1px solid #e9d8fd; border-radius:10px; background:#fff; }
+.schedule-item-info strong { display:block; color:var(--text-dark); font-size:.8rem; }
+.schedule-item-info span { color:var(--text-muted); font-size:.68rem; }
+.schedule-item-actions { display:flex; gap:.35rem; }
+.schedule-item-actions button { border:1px solid #d6bcfa; border-radius:8px; padding:.35rem .55rem; background:#fff; color:#553c9a; font-size:.68rem; font-weight:800; cursor:pointer; }
+.schedule-item-actions button.danger { border-color:#fed7d7; color:#c53030; }
 .common-profile-privacy { margin-top:0.75rem; color:var(--text-muted); font-size:0.72rem; line-height:1.5; }
 .uses-common-profile { display:flex; align-items:center; justify-content:space-between; gap:.8rem; padding:.7rem .85rem; margin-bottom:1rem; border-radius:10px; background:#f0f4ff; color:var(--primary-dark); font-size:.82rem; }
 .profile-summary-text { display:flex; align-items:center; gap:.45rem; min-width:0; }.profile-summary-text span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.profile-edit-btn { flex:none; border:1px solid #c3dafe; border-radius:18px; padding:.32rem .65rem; background:#fff; color:var(--primary-dark); font-size:.7rem; font-weight:800; cursor:pointer; }
@@ -855,6 +870,25 @@ body {
           <div class="form-group form-full notif-channel-field notif-webhook-field" data-channel="discord" hidden><label for="profile-discord">일회성 Discord Webhook URL <span class="optional-label">(선택)</span></label><input type="url" id="profile-discord" autocomplete="off" spellcheck="false" placeholder="입력하면 위 대상을 이번 페이지에서만 덮어씁니다."><small class="field-feedback">보안을 위해 직접 입력한 URL은 세션 종료 후 저장하지 않습니다.</small></div>
         </div>
         <p class="notif-help">수신 대상인 Chat ID·Email만 요청에 포함합니다. Telegram Bot Token과 Discord 기본 Webhook은 서버의 OpenBao에서 관리합니다.</p>
+
+        <section class="schedule-panel" aria-labelledby="notification-schedule-title">
+          <div class="schedule-panel-head">
+            <div>
+              <h3 id="notification-schedule-title">⏰ 매일 오늘의 운세 예약</h3>
+              <p>선택한 시간대 기준으로 화면과 같은 상세 오늘의 운세를 매일 발송합니다. 일회성 Discord URL은 예약에 저장할 수 없습니다.</p>
+            </div>
+          </div>
+          <div class="schedule-create">
+            <div class="form-group">
+              <label for="notification-schedule-time">발송 시각</label>
+              <input type="time" id="notification-schedule-time" value="08:00" required>
+            </div>
+            <button type="button" class="schedule-action" id="notification-schedule-create" onclick="createNotificationSchedule()">예약 저장</button>
+            <button type="button" class="schedule-action" onclick="loadNotificationSchedules()">새로고침</button>
+          </div>
+          <p class="notif-help" id="notification-schedule-status" role="status">알림 채널과 공통 출생정보를 입력한 뒤 예약을 저장하세요.</p>
+          <div class="schedule-list" id="notification-schedule-list" aria-live="polite"></div>
+        </section>
       </div>
 
       <div class="profile-save-row">
@@ -1117,6 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateNotificationFields();
   updateNotificationTestFields();
   loadDiscordWebhookConfig();
+  loadNotificationSchedules();
   updateProfileSummaries();
   const requestedTab = location.hash.replace('#', '');
   if (document.getElementById('sec-' + requestedTab)) showTab(requestedTab, false);
@@ -1402,6 +1437,137 @@ async function apiPost(url, body) {
 async function apiGet(url) {
   const res = await fetch(url, {credentials: 'same-origin'});
   return parseApiResponse(res);
+}
+
+async function apiMutation(url, method, body = null) {
+  const options = {
+    method,
+    credentials: 'same-origin',
+    headers: {'Content-Type': 'application/json'}
+  };
+  if (body !== null) options.body = JSON.stringify(body);
+  const res = await fetch(url, options);
+  return parseApiResponse(res);
+}
+
+// ── DAILY NOTIFICATION SCHEDULE ─────────────────────
+async function createNotificationSchedule() {
+  const status = document.getElementById('notification-schedule-status');
+  const button = document.getElementById('notification-schedule-create');
+  try {
+    const profile = buildCommonProfile(true);
+    const location = buildBirthLocation();
+    if (!profile.notification) {
+      throw validationError('예약할 알림 채널을 먼저 선택하세요.', 'profile-notif-type');
+    }
+    if (profile.notification.discordWebhookUrl) {
+      throw validationError(
+        '예약에는 일회성 Discord URL을 저장할 수 없습니다. OpenBao 발송 대상을 선택하세요.',
+        'profile-discord'
+      );
+    }
+    const scheduledTime = document.getElementById('notification-schedule-time').value;
+    if (!scheduledTime) {
+      throw validationError('매일 발송할 시각을 선택하세요.', 'notification-schedule-time');
+    }
+    button.disabled = true;
+    status.textContent = '예약을 저장하고 있습니다…';
+    const body = {
+      birthYear: profile.birthYear,
+      birthMonth: profile.birthMonth,
+      birthDay: profile.birthDay,
+      birthHour: profile.birthHour,
+      birthMinute: profile.birthMinute,
+      gender: profile.gender,
+      calendarType: profile.calendarType,
+      leapMonth: profile.leapMonth,
+      birthLongitude: location.birthLongitude,
+      applyEquationOfTime: false,
+      applyHistoricalDst: true,
+      scheduledTime,
+      timeZone: location.timeZone,
+      notification: {
+        ...profile.notification,
+        discordWebhookUrl: null,
+        discordWebhookTarget: profile.notification.discordWebhookTarget
+          || document.getElementById('profile-discord-target').value
+          || 'default'
+      }
+    };
+    await apiPost('/api/fortune/notification-schedules', body);
+    status.textContent = '✓ 매일 운세 예약이 저장되었습니다.';
+    await loadNotificationSchedules(false);
+  } catch (error) {
+    status.textContent = error.message;
+    const field = error.fieldId ? document.getElementById(error.fieldId) : null;
+    if (field) field.focus();
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function loadNotificationSchedules(showLoading = true) {
+  const list = document.getElementById('notification-schedule-list');
+  const status = document.getElementById('notification-schedule-status');
+  if (!list || !status) return;
+  if (showLoading) status.textContent = '저장된 예약을 확인하고 있습니다…';
+  try {
+    const response = await apiGet('/api/fortune/notification-schedules');
+    const schedules = response.data || [];
+    list.innerHTML = schedules.length
+      ? schedules.map(renderNotificationSchedule).join('')
+      : '<div class="schedule-item"><div class="schedule-item-info"><strong>저장된 예약 없음</strong><span>매일 받을 시각과 알림 채널을 선택해 예약을 추가하세요.</span></div></div>';
+    if (showLoading) status.textContent = `${schedules.length}개의 예약이 저장되어 있습니다.`;
+  } catch (error) {
+    list.innerHTML = '';
+    status.textContent = `예약 조회 실패: ${error.message}`;
+  }
+}
+
+function renderNotificationSchedule(schedule) {
+  const channel = {
+    email:'이메일', telegram:'텔레그램', discord:'Discord',
+    both:'이메일 + 텔레그램', all:'전체 채널'
+  }[schedule.notificationType] || schedule.notificationType;
+  const state = schedule.enabled ? (schedule.lastStatus || 'WAITING') : 'DISABLED';
+  const stateLabel = {
+    WAITING:'대기', RUNNING:'발송 중', SENT:'발송 완료',
+    FAILED:'발송 실패', DISABLED:'일시 중지'
+  }[state] || state;
+  const recent = schedule.lastRunDate ? ` · 최근 ${schedule.lastRunDate} ${stateLabel}` : ` · ${stateLabel}`;
+  return `<article class="schedule-item">
+    <div class="schedule-item-info">
+      <strong>${escHtml(schedule.recipientName)} · 매일 ${escHtml(schedule.scheduledTime.slice(0,5))} · ${escHtml(channel)}</strong>
+      <span>${escHtml(schedule.timeZone)}${escHtml(recent)}${schedule.lastError ? ` · ${escHtml(schedule.lastError)}` : ''}</span>
+    </div>
+    <div class="schedule-item-actions">
+      <button type="button" onclick="toggleNotificationSchedule(${Number(schedule.id)}, ${!schedule.enabled})">${schedule.enabled ? '중지' : '재개'}</button>
+      <button type="button" class="danger" onclick="deleteNotificationSchedule(${Number(schedule.id)})">삭제</button>
+    </div>
+  </article>`;
+}
+
+async function toggleNotificationSchedule(id, enabled) {
+  const status = document.getElementById('notification-schedule-status');
+  try {
+    await apiMutation(`/api/fortune/notification-schedules/${id}/enabled`, 'PATCH', {enabled});
+    status.textContent = enabled ? '✓ 예약을 다시 시작했습니다.' : '✓ 예약을 일시 중지했습니다.';
+    await loadNotificationSchedules(false);
+  } catch (error) {
+    status.textContent = `예약 변경 실패: ${error.message}`;
+  }
+}
+
+async function deleteNotificationSchedule(id) {
+  if (!window.confirm('이 알림 예약을 삭제할까요? 삭제 후에는 복구할 수 없습니다.')) return;
+  const status = document.getElementById('notification-schedule-status');
+  try {
+    await apiMutation(`/api/fortune/notification-schedules/${id}`, 'DELETE');
+    status.textContent = '✓ 예약을 삭제했습니다.';
+    await loadNotificationSchedules(false);
+  } catch (error) {
+    status.textContent = `예약 삭제 실패: ${error.message}`;
+  }
 }
 
 async function parseApiResponse(res) {

@@ -47,6 +47,8 @@ dependencies {
 
     // ✅ 데이터베이스 관련
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'org.postgresql:postgresql'
@@ -100,9 +102,6 @@ dependencies {
     // implementation 'org.glassfish.jersey.media:jersey-media-json-jackson:2.40'
     // implementation 'org.glassfish.jersey.inject:jersey-hk2:2.40'
     
-    // ✅ Thymeleaf 템플릿 엔진 (이메일 템플릿용)
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-
     // ✅ 개발 도구
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 

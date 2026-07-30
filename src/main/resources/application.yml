@@ -22,6 +22,9 @@ spring:
     show-sql: true
     format-sql: true
 
+  flyway:
+    enabled: false
+
   # H2 콘솔 설정
   h2:
     console:

@@ -20,6 +20,7 @@ import com.fortune.service.DiscordService;
 import com.fortune.service.EmailService;
 import com.fortune.service.GanjiCalendarService;
 import com.fortune.service.GanjiCalculatorService;
+import com.fortune.service.FortuneNotificationFormatter;
 import com.fortune.service.SlackService;
 import com.fortune.service.TelegramService;
 import com.fortune.service.TojeongBigyeolService;
@@ -63,7 +64,8 @@ class FortuneControllerSendResponseTest {
                 mock(EmailService.class),
                 telegramService,
                 discordService,
-                mock(SlackService.class));
+                mock(SlackService.class),
+                new FortuneNotificationFormatter());
     }
 
     @Test

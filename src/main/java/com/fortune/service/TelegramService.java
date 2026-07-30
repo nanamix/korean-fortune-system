@@ -6,11 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class TelegramService {
+    private static final int MAX_CONTENT = 3500;
     @Value("${app.fortune.telegram.bot-token:}")
     private String botToken;
 
@@ -51,13 +53,17 @@ public class TelegramService {
         }
 
         String url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
-        Map<String, String> params = new HashMap<>();
-        params.put("chat_id", resolvedChatId);
-        params.put("text", message);
-
-        log.info("📱 텔레그램 API 호출");
-        String response = restTemplate.postForObject(url, params, String.class);
-        log.info("📱 텔레그램 메시지 전송 완료: {}", response);
+        List<String> chunks = NotificationMessageChunker.split(message, MAX_CONTENT);
+        for (int index = 0; index < chunks.size(); index++) {
+            Map<String, String> params = new HashMap<>();
+            params.put("chat_id", resolvedChatId);
+            params.put("text", chunks.size() == 1
+                    ? chunks.get(index)
+                    : "[%d/%d]\n%s".formatted(index + 1, chunks.size(), chunks.get(index)));
+            log.info("📱 텔레그램 API 호출: chunk={}/{}", index + 1, chunks.size());
+            restTemplate.postForObject(url, params, String.class);
+        }
+        log.info("📱 텔레그램 메시지 전송 완료: chunks={}", chunks.size());
     }
 
     // 기존 메서드는 기본 chatId 사용

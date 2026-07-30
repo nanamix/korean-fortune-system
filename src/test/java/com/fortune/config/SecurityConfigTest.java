@@ -75,7 +75,7 @@ class SecurityConfigTest {
         String html = new ClassPathResource("static/fortune-app.html")
                 .getContentAsString(StandardCharsets.UTF_8);
 
-        assertThat(html.split("credentials: 'same-origin'", -1)).hasSize(3);
+        assertThat(html.split("credentials: 'same-origin'", -1)).hasSize(4);
     }
 
     @Test

@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import com.fortune.dto.ApiResponse;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 /**
  * 글로벌 예외 처리기
@@ -87,6 +88,15 @@ public class GlobalExceptionHandler {
         log.warn("잘못된 인수: {}", e.getMessage());
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("입력된 값이 올바르지 않습니다: " + e.getMessage(), "잘못된 인수"));
+    }
+    /**
+     * 본인 소유가 아니거나 삭제된 예약 조회 처리
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(EntityNotFoundException e) {
+        log.warn("요청 리소스 없음: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("요청한 예약을 찾을 수 없습니다.", "RESOURCE_NOT_FOUND"));
     }
     /**
      * 일반 예외 처리

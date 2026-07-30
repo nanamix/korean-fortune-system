@@ -5,7 +5,7 @@
 
 ## 요약
 
-`*/calculate-and-send` 엔드포인트는 `notification` 객체로 발송 채널을 지정한다. 모든 채널은 **선택적**이며, 설정이 없으면 계산은 정상 수행되고 발송만 건너뛴다.
+`*/calculate-and-send` 엔드포인트는 `notification` 객체로 발송 채널을 지정한다. 모든 채널은 **선택적**이며, 설정이 없으면 계산은 정상 수행되고 발송만 건너뛴다. 메시지 본문은 화면 결과와 같은 상세 데이터 포맷터를 사용하며, 채널 제한을 넘는 본문은 문단 경계에서 여러 메시지로 나눠 전송한다.
 
 | 채널 | 활성화 조건 | 핵심 설정 |
 |------|------------|-----------|
@@ -139,7 +139,7 @@ app:
 - 요청별 webhook 은 `notification.discordWebhookUrl` 로 지정 가능. **SSRF 방지**를 위해 Discord 공식 호스트(`discord.com`/`discordapp.com`/`canary`/`ptb`)의 `/api/webhooks/` URL 만 허용된다(그 외는 발송 차단).
 - 재사용할 추가 webhook 은 OpenBao에 `DISCORD_WEBHOOK_URL_<ALIAS>` 형식으로 저장한다. 예를 들어 `DISCORD_WEBHOOK_URL_FAMILY`는 API/UI에서 `family` 대상으로 노출되며 URL 자체는 브라우저에 반환하지 않는다. 요청에서는 `notification.discordWebhookTarget: "family"`로 선택한다.
 - 직접 입력한 `notification.discordWebhookUrl`은 일회성으로만 사용한다. Webhook URL은 bearer secret이므로 브라우저 영속 저장소에 보관하지 않는다.
-- 메시지는 평문 `content`(최대 2000자, 초과 시 절단).
+- 메시지는 평문 `content`로 발송한다. 2,000자를 넘는 상세 결과는 누락 없이 여러 메시지로 나눠 순서대로 발송한다.
 
 ### 테스트
 
@@ -170,3 +170,26 @@ curl -X POST http://localhost:18080/api/fortune/saju/calculate-and-send \
 ```
 
 `notificationType` 에 따라 해당 채널만 발송된다. 미설정 채널은 조용히 건너뛴다.
+
+---
+
+## 5. 매일 오늘의 운세 예약
+
+웹의 **내 정보 → 공통 알림 발송 정보 → 매일 오늘의 운세 예약**에서 발송 시각을 저장할 수 있다. 예약은 브라우저 세션이 아니라 DB에 저장되며 매분 due 상태를 확인한다.
+
+- IANA 시간대(기본 UI 값 `Asia/Seoul`) 기준으로 하루 한 번 실행한다.
+- 서버가 예약 시각 이후에 재기동되어도 아직 실행하지 않은 당일 예약은 발송한다.
+- 조건부 `last_run_date` 갱신으로 같은 날 중복 실행을 방지한다.
+- 생성 당일 예약 시각이 이미 지났다면 즉시 발송하지 않고 다음 날부터 시작한다.
+- 운영에서는 검증된 Cloudflare Access subject별로 예약 목록과 변경 권한을 분리한다.
+- Discord 예약에는 Webhook bearer secret을 저장하지 않는다. OpenBao의 `default` 또는 이름 있는 대상만 선택할 수 있다.
+- 예약은 UI/API에서 언제든 중지·재개·삭제할 수 있고 최근 상태(`WAITING`, `SENT`, `FAILED`, `DISABLED`)를 확인할 수 있다.
+
+| 작업 | 메서드 | URL |
+|------|--------|-----|
+| 목록 | GET | `/api/fortune/notification-schedules` |
+| 생성 | POST | `/api/fortune/notification-schedules` |
+| 중지·재개 | PATCH | `/api/fortune/notification-schedules/{id}/enabled` |
+| 삭제 | DELETE | `/api/fortune/notification-schedules/{id}` |
+
+운영 DB는 애플리케이션 시작 전에 Flyway `V2__create_notification_schedule.sql`을 적용하고, 이후 Hibernate `validate`로 스키마를 확인한다.

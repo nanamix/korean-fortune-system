@@ -50,6 +50,22 @@ class FortuneAppProfileTest {
     }
 
     @Test
+    void managesPersistentDailyNotificationSchedulesWithoutSavingWebhookUrls() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("매일 오늘의 운세 예약")
+                .contains("id=\"notification-schedule-time\"")
+                .contains("function createNotificationSchedule()")
+                .contains("function loadNotificationSchedules(")
+                .contains("function toggleNotificationSchedule(")
+                .contains("function deleteNotificationSchedule(")
+                .contains("/api/fortune/notification-schedules")
+                .contains("discordWebhookUrl: null")
+                .contains("예약에는 일회성 Discord URL을 저장할 수 없습니다.");
+    }
+
+    @Test
     void validatesCalendarDateAndSupportsLunarLeapMonth() throws IOException {
         String html = loadFortuneApp();
 

@@ -26,6 +26,7 @@
 - **📧 이메일 발송**: 운세 결과를 이메일로 발송
 - **📱 텔레그램 발송**: 운세 결과를 텔레그램 봇으로 발송
 - **📢 Discord 발송**: 운세 결과를 Discord 웹후크로 채널에 발송
+- **⏰ 매일 운세 예약**: 화면과 같은 상세 오늘의 운세를 IANA 시간대 기준으로 영속 예약·중지·재개
 - **🤖 AI 운세**: DeepSeek V4 Flash 기본 서술, 버전 기반 fact packet 검증과 규칙 기반 안전 폴백
 - **🔍 시스템 모니터링**: Spring Boot Actuator 기반 모니터링
 
@@ -101,6 +102,9 @@ docker compose \
 | 토정비결 발송 | POST | `/api/fortune/tojeong/calculate-and-send` | 계산 후 발송 |
 | 별자리 운세 | POST | `/api/fortune/zodiac` | Sun·Moon·Rising 및 주요 transit 기반 개인화 운세 |
 | 별자리 운세 발송 | POST | `/api/fortune/zodiac/calculate-and-send` | 계산 후 발송 |
+| 알림 예약 목록/생성 | GET·POST | `/api/fortune/notification-schedules` | 내 매일 운세 예약 조회·생성 |
+| 알림 예약 상태 | PATCH | `/api/fortune/notification-schedules/{id}/enabled` | 예약 중지·재개 |
+| 알림 예약 삭제 | DELETE | `/api/fortune/notification-schedules/{id}` | 예약 삭제 |
 | 출생 위치 검색 | GET | `/api/location/search?q={도시·지역·우편번호}` | WGS84 좌표와 IANA 시간대 조회 |
 | 간지달력 API | GET | `/api/fortune/calendar/ganji/{year}/{month}` | 간지 달력 JSON 조회 |
 | 간지달력 뷰 | GET | `/api/calendar/view/{year}/{month}` | 간지달력 HTML 뷰 |

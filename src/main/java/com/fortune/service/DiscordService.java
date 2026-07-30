@@ -35,7 +35,7 @@ public class DiscordService {
     /** SSRF 방지: 허용 webhook 호스트. */
     private static final Set<String> ALLOWED_HOSTS = Set.of(
             "discord.com", "discordapp.com", "canary.discord.com", "ptb.discord.com");
-    /** Discord 메시지 content 길이 제한. */
+    /** Discord 메시지 content 길이 제한. 긴 운세는 여러 메시지로 이어서 전송한다. */
     private static final int MAX_CONTENT = 2000;
     private static final String NAMED_WEBHOOK_PREFIX = "DISCORD_WEBHOOK_URL_";
 
@@ -94,7 +94,7 @@ public class DiscordService {
             return;
         }
         try {
-            postMessage(message, target);
+            postMessages(message, target);
         } catch (Exception e) {
             log.error("❌ Discord 메시지 전송 실패", e);
         }
@@ -118,7 +118,7 @@ public class DiscordService {
         if (!isAllowedWebhook(target)) {
             throw new IllegalArgumentException("Discord 공식 Webhook URL만 사용할 수 있습니다.");
         }
-        postMessage(message, target);
+        postMessages(message, target);
     }
 
     public boolean isDefaultWebhookConfigured() {
@@ -177,14 +177,19 @@ public class DiscordService {
         return normalized.matches("default|[a-z0-9][a-z0-9-]{0,39}") ? normalized : null;
     }
 
-    private void postMessage(String message, String target) {
-        String content = message.length() > MAX_CONTENT
-                ? message.substring(0, MAX_CONTENT - 3) + "..." : message;
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("content", content), headers);
-        restTemplate.postForObject(target, entity, String.class);
-        log.info("📢 Discord 메시지 전송 완료");
+    private void postMessages(String message, String target) {
+        List<String> chunks = NotificationMessageChunker.split(message, MAX_CONTENT - 12);
+        for (int index = 0; index < chunks.size(); index++) {
+            String content = chunks.size() == 1
+                    ? chunks.get(index)
+                    : "[%d/%d]\n%s".formatted(index + 1, chunks.size(), chunks.get(index));
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, String>> entity =
+                    new HttpEntity<>(Map.of("content", content), headers);
+            restTemplate.postForObject(target, entity, String.class);
+        }
+        log.info("📢 Discord 메시지 전송 완료: chunks={}", chunks.size());
     }
 
     /** Discord 공식 webhook(https, 허용 호스트, /api/webhooks/ 경로)만 허용. */

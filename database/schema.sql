@@ -127,3 +127,36 @@ CREATE TABLE IF NOT EXISTS fortune_cache (
     INDEX idx_cache_key (cache_key),
     INDEX idx_expires_at (expires_at)
 );
+
+-- 매일 운세 알림 예약
+CREATE TABLE IF NOT EXISTS notification_schedule (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    owner_key VARCHAR(128) NOT NULL,
+    enabled BOOLEAN NOT NULL,
+    recipient_name VARCHAR(50) NOT NULL,
+    email VARCHAR(254),
+    telegram_chat_id VARCHAR(32),
+    discord_webhook_target VARCHAR(40),
+    notification_type VARCHAR(16) NOT NULL,
+    birth_year INT NOT NULL,
+    birth_month INT NOT NULL,
+    birth_day INT NOT NULL,
+    birth_hour INT NOT NULL,
+    birth_minute INT NOT NULL,
+    gender VARCHAR(1) NOT NULL,
+    calendar_type VARCHAR(8) NOT NULL,
+    leap_month BOOLEAN NOT NULL,
+    birth_longitude DOUBLE,
+    apply_equation_of_time BOOLEAN NOT NULL,
+    apply_historical_dst BOOLEAN NOT NULL,
+    scheduled_time TIME NOT NULL,
+    time_zone VARCHAR(64) NOT NULL,
+    last_run_date DATE,
+    last_status VARCHAR(16),
+    last_error VARCHAR(500),
+    last_run_at DATETIME,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    INDEX idx_notification_schedule_owner (owner_key),
+    INDEX idx_notification_schedule_due (enabled, last_run_date, scheduled_time)
+);

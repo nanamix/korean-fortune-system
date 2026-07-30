@@ -9,15 +9,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 📧 이메일 발송 서비스
@@ -34,7 +29,7 @@ import java.util.Map;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final TemplateEngine templateEngine;
+    private final FortuneNotificationFormatter notificationFormatter;
 
     @Value("${spring.mail.username:fortune@jyha.net}")
     private String fromEmail;
@@ -69,13 +64,9 @@ public class EmailService {
         }
 
         try {
-            Map<String, Object> model = new HashMap<>();
-            model.put("recipientName", recipientName);
-            model.put("sajuResult", sajuResult);
-            model.put("currentDate", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")));
-
             String subject = "🔮 " + recipientName + "님의 사주팔자 결과";
-            String htmlContent = generateSajuEmailTemplate(model);
+            String htmlContent = plainTextHtml(
+                    notificationFormatter.formatSaju(sajuResult, recipientName));
 
             sendEmail(toEmail, subject, htmlContent);
             log.info("사주팔자 결과 이메일 발송 완료: {}", toEmail);
@@ -94,26 +85,29 @@ public class EmailService {
      */
     @Async
     public void sendDailyFortune(String toEmail, DailyFortuneResult dailyResult, String recipientName) {
-        if (!emailEnabled) {
-            log.warn("이메일 발송이 비활성화되어 있습니다.");
-            return;
-        }
-
         try {
-            Map<String, Object> model = new HashMap<>();
-            model.put("recipientName", recipientName);
-            model.put("dailyResult", dailyResult);
-            model.put("currentDate", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")));
-
-            String subject = "📅 " + recipientName + "님의 " + dailyResult.getDate().format(DateTimeFormatter.ofPattern("MM월 dd일")) + " 운세";
-            String htmlContent = generateDailyFortuneEmailTemplate(model);
-
-            sendEmail(toEmail, subject, htmlContent);
+            sendDailyFortuneNow(toEmail, dailyResult, recipientName);
             log.info("일일운세 결과 이메일 발송 완료: {}", toEmail);
-
         } catch (Exception e) {
             log.error("일일운세 결과 이메일 발송 실패: {}", toEmail, e);
         }
+    }
+
+    /**
+     * 예약 실행기가 성공/실패 상태를 정확히 기록할 수 있도록 동기식으로 발송한다.
+     */
+    public void sendDailyFortuneNow(
+            String toEmail,
+            DailyFortuneResult dailyResult,
+            String recipientName) throws MessagingException {
+        if (!emailEnabled) {
+            throw new IllegalStateException("이메일 발송이 비활성화되어 있습니다.");
+        }
+        String subject = "📅 " + recipientName + "님의 "
+                + dailyResult.getDate().format(DateTimeFormatter.ofPattern("MM월 dd일")) + " 운세";
+        String htmlContent = plainTextHtml(
+                notificationFormatter.formatDaily(dailyResult, recipientName));
+        sendEmail(toEmail, subject, htmlContent);
     }
 
     /**
@@ -131,13 +125,9 @@ public class EmailService {
         }
 
         try {
-            Map<String, Object> model = new HashMap<>();
-            model.put("recipientName", recipientName);
-            model.put("tojeongResult", tojeongResult);
-            model.put("currentDate", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")));
-
             String subject = "📜 " + recipientName + "님의 " + tojeongResult.getTargetYear() + "년 토정비결";
-            String htmlContent = generateTojeongEmailTemplate(model);
+            String htmlContent = plainTextHtml(
+                    notificationFormatter.formatTojeong(tojeongResult, recipientName));
 
             sendEmail(toEmail, subject, htmlContent);
             log.info("토정비결 결과 이메일 발송 완료: {}", toEmail);
@@ -162,13 +152,9 @@ public class EmailService {
         }
 
         try {
-            Map<String, Object> model = new HashMap<>();
-            model.put("recipientName", recipientName);
-            model.put("zodiacResult", zodiacResult);
-            model.put("currentDate", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")));
-
             String subject = "⭐ " + recipientName + "님의 " + zodiacResult.getZodiacKoreanName() + " 점성술 운세";
-            String htmlContent = generateZodiacEmailTemplate(model);
+            String htmlContent = plainTextHtml(
+                    notificationFormatter.formatZodiac(zodiacResult, recipientName));
 
             sendEmail(toEmail, subject, htmlContent);
             log.info("점성술 운세 결과 이메일 발송 완료: {}", toEmail);
@@ -197,39 +183,12 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    /**
-     * 사주팔자 이메일 템플릿 생성
-     */
-    private String generateSajuEmailTemplate(Map<String, Object> model) {
-        Context context = new Context();
-        context.setVariables(model);
-        return templateEngine.process("email/saju-result", context);
-    }
-
-    /**
-     * 일일운세 이메일 템플릿 생성
-     */
-    private String generateDailyFortuneEmailTemplate(Map<String, Object> model) {
-        Context context = new Context();
-        context.setVariables(model);
-        return templateEngine.process("email/daily-fortune", context);
-    }
-
-    /**
-     * 토정비결 이메일 템플릿 생성
-     */
-    private String generateTojeongEmailTemplate(Map<String, Object> model) {
-        Context context = new Context();
-        context.setVariables(model);
-        return templateEngine.process("email/tojeong-result", context);
-    }
-
-    /**
-     * 점성술 운세 이메일 템플릿 생성
-     */
-    private String generateZodiacEmailTemplate(Map<String, Object> model) {
-        Context context = new Context();
-        context.setVariables(model);
-        return templateEngine.process("email/zodiac-fortune", context);
+    private String plainTextHtml(String message) {
+        return """
+                <div style="font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;\
+                color:#2d3748;line-height:1.65">
+                  <pre style="white-space:pre-wrap;word-break:keep-all;font:inherit">%s</pre>
+                </div>
+                """.formatted(HtmlUtils.htmlEscape(message));
     }
 }
