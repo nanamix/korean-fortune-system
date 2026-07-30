@@ -41,7 +41,12 @@ class FortuneAppProfileTest {
                 .contains("updateNotificationSyntax(this)")
                 .contains("Telegram Bot Token")
                 .contains("form-group form-full notif-channel-field\" data-channel=\"telegram\"")
-                .contains("서버 OpenBao 보안 설정 사용");
+                .contains("서버 OpenBao 보안 설정 사용")
+                .contains("id=\"profile-discord-target\"")
+                .contains("loadDiscordWebhookConfig();")
+                .contains("discordWebhookTarget: discordWebhookUrl ? null : discordWebhookTarget")
+                .contains("localStorage.setItem(DISCORD_TARGET_STORAGE_KEY, target)")
+                .contains("직접 입력한 URL은 세션 종료 후 저장하지 않습니다.");
     }
 
     @Test

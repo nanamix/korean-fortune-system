@@ -2,9 +2,11 @@ package com.fortune.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fortune.dto.ApiResponse;
 import com.fortune.dto.DailyFortuneResult;
+import com.fortune.dto.DiscordWebhookConfig;
 import com.fortune.dto.NotificationRequest;
 import com.fortune.dto.SajuRequest;
 import com.fortune.dto.SajuResult;
@@ -40,6 +42,7 @@ class FortuneControllerSendResponseTest {
     private TojeongBigyeolService tojeongBigyeolService;
     private ZodiacFortuneService zodiacFortuneService;
     private TelegramService telegramService;
+    private DiscordService discordService;
     private FortuneController controller;
 
     @BeforeEach
@@ -49,6 +52,7 @@ class FortuneControllerSendResponseTest {
         tojeongBigyeolService = mock(TojeongBigyeolService.class);
         zodiacFortuneService = mock(ZodiacFortuneService.class);
         telegramService = mock(TelegramService.class);
+        discordService = mock(DiscordService.class);
         controller = new FortuneController(
                 ganjiCalculatorService,
                 dailyFortuneService,
@@ -58,8 +62,21 @@ class FortuneControllerSendResponseTest {
                 mock(AIFortuneService.class),
                 mock(EmailService.class),
                 telegramService,
-                mock(DiscordService.class),
+                discordService,
                 mock(SlackService.class));
+    }
+
+    @Test
+    void reportsDiscordConfigurationWithoutWebhookUrls() {
+        when(discordService.isDefaultWebhookConfigured()).thenReturn(true);
+        when(discordService.getConfiguredTargetNames()).thenReturn(List.of("family"));
+
+        ResponseEntity<ApiResponse<DiscordWebhookConfig>> response =
+                controller.getDiscordWebhookConfig();
+
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData().defaultConfigured()).isTrue();
+        assertThat(response.getBody().getData().targets()).containsExactly("family");
     }
 
     @Test

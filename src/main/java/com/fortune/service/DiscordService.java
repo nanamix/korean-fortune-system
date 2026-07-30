@@ -1,7 +1,12 @@
 package com.fortune.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,19 +37,29 @@ public class DiscordService {
             "discord.com", "discordapp.com", "canary.discord.com", "ptb.discord.com");
     /** Discord 메시지 content 길이 제한. */
     private static final int MAX_CONTENT = 2000;
+    private static final String NAMED_WEBHOOK_PREFIX = "DISCORD_WEBHOOK_URL_";
 
-    @Value("${app.fortune.discord.webhook-url:}")
-    private String webhookUrl;
-
+    private final String webhookUrl;
+    private final Map<String, String> namedWebhooks;
     private final RestTemplate restTemplate;
 
     public DiscordService() {
+        this("", new StandardEnvironment());
+    }
+
+    @Autowired
+    public DiscordService(
+            @Value("${app.fortune.discord.webhook-url:}") String webhookUrl,
+            ConfigurableEnvironment environment) {
+        this.webhookUrl = webhookUrl == null ? "" : webhookUrl.trim();
+        this.namedWebhooks = loadNamedWebhooks(environment);
         // 외부 webhook 호출 — connect/read 타임아웃 지정(무제한 블로킹 방지).
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(3));
         factory.setReadTimeout(Duration.ofSeconds(5));
         this.restTemplate = new RestTemplate(factory);
-        log.info("📢 DiscordService 초기화");
+        log.info("📢 DiscordService 초기화: defaultConfigured={}, namedTargets={}",
+                !this.webhookUrl.isBlank(), this.namedWebhooks.keySet());
     }
 
     /** 서버 기본 webhook 으로 전송. */
@@ -54,13 +72,21 @@ public class DiscordService {
      * 실패는 로깅만 하고 예외를 던지지 않는다(알림은 부가 기능).
      */
     public void sendMessage(String message, String url) {
+        sendMessage(message, url, null);
+    }
+
+    /**
+     * 일회성 URL, OpenBao 관리 대상, 서버 기본값 순으로 webhook 을 선택해 전송한다.
+     */
+    public void sendMessage(String message, String url, String targetName) {
         if (message == null || message.isBlank()) {
             log.warn("⚠️ Discord 메시지가 비어 있음 — 전송 건너뜀");
             return;
         }
-        String target = (url == null || url.isBlank()) ? webhookUrl : url;
+        String target = resolveWebhook(url, targetName);
         if (target == null || target.isBlank()) {
-            log.warn("⚠️ Discord webhook URL 미설정 — 전송 건너뜀");
+            log.warn("⚠️ Discord webhook 대상 미설정 — 전송 건너뜀: target={}",
+                    safeTargetName(targetName));
             return;
         }
         if (!isAllowedWebhook(target)) {
@@ -78,17 +104,77 @@ public class DiscordService {
      * 설정과 실제 webhook 호출을 검증하는 테스트 전송. 실패 시 호출자에게 예외를 전달한다.
      */
     public void sendTestMessage(String message, String url) {
+        sendTestMessage(message, url, null);
+    }
+
+    public void sendTestMessage(String message, String url, String targetName) {
         if (message == null || message.isBlank()) {
             throw new IllegalArgumentException("Discord 테스트 메시지는 필수입니다.");
         }
-        String target = (url == null || url.isBlank()) ? webhookUrl : url;
+        String target = resolveWebhook(url, targetName);
         if (target == null || target.isBlank()) {
-            throw new IllegalStateException("Discord webhook URL이 설정되지 않았습니다.");
+            throw new IllegalStateException("Discord webhook 대상이 설정되지 않았습니다.");
         }
         if (!isAllowedWebhook(target)) {
             throw new IllegalArgumentException("Discord 공식 Webhook URL만 사용할 수 있습니다.");
         }
         postMessage(message, target);
+    }
+
+    public boolean isDefaultWebhookConfigured() {
+        return !webhookUrl.isBlank() && isAllowedWebhook(webhookUrl);
+    }
+
+    public List<String> getConfiguredTargetNames() {
+        return namedWebhooks.keySet().stream().sorted().toList();
+    }
+
+    private String resolveWebhook(String url, String targetName) {
+        if (url != null && !url.isBlank()) {
+            return url.trim();
+        }
+        String normalizedTarget = safeTargetName(targetName);
+        if (normalizedTarget == null || "default".equals(normalizedTarget)) {
+            return webhookUrl;
+        }
+        return namedWebhooks.get(normalizedTarget);
+    }
+
+    private Map<String, String> loadNamedWebhooks(ConfigurableEnvironment environment) {
+        Map<String, String> configured = new LinkedHashMap<>();
+        for (PropertySource<?> source : environment.getPropertySources()) {
+            if (!(source instanceof EnumerablePropertySource<?> enumerable)) {
+                continue;
+            }
+            for (String propertyName : enumerable.getPropertyNames()) {
+                if (!propertyName.startsWith(NAMED_WEBHOOK_PREFIX)
+                        || propertyName.length() == NAMED_WEBHOOK_PREFIX.length()) {
+                    continue;
+                }
+                String targetName = propertyName.substring(NAMED_WEBHOOK_PREFIX.length())
+                        .toLowerCase(Locale.ROOT)
+                        .replace('_', '-');
+                if (!targetName.matches("[a-z0-9][a-z0-9-]{0,39}")) {
+                    log.warn("⚠️ Discord webhook 대상 이름 형식 오류 — 설정 건너뜀: {}", propertyName);
+                    continue;
+                }
+                String value = environment.getProperty(propertyName);
+                if (value == null || value.isBlank() || !isAllowedWebhook(value.trim())) {
+                    log.warn("⚠️ Discord webhook 대상 URL 형식 오류 — 설정 건너뜀: {}", targetName);
+                    continue;
+                }
+                configured.putIfAbsent(targetName, value.trim());
+            }
+        }
+        return Map.copyOf(configured);
+    }
+
+    private String safeTargetName(String targetName) {
+        if (targetName == null || targetName.isBlank()) {
+            return null;
+        }
+        String normalized = targetName.trim().toLowerCase(Locale.ROOT);
+        return normalized.matches("default|[a-z0-9][a-z0-9-]{0,39}") ? normalized : null;
     }
 
     private void postMessage(String message, String target) {

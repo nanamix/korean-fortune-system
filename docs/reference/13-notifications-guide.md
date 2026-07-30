@@ -137,6 +137,8 @@ app:
 ```
 
 - 요청별 webhook 은 `notification.discordWebhookUrl` 로 지정 가능. **SSRF 방지**를 위해 Discord 공식 호스트(`discord.com`/`discordapp.com`/`canary`/`ptb`)의 `/api/webhooks/` URL 만 허용된다(그 외는 발송 차단).
+- 재사용할 추가 webhook 은 OpenBao에 `DISCORD_WEBHOOK_URL_<ALIAS>` 형식으로 저장한다. 예를 들어 `DISCORD_WEBHOOK_URL_FAMILY`는 API/UI에서 `family` 대상으로 노출되며 URL 자체는 브라우저에 반환하지 않는다. 요청에서는 `notification.discordWebhookTarget: "family"`로 선택한다.
+- 직접 입력한 `notification.discordWebhookUrl`은 일회성으로만 사용한다. Webhook URL은 bearer secret이므로 브라우저 영속 저장소에 보관하지 않는다.
 - 메시지는 평문 `content`(최대 2000자, 초과 시 절단).
 
 ### 테스트

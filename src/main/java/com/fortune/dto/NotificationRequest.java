@@ -37,6 +37,11 @@ public class NotificationRequest {
             message = "Discord webhook URL 형식이 올바르지 않습니다")
     private String discordWebhookUrl;
 
+    // OpenBao의 DISCORD_WEBHOOK_URL_<ALIAS>로 관리되는 영속 대상 이름.
+    @Pattern(regexp = "^(default|[a-z0-9][a-z0-9-]{0,39})$",
+            message = "Discord webhook 대상 이름 형식이 올바르지 않습니다")
+    private String discordWebhookTarget;
+
     @NotBlank(message = "발송 방법을 선택해주세요 (email, telegram, discord, both, all)")
     @Pattern(regexp = "^(email|telegram|discord|both|all)$",
             message = "발송 방법은 email, telegram, discord, both(email+telegram), all(전체) 중 하나여야 합니다")

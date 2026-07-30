@@ -1,6 +1,10 @@
 package com.fortune.service;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.mock.env.MockEnvironment;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -9,7 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class DiscordServiceTest {
 
-    private final DiscordService service = new DiscordService();
+    private final MockEnvironment environment = new MockEnvironment();
+    private final DiscordService service = new DiscordService("", environment);
 
     @Test
     public void allowsOfficialDiscordWebhooks() {
@@ -36,5 +41,19 @@ public class DiscordServiceTest {
     public void unconfiguredWebhookSkipsSilently() {
         // 기본 webhook 미설정 + url 미지정 → 예외 없이 스킵
         assertDoesNotThrow(() -> service.sendMessage("테스트", null));
+    }
+
+    @Test
+    public void discoversNamedOpenBaoWebhooksWithoutExposingUrls() {
+        MockEnvironment namedEnvironment = new MockEnvironment();
+        namedEnvironment.getPropertySources().addFirst(new MapPropertySource("openbao", Map.of(
+                "DISCORD_WEBHOOK_URL_FAMILY",
+                "https://discord.com/api/webhooks/123/secret-token")));
+
+        DiscordService configured = new DiscordService(
+                "https://discord.com/api/webhooks/456/default-token", namedEnvironment);
+
+        assertTrue(configured.isDefaultWebhookConfigured());
+        assertEquals(java.util.List.of("family"), configured.getConfiguredTargetNames());
     }
 }

@@ -828,7 +828,7 @@ body {
           </div>
         </fieldset>
 
-        <p class="common-profile-privacy">입력값은 현재 페이지의 운세 계산에만 공유하며 브라우저 저장소에는 저장하지 않습니다. 위치 검색어만 좌표·시간대 확인을 위해 외부 제공자에 전송됩니다.</p>
+        <p class="common-profile-privacy">출생정보와 직접 입력한 Webhook URL은 브라우저 저장소에 저장하지 않습니다. 서버 관리 Discord 대상 이름만 다음 접속에도 재사용하도록 저장합니다. 위치 검색어만 좌표·시간대 확인을 위해 외부 제공자에 전송됩니다.</p>
       </div>
 
       <div class="card notification-profile" aria-labelledby="common-notification-title">
@@ -851,7 +851,8 @@ body {
           <div class="form-group form-full notif-channel-field" data-channel="email" hidden><label for="profile-email">이메일</label><input type="email" id="profile-email" autocomplete="email" maxlength="254" aria-describedby="profile-email-feedback" placeholder="name@example.com" oninput="updateNotificationSyntax(this)"><small class="field-feedback" id="profile-email-feedback">최대 254자 · @와 도메인을 포함한 이메일 주소</small></div>
           <div class="form-group notif-channel-field" data-channel="telegram" hidden><label for="profile-tg">Telegram Chat ID</label><input type="text" id="profile-tg" inputmode="numeric" pattern="-?[0-9]+" maxlength="20" aria-describedby="profile-tg-feedback" placeholder="개인 123456789 · 그룹 -100…" oninput="updateNotificationSyntax(this)"><small class="field-feedback" id="profile-tg-feedback">개인·그룹 Chat ID의 숫자값</small></div>
           <div class="form-group form-full notif-channel-field" data-channel="telegram" hidden><span class="form-label">Telegram Bot Token</span><div class="notification-secret-state">🔒 서버 OpenBao 보안 설정 사용</div><small class="field-feedback">관리자 기본 봇 자격증명은 브라우저에 노출하지 않습니다.</small></div>
-          <div class="form-group form-full notif-channel-field notif-webhook-field" data-channel="discord" hidden><label for="profile-discord">Discord Webhook URL <span class="optional-label">(선택)</span></label><input type="url" id="profile-discord" autocomplete="off" spellcheck="false" placeholder="비워두면 서버 기본 Webhook 사용"></div>
+          <div class="form-group form-full notif-channel-field notif-webhook-field" data-channel="discord" hidden><label for="profile-discord-target">Discord 발송 대상</label><select id="profile-discord-target" onchange="rememberDiscordWebhookTarget(this.value)"><option value="default">서버 기본 OpenBao Webhook (확인 중)</option></select><small class="field-feedback" id="profile-discord-target-feedback">서버가 OpenBao에서 관리하는 Webhook을 URL 노출 없이 사용합니다.</small></div>
+          <div class="form-group form-full notif-channel-field notif-webhook-field" data-channel="discord" hidden><label for="profile-discord">일회성 Discord Webhook URL <span class="optional-label">(선택)</span></label><input type="url" id="profile-discord" autocomplete="off" spellcheck="false" placeholder="입력하면 위 대상을 이번 페이지에서만 덮어씁니다."><small class="field-feedback">보안을 위해 직접 입력한 URL은 세션 종료 후 저장하지 않습니다.</small></div>
         </div>
         <p class="notif-help">수신 대상인 Chat ID·Email만 요청에 포함합니다. Telegram Bot Token과 Discord 기본 Webhook은 서버의 OpenBao에서 관리합니다.</p>
       </div>
@@ -1058,8 +1059,12 @@ body {
             <input type="text" id="notif-test-chatid" inputmode="numeric" placeholder="서버 기본 설정 사용">
           </div>
           <div class="form-group form-full notif-webhook-field notif-test-field" data-test-channel="discord">
-            <label for="notif-test-webhook">Discord Webhook URL (선택)</label>
-            <input type="url" id="notif-test-webhook" placeholder="서버 기본 설정 사용">
+            <label for="notif-test-webhook-target">Discord 발송 대상</label>
+            <select id="notif-test-webhook-target"><option value="default">서버 기본 OpenBao Webhook (확인 중)</option></select>
+          </div>
+          <div class="form-group form-full notif-webhook-field notif-test-field" data-test-channel="discord">
+            <label for="notif-test-webhook">일회성 Discord Webhook URL (선택)</label>
+            <input type="url" id="notif-test-webhook" autocomplete="off" spellcheck="false" placeholder="입력 시 서버 관리 대상을 이번 요청에서만 덮어씁니다.">
           </div>
           <div class="form-group form-full notif-test-field" data-test-channel="email">
             <label for="notif-test-email">수신 이메일</label>
@@ -1111,6 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCalendarFields();
   updateNotificationFields();
   updateNotificationTestFields();
+  loadDiscordWebhookConfig();
   updateProfileSummaries();
   const requestedTab = location.hash.replace('#', '');
   if (document.getElementById('sec-' + requestedTab)) showTab(requestedTab, false);
@@ -1432,6 +1438,7 @@ function buildCommonNotification() {
   const email = emailInput.value.trim();
   const telegramChatId = document.getElementById('profile-tg').value.trim();
   const discordWebhookUrl = document.getElementById('profile-discord').value.trim();
+  const discordWebhookTarget = document.getElementById('profile-discord-target').value || 'default';
   if (!name) throw validationError('알림을 발송하려면 수신자 이름을 입력하세요.', 'profile-name');
   if (['email', 'both', 'all'].includes(type) && (!email || !emailInput.checkValidity())) {
     throw validationError('올바른 이메일 주소를 입력하세요.', 'profile-email');
@@ -1447,6 +1454,7 @@ function buildCommonNotification() {
     email: email || null,
     telegramChatId: telegramChatId || null,
     discordWebhookUrl: discordWebhookUrl || null,
+    discordWebhookTarget: discordWebhookUrl ? null : discordWebhookTarget,
     notificationType: type
   };
 }
@@ -2664,6 +2672,67 @@ function formatGiB(bytes) {
 }
 
 // ── NOTIFICATION TEST ─────────────────────────────────
+const DISCORD_TARGET_STORAGE_KEY = 'fortune.discord.webhook-target.v1';
+
+function rememberDiscordWebhookTarget(target) {
+  try {
+    if (target) localStorage.setItem(DISCORD_TARGET_STORAGE_KEY, target);
+  } catch (error) {
+    console.warn('[Discord] 대상 이름 저장 실패:', error);
+  }
+  const testTarget = document.getElementById('notif-test-webhook-target');
+  if (testTarget && [...testTarget.options].some(option => option.value === target)) {
+    testTarget.value = target;
+  }
+}
+
+function savedDiscordWebhookTarget() {
+  try {
+    return localStorage.getItem(DISCORD_TARGET_STORAGE_KEY) || 'default';
+  } catch (error) {
+    return 'default';
+  }
+}
+
+function populateDiscordWebhookTargets(config) {
+  const targets = [
+    {value:'default', label:config.defaultConfigured
+      ? '서버 기본 OpenBao Webhook'
+      : '서버 기본 OpenBao Webhook (미설정)'},
+    ...(config.targets || []).map(target => ({value:target, label:`OpenBao: ${target}`}))
+  ];
+  const savedTarget = savedDiscordWebhookTarget();
+  ['profile-discord-target', 'notif-test-webhook-target'].forEach(id => {
+    const select = document.getElementById(id);
+    if (!select) return;
+    select.replaceChildren(...targets.map(target => {
+      const option = document.createElement('option');
+      option.value = target.value;
+      option.textContent = target.label;
+      return option;
+    }));
+    select.value = targets.some(target => target.value === savedTarget) ? savedTarget : 'default';
+  });
+  const feedback = document.getElementById('profile-discord-target-feedback');
+  if (feedback) {
+    feedback.textContent = config.defaultConfigured
+      ? '✓ OpenBao 기본 Webhook을 사용할 수 있습니다.'
+      : 'OpenBao 기본 Webhook이 없습니다. 관리 대상을 선택하거나 일회성 URL을 입력하세요.';
+    feedback.classList.toggle('valid', config.defaultConfigured);
+    feedback.classList.toggle('invalid', !config.defaultConfigured);
+  }
+}
+
+async function loadDiscordWebhookConfig() {
+  try {
+    const response = await apiGet('/api/fortune/discord/config');
+    populateDiscordWebhookTargets(response.data || {defaultConfigured:false, targets:[]});
+  } catch (error) {
+    populateDiscordWebhookTargets({defaultConfigured:false, targets:[]});
+    console.warn('[Discord] 서버 Webhook 설정 상태 확인 실패:', error);
+  }
+}
+
 function updateNotificationTestFields() {
   const type = document.getElementById('notif-test-type')?.value || 'telegram';
   document.querySelectorAll('.notif-test-field').forEach(field => {
@@ -2676,7 +2745,7 @@ function updateNotificationTestFields() {
     },
     discord: {
       label:'📢 Discord 전송 테스트',
-      help:'<strong>Discord</strong> · Webhook URL을 비워두면 서버의 <code>DISCORD_WEBHOOK_URL</code>을 사용합니다.'
+      help:'<strong>Discord</strong> · OpenBao 관리 대상을 선택합니다. 일회성 URL은 현재 요청에만 사용하고 저장하지 않습니다.'
     },
     email: {
       label:'📧 이메일 전송 테스트',
@@ -2706,6 +2775,7 @@ async function testNotification() {
     url = '/api/fortune/discord/test';
     const webhookUrl = document.getElementById('notif-test-webhook').value.trim();
     if (webhookUrl) body.webhookUrl = webhookUrl;
+    else body.webhookTarget = document.getElementById('notif-test-webhook-target').value || 'default';
   } else {
     url = '/api/fortune/email/test';
     const emailInput = document.getElementById('notif-test-email');

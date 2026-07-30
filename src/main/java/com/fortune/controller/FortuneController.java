@@ -567,13 +567,21 @@ public class FortuneController {
     /**
      * Discord 발송 테스트 (API 문서/테스트용)
      */
+    @GetMapping("/discord/config")
+    public ResponseEntity<ApiResponse<DiscordWebhookConfig>> getDiscordWebhookConfig() {
+        return ResponseEntity.ok(ApiResponse.success(new DiscordWebhookConfig(
+                discordService.isDefaultWebhookConfigured(),
+                discordService.getConfiguredTargetNames())));
+    }
+
     @PostMapping("/discord/test")
     public ResponseEntity<com.fortune.dto.ApiResponse<String>> testDiscordSend(
             @Valid @RequestBody com.fortune.dto.DiscordTestRequest request) {
         try {
             log.info("📢 Discord 발송 테스트: webhook={}",
                     request.getWebhookUrl() != null && !request.getWebhookUrl().isBlank() ? "지정" : "기본값");
-            discordService.sendTestMessage(request.getMessage(), request.getWebhookUrl());
+            discordService.sendTestMessage(
+                    request.getMessage(), request.getWebhookUrl(), request.getWebhookTarget());
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success("Discord 메시지가 성공적으로 발송되었습니다."));
         } catch (Exception e) {
             log.error("❌ Discord 발송 테스트 실패", e);
@@ -626,7 +634,8 @@ public class FortuneController {
                 }
                 break;
             case "discord":
-                sendDiscordNotification(notificationRequest.getDiscordWebhookUrl(), recipientName,
+                sendDiscordNotification(notificationRequest.getDiscordWebhookUrl(),
+                                        notificationRequest.getDiscordWebhookTarget(), recipientName,
                                         sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 break;
             case "both":
@@ -648,7 +657,8 @@ public class FortuneController {
                     sendTelegramNotification(notificationRequest.getTelegramChatId(), recipientName,
                                            sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 }
-                sendDiscordNotification(notificationRequest.getDiscordWebhookUrl(), recipientName,
+                sendDiscordNotification(notificationRequest.getDiscordWebhookUrl(),
+                                        notificationRequest.getDiscordWebhookTarget(), recipientName,
                                         sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 break;
         }
@@ -710,7 +720,7 @@ public class FortuneController {
      * Discord 알림 발송 (텔레그램용 메시지 생성기를 재사용 — 평문 content).
      * webhookUrl 이 비면 서버 기본 webhook 사용.
      */
-    private void sendDiscordNotification(String webhookUrl, String recipientName,
+    private void sendDiscordNotification(String webhookUrl, String webhookTarget, String recipientName,
                                          SajuResult sajuResult, DailyFortuneResult dailyResult,
                                          TojeongResult tojeongResult, ZodiacFortuneResult zodiacResult,
                                          String type) {
@@ -722,7 +732,7 @@ public class FortuneController {
             default -> "";
         };
         if (!message.isEmpty()) {
-            discordService.sendMessage(message, webhookUrl);
+            discordService.sendMessage(message, webhookUrl, webhookTarget);
         }
     }
 
