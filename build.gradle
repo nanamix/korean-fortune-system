@@ -49,6 +49,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'org.postgresql:postgresql'
@@ -111,6 +112,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
     testImplementation 'org.testcontainers:mysql:1.21.4'
+    testImplementation 'org.testcontainers:postgresql:1.21.4'
 
     // ✅ 모니터링 및 추적 (OpenTelemetry / Micrometer Tracing)
     implementation 'io.micrometer:micrometer-registry-prometheus'

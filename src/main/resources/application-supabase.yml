@@ -1,0 +1,37 @@
+# ==============================================
+# Supabase PostgreSQL 설정 (DB 전용)
+# 활성화: --spring.profiles.active=supabase
+# ==============================================
+spring:
+  config:
+    activate:
+      on-profile: supabase
+
+  datasource:
+    # 예: jdbc:postgresql://<host>:5432/postgres?sslmode=require
+    # 장기 실행 서버가 IPv4 전용이면 Supavisor session pooler(5432)를 사용한다.
+    url: ${SUPABASE_DB_URL}
+    username: ${SUPABASE_DB_USER}
+    password: ${SUPABASE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${SUPABASE_DB_POOL_SIZE:5}
+      minimum-idle: ${SUPABASE_DB_MIN_IDLE:1}
+      connection-timeout: ${SUPABASE_DB_CONNECTION_TIMEOUT:20000}
+      validation-timeout: 5000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    locations: classpath:db/migration/postgresql
+    validate-migration-naming: true
+
+  sql:
+    init:
+      mode: never

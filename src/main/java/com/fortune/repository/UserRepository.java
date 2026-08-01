@@ -154,20 +154,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.enabled = false AND u.updatedAt < :cutoffDate")
     List<User> findDisabledUsersOlderThan(@Param("cutoffDate") LocalDateTime cutoffDate);
     /**
-     * 📊 사용자 통계 조회 (네이티브 쿼리)
-     * SQL: SELECT COUNT(*) as total_users, SUM(CASE WHEN enabled = true THEN 1 ELSE 0 END) as active_users, SUM(CASE WHEN auth_provider = 'LOCAL' THEN 1 ELSE 0 END) as local_users, SUM(CASE WHEN auth_provider = 'GOOGLE' THEN 1 ELSE 0 END) as google_users, SUM(CASE WHEN auth_provider = 'KAKAO' THEN 1 ELSE 0 END) as kakao_users, SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_signups FROM users
+     * 📊 사용자 통계 조회.
+     * MySQL 전용 CURDATE()를 피하고 JPQL CURRENT_DATE를 사용해 PostgreSQL과 공용으로 실행한다.
      * @return 사용자 통계 정보
      */
-    @Query(value = """
-        SELECT 
-            COUNT(*) as total_users,
-            SUM(CASE WHEN enabled = true THEN 1 ELSE 0 END) as active_users,
-            SUM(CASE WHEN auth_provider = 'LOCAL' THEN 1 ELSE 0 END) as local_users,
-            SUM(CASE WHEN auth_provider = 'GOOGLE' THEN 1 ELSE 0 END) as google_users,
-            SUM(CASE WHEN auth_provider = 'KAKAO' THEN 1 ELSE 0 END) as kakao_users,
-            SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_signups
-        FROM users
-        """, nativeQuery = true)
+    @Query("""
+        SELECT
+            COUNT(u),
+            SUM(CASE WHEN u.enabled = true THEN 1 ELSE 0 END),
+            SUM(CASE WHEN u.authProvider = com.fortune.entity.User.AuthProvider.LOCAL THEN 1 ELSE 0 END),
+            SUM(CASE WHEN u.authProvider = com.fortune.entity.User.AuthProvider.GOOGLE THEN 1 ELSE 0 END),
+            SUM(CASE WHEN u.authProvider = com.fortune.entity.User.AuthProvider.KAKAO THEN 1 ELSE 0 END),
+            SUM(CASE WHEN u.createdAt >= CURRENT_DATE THEN 1 ELSE 0 END)
+        FROM User u
+        """)
     Object[] getUserStatistics();
     /**
      * 🔍 삭제되지 않은 사용자명으로 조회

@@ -24,11 +24,18 @@
 - `MAIL_HOST`, `MAIL_PORT`, `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS`, `FORTUNE_EMAIL_ENABLED`
 - `REDIS_PASSWORD`
 - `POSTGRES_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+- `SUPABASE_DB_URL`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD`
+- `SUPABASE_DB_POOL_SIZE`, `SUPABASE_DB_MIN_IDLE`, `SUPABASE_DB_CONNECTION_TIMEOUT`
 - `APP_FORTUNE_AI_ENABLED`, `APP_FORTUNE_AI_PROVIDER`, `APP_FORTUNE_AI_MODEL`, `APP_FORTUNE_AI_BASE_URL`
 - `APP_FORTUNE_AI_RECEIPT_CLEANUP_ENABLED`, `APP_FORTUNE_AI_RECEIPT_RETENTION_DAYS`
 - `APP_FORTUNE_AI_CANARY_ENABLED`, `APP_FORTUNE_AI_CANARY_RUN_ON_STARTUP`
 
 KV key는 `^[A-Z][A-Z0-9_]*$`, 값은 문자열이어야 한다. 값은 명령행 인자나 로그로 전달하지 말고 OpenBao UI 또는 승인된 보안 입력 경로로 등록한다.
+
+Supabase를 DB로만 사용할 때 `SUPABASE_DB_URL`은 JDBC URL이어야 하며
+`sslmode=require`를 포함한다. 장기 실행 애플리케이션 host가 IPv4 전용이면
+Supavisor session pooler의 5432 endpoint를 사용한다. 실제 전환 전까지 MySQL key는
+rollback을 위해 유지하며, Supabase 비밀번호나 연결 문자열을 `.env`에 기록하지 않는다.
 
 DeepSeek를 운영 기본 제공자로 사용할 때의 권장 값은
 `APP_FORTUNE_AI_ENABLED=true`, `APP_FORTUNE_AI_PROVIDER=deepseek`,

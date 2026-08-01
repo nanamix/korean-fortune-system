@@ -116,6 +116,7 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 | `dev` (기본) | H2 인메모리 (`jdbc:h2:mem:devdb`) | 비활성 | 비활성 | 로컬 개발, 이메일/텔레그램 발송 활성 |
 | `mysql` | 로컬 MySQL (`localhost:3306`) | - | - | 로컬 MySQL 연동 개발 |
 | `postgres` | PostgreSQL (`localhost:5432`, `POSTGRES_URL`로 override) | - | - | PostgreSQL 연동 개발/운영 |
+| `supabase` | Supabase PostgreSQL (`SUPABASE_DB_URL`) | 기존 설정 유지 | 환경변수 제어 | Supabase를 DB로만 사용하는 운영 후보 |
 | `valkey` | (DB는 별도 프로필) | - | - | 캐시를 Redis/Valkey로 전환(`spring.cache.type=redis`). 다른 프로필과 조합: `dev,valkey` |
 | `docker` | MySQL 컨테이너 (`mysql:3306`) | - | 환경변수 제어 | Docker Compose 실행 |
 | `prod` | MySQL (`localhost:3306`) | 활성 | 환경변수 제어 | 운영 |
@@ -130,6 +131,8 @@ java -jar build/libs/korean-fortune-app.jar --spring.profiles.active=dev
 Docker Compose 운영·개발 스택은 `.env`에 자격증명을 저장하지 않습니다. `docker-compose.openbao.override.yml`의 renderer가 `secret/projects/korean-fortune-system/<environment>`를 공유 `tmpfs`에 렌더링합니다.
 
 필수 key, 선택 key, bootstrap credential 파일과 실행 명령은 `ops/openbao/README.md`를 참고합니다. 로컬 JAR 실행도 실제 자격증명을 shell history나 설정 파일에 저장하지 말고 승인된 secret source에서 일시 주입합니다.
+
+Supabase DB 전환 절차와 rollback gate는 `docs/SUPABASE_DB_MIGRATION.md`를 참고합니다.
 
 ### 8.4.4 AI 기능 설정
 
