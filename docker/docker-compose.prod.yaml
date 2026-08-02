@@ -7,7 +7,8 @@ services:
     # 운영은 CI 가 GHCR 에 게시한 이미지를 사용(로컬 빌드 대신). 배포 스크립트가 pull 후 up.
     image: ${APP_IMAGE:-ghcr.io/nanamix/korean-fortune-system:latest}
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      # DB-only cutover 이후 기본 운영 조합. rollback 시 SPRING_PROFILES_ACTIVE=prod로 덮어쓴다.
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod,supabase}
       - JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError
     deploy:
       # 단일 host port 18080을 사용하므로 Compose 운영은 replica 1로 제한한다.
