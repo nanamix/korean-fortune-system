@@ -417,6 +417,28 @@ Push, Production Deploy를 모두 통과했다. 배포된 immutable image는
 - Supabase: Flyway 성공 `2`, RLS `6`, policy `0`; 예약은
   `enabled=true`, `WAITING`, `last_run_date=2026-08-02`
 
+### 테스트 Discord target 등록
+
+마스터가 회전한 테스트 webhook을 1Password `supabase korean-fortune-system` 항목의
+`DISCORD_WEBHOOK_URL_TEST` concealed 필드에 저장한 뒤, 값은 출력하지 않고 `op://`
+참조와 `op run --`으로만 OpenBao에 전달했다. renderer AppRole을 이용한 첫 CAS patch는
+권한 부족으로 `HTTP 403`을 반환했고 KV version `17`과 기존 값은 바뀌지 않았다.
+
+운영 OpenBao 저장소의 승인된 stdin `bao kv patch` 경로로 `-cas=17` 단일 patch를 다시
+수행해 KV version `18`에 `DISCORD_WEBHOOK_URL_TEST`를 추가했다. Supabase key 3개가
+보존되고 scheduler configtree key가 계속 absent임을 값 비노출 조건으로 검증했다.
+OpenBao renderer와 앱만 같은 immutable image로 재생성한 결과는 다음과 같다.
+
+- renderer와 앱 secret volume: `DISCORD_WEBHOOK_URL_TEST` non-empty file present
+- 앱 startup: `defaultConfigured=true`, `namedTargets=[test]`
+- app active profiles: `prod,supabase`
+- app cron 환경변수: `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-`
+- app Docker health: `healthy`; 내부 aggregate Actuator: `UP`
+- 재생성 후 예약 발송 완료 로그: `0`건
+
+이 단계에서는 Discord 메시지를 보내지 않았다. `test` target을 이용한 1회성 테스트
+발송과 scheduler 재개는 각각 별도 승인 후 수행한다.
+
 ## 리허설 이관
 
 Supabase 공식 MySQL migration 도구 또는 `pgloader`를 사용하되 먼저 비운영
