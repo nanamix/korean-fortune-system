@@ -355,6 +355,25 @@ OpenBao version `16`에 `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-`를 저장하�
 승인이 필요하다. MySQL 컨테이너·volume과 OpenBao의 MySQL key는 rollback 검증이 끝날
 때까지 삭제하지 않는다.
 
+### GitHub publish·자동 배포 영수증
+
+- cutover commit: `d1cf45826ebf975b942f31af9ee69554711b6a39`
+- CI/CD run: `30727802919`
+- Build & Test: 성공
+- Docker Build & Push: 성공
+- Deploy to Production: 성공
+- Discord Deployment Status: 성공
+- 배포 image: `ghcr.io/nanamix/korean-fortune-system@sha256:6031a9e8349b336389c45da1e2419bbcaa9064766195fd9e188b12b7f64d8284`
+
+자동 전체 Compose 교체 후에도 앱 profile은 `prod,supabase`, 앱·MySQL·OpenBao sidecar는
+모두 Docker health `healthy`, 내부 aggregate Actuator는 `UP`이었다. OpenBao 필수 key
+9개와 scheduler 비활성 파일을 재확인했다. source MySQL snapshot은
+`4|4|1|1|0|0|0|0`, target Supabase 검증 vector는
+`2|4|4|1|1|0|0|0|0|6|0`으로 cutover 기준과 같았다. 외부 Cloudflare Access 경계도
+미인증 요청에 `HTTP 302`를 유지했다.
+
+이 영수증만 추가하는 후속 문서 커밋은 재배포가 불필요하므로 `[skip ci]`로 push한다.
+
 ## 리허설 이관
 
 Supabase 공식 MySQL migration 도구 또는 `pgloader`를 사용하되 먼저 비운영
