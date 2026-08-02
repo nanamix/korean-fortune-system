@@ -401,6 +401,22 @@ health `healthy`를 확인했다. 재발 방지를 위해 운영 Compose에 이 
 key가 보존됐음을 확인했다. 테스트 전용 Discord target이 등록되고 별도 발송 승인을 받을
 때까지 scheduler는 환경변수로 비활성 상태를 유지한다.
 
+영구 수정 커밋 `32d18d3`의 CI/CD run `30728709391`은 Build & Test, Docker Build &
+Push, Production Deploy를 모두 통과했다. 배포된 immutable image는
+`ghcr.io/nanamix/korean-fortune-system@sha256:4815a5210dc8f68d63e677dea27050ed204846bc08fcbb4bb077f91a169adfc5`다.
+운영 호스트에서 다음을 다시 확인했다.
+
+- app active profiles: `prod,supabase`
+- app cron 환경변수: `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-`
+- app·MySQL·OpenBao sidecar: Docker health `healthy`
+- 내부 aggregate Actuator: `UP`
+- 새 배포 후 예약 발송 완료 로그: `0`건
+- OpenBao KV current version: `17`; Supabase key 3개 present, scheduler key absent
+- MySQL/Supabase 공통 snapshot: `security_audit_log=4/max4`,
+  `notification_schedule=1/max1`, 나머지 이관 대상 `0`
+- Supabase: Flyway 성공 `2`, RLS `6`, policy `0`; 예약은
+  `enabled=true`, `WAITING`, `last_run_date=2026-08-02`
+
 ## 리허설 이관
 
 Supabase 공식 MySQL migration 도구 또는 `pgloader`를 사용하되 먼저 비운영
