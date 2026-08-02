@@ -731,22 +731,19 @@ body {
   *, *::before, *::after { scroll-behavior:auto !important; transition-duration:0.01ms !important; animation-duration:0.01ms !important; animation-iteration-count:1 !important; }
 }
 </style>
+<link rel="stylesheet" href="/fortune-editorial.css">
 </head>
 <body>
 <!-- ── TOPBAR ──────────────────────────────────── -->
 <nav class="topbar" aria-label="주요 메뉴">
-  <a class="topbar-brand" href="/">🔮 <span>한국형 만세력 운세</span></a>
+  <a class="topbar-brand" href="/"><span>한국형 만세력 운세</span></a>
   <div class="topbar-nav" id="mainNav">
-    <a href="#profile" data-tab="profile" onclick="openProfileSettings();return false;"><span class="nav-icon" aria-hidden="true">👤</span>내 정보</a>
-    <a href="#saju" data-tab="saju" onclick="showTab('saju');return false;"><span class="nav-icon" aria-hidden="true">🔮</span>사주팔자</a>
-    <a href="#daily" data-tab="daily" onclick="showTab('daily');return false;"><span class="nav-icon" aria-hidden="true">📅</span>오늘운세</a>
-    <a href="#tojeong" data-tab="tojeong" onclick="showTab('tojeong');return false;"><span class="nav-icon" aria-hidden="true">📜</span>토정비결</a>
-    <a href="#zodiac" data-tab="zodiac" onclick="showTab('zodiac');return false;"><span class="nav-icon" aria-hidden="true">⭐</span>점성술</a>
-    <a href="#calendar" data-tab="calendar" onclick="showTab('calendar');return false;"><span class="nav-icon" aria-hidden="true">📆</span>간지달력</a>
-    <a href="#ai" data-tab="ai" onclick="showTab('ai');return false;"><span class="nav-icon" aria-hidden="true">🤖</span>AI운세</a>
-    <a href="#system" data-tab="system" onclick="showTab('system');return false;"><span class="nav-icon" aria-hidden="true">🔍</span>시스템</a>
+    <a href="#daily" data-tab="daily" onclick="showTab('daily');return false;">오늘</a>
+    <a href="#saju" data-tab="saju" onclick="showTab('saju');return false;">깊이 보기</a>
+    <a href="#ai" data-tab="ai" onclick="showTab('ai');return false;">AI 상담</a>
+    <a href="#profile" data-tab="profile" onclick="openProfileSettings();return false;">내 정보</a>
   </div>
-  <button class="menu-btn" type="button" onclick="toggleMenu()" id="menuBtn" aria-label="메뉴 열기" aria-controls="mainNav" aria-expanded="false">☰</button>
+  <button class="menu-btn" type="button" onclick="toggleMenu()" id="menuBtn" aria-label="메뉴 열기" aria-controls="mainNav" aria-expanded="false">메뉴</button>
 </nav>
 
 <!-- ── PAGE ────────────────────────────────────── -->
@@ -754,20 +751,30 @@ body {
 
   <!-- HERO -->
   <div class="hero" id="hero">
-    <h1>🔮 한국형 만세력 운세</h1>
-    <p>전통 사주팔자, 토정비결, 서양 점성술을 AI와 함께 제공하는<br>정통 운세 서비스</p>
-    <div class="hero-btns">
-      <a href="#" class="btn btn-primary" onclick="showTab('saju');scrollToContent();return false;">🔮 사주팔자 보기</a>
-      <a href="#" class="btn btn-outline" onclick="showTab('daily');scrollToContent();return false;">📅 오늘 운세 확인</a>
+    <div class="hero-inner">
+      <time class="hero-date" id="hero-date" datetime=""></time>
+      <h1>오늘은 정리보다 시작에 힘이 실리는 날</h1>
+      <p>새로운 흐름이 열리니, 작은 시작이 내일의 결과로 이어집니다. 오늘의 방향을 내 운세와 함께 살펴보세요.</p>
+      <div class="hero-btns">
+        <a href="#contentArea" class="btn btn-primary" onclick="showTab('daily');scrollToContent();return false;">오늘의 해석 자세히 보기</a>
+        <a href="#" class="btn btn-outline" onclick="showTab('ai');scrollToContent();return false;">AI에게 물어보기</a>
+      </div>
+      <span class="hero-basis">사주 일진 · 현재 천체 흐름 · 저장된 프로필 기준</span>
     </div>
   </div>
 
+  <section class="daily-guide" aria-label="오늘의 해석 구성">
+    <article><h2>일</h2><strong>작은 시작이 큰 흐름을 만듭니다</strong><p>핵심 과제를 하나 정해 바로 실행할 수 있도록 안내합니다.</p></article>
+    <article><h2>관계</h2><strong>한 사람과의 진심이 힘이 됩니다</strong><p>대화의 타이밍과 조심할 표현을 함께 살펴봅니다.</p></article>
+    <article><h2>마음</h2><strong>마음을 비우면 길이 보입니다</strong><p>오늘 집중할 감정과 가볍게 놓아둘 생각을 구분합니다.</p></article>
+  </section>
+
   <!-- TABS BAR -->
-  <div class="tabs-wrap" aria-label="운세 기능">
+  <div class="tabs-wrap" aria-label="운세 기능" aria-hidden="true" hidden>
     <div class="tabs" role="tablist">
       <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sec-profile" id="tab-profile" onclick="openProfileSettings()"><span class="tab-icon" aria-hidden="true">👤</span> 내 정보</button>
-      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="sec-saju" id="tab-saju" onclick="showTab('saju')"><span class="tab-icon" aria-hidden="true">🔮</span> 사주팔자</button>
-      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sec-daily" id="tab-daily" onclick="showTab('daily')"><span class="tab-icon" aria-hidden="true">📅</span> 오늘운세</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sec-saju" id="tab-saju" onclick="showTab('saju')"><span class="tab-icon" aria-hidden="true">🔮</span> 사주팔자</button>
+      <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="sec-daily" id="tab-daily" onclick="showTab('daily')"><span class="tab-icon" aria-hidden="true">📅</span> 오늘운세</button>
       <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sec-tojeong" id="tab-tojeong" onclick="showTab('tojeong')"><span class="tab-icon" aria-hidden="true">📜</span> 토정비결</button>
       <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sec-zodiac" id="tab-zodiac" onclick="showTab('zodiac')"><span class="tab-icon" aria-hidden="true">⭐</span> 점성술</button>
       <button class="tab-btn" role="tab" aria-selected="false" aria-controls="sec-calendar" id="tab-calendar" onclick="showTab('calendar')"><span class="tab-icon" aria-hidden="true">📆</span> 간지달력</button>
@@ -784,6 +791,7 @@ body {
       <div class="profile-page-intro">
         <h2>내 운세 기본 설정</h2>
         <p>출생정보는 모든 운세 계산에 공통 적용됩니다. 알림은 선택 사항이며, 설정을 적용하는 것만으로는 발송되지 않습니다.</p>
+        <div class="profile-operations"><button type="button" onclick="showTab('system')">운영 상태 확인</button></div>
       </div>
 
       <div class="card common-profile" aria-labelledby="common-profile-title">
@@ -898,7 +906,12 @@ body {
     </div>
 
     <!-- ── 사주팔자 ───────────────────────────── -->
-    <div class="section active" id="sec-saju" role="tabpanel" aria-labelledby="tab-saju" tabindex="-1">
+    <div class="section" id="sec-saju" role="tabpanel" aria-labelledby="tab-saju" tabindex="-1" hidden>
+      <nav class="deep-nav" aria-label="깊이 보기 메뉴">
+        <button type="button" onclick="showTab('tojeong')">토정비결</button>
+        <button type="button" onclick="showTab('zodiac')">점성술</button>
+        <button type="button" onclick="showTab('calendar')">간지달력</button>
+      </nav>
       <div class="card">
         <div class="card-title">🔮 사주팔자 계산</div>
         <div class="uses-common-profile">👤 상단의 공통 사용자 정보와 알림 설정을 사용합니다.</div>
@@ -916,20 +929,21 @@ body {
     </div>
 
     <!-- ── 오늘의 운세 ─────────────────────────── -->
-    <div class="section" id="sec-daily" role="tabpanel" aria-labelledby="tab-daily" tabindex="-1" hidden>
-      <div class="card">
-        <div class="card-title">📅 오늘의 운세</div>
-        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1rem;">공통 출생정보를 기준으로 사주 일진과 오늘의 점성술을 함께 계산합니다.</p>
-        <div class="uses-common-profile">👤 상단의 공통 사용자 정보와 알림 설정을 사용합니다.</div>
+    <div class="section active" id="sec-daily" role="tabpanel" aria-labelledby="tab-daily" tabindex="-1">
+      <div class="daily-start">
+        <p class="daily-start-label">오늘의 개인 맞춤 해석</p>
+        <h2>내 흐름을 계산해 오늘의 한 걸음을 확인하세요</h2>
+        <p>공통 출생정보를 기준으로 사주 일진과 오늘의 점성 흐름을 함께 계산하고, 일·관계·마음의 실천 가이드로 정리합니다.</p>
+        <div class="uses-common-profile">저장된 공통 사용자 정보와 알림 설정을 사용합니다.</div>
 
         <button class="btn-action" id="daily-btn" onclick="calcDaily()">
           <span class="spinner" id="daily-spin"></span>
-          📅 오늘의 운세 확인하기
+          오늘의 해석 자세히 보기
         </button>
       </div>
 
       <div class="result-panel" id="daily-result" aria-live="polite" aria-busy="false">
-        <div class="result-header">📅 오늘의 운세 결과</div>
+        <div class="result-header">오늘의 운세 결과</div>
         <div class="result-body" id="daily-body"></div>
       </div>
     </div>
@@ -1027,12 +1041,8 @@ body {
     <!-- ── AI 운세 ────────────────────────────── -->
     <div class="section" id="sec-ai" role="tabpanel" aria-labelledby="tab-ai" tabindex="-1" hidden>
       <div class="card">
-        <div class="card-title">🤖 AI 운세 해석</div>
-        <div class="ai-intro">공통 출생정보로 사주를 계산한 뒤 질문에 맞춰 해석합니다. 외부 AI 제공자가 비활성화되거나 응답하지 않아도 규칙 기반 기본 해석을 제공합니다.</div>
-        <div class="ai-provider-panel" aria-live="polite">
-          <div class="ai-provider-head"><h3>외부 AI 제공자 상태</h3><button type="button" class="ai-provider-refresh" onclick="loadAiProviderStatus()">새로고침</button></div>
-          <div id="ai-provider-status"><div class="alert alert-info">AI 제공자 상태를 확인하고 있습니다.</div></div>
-        </div>
+        <div class="card-title">AI 맞춤 해석</div>
+        <div class="ai-intro">지금 고민하는 일을 구체적으로 적어보세요. 저장된 출생정보와 오늘의 흐름을 바탕으로, 바로 실천할 수 있는 관점을 정리해드립니다.</div>
         <div style="margin-top:1.25rem;">
           <div class="uses-common-profile">👤 상단의 공통 사용자 정보를 사용합니다. AI 해석 요청 자체는 알림을 발송하지 않습니다.</div>
           <div class="ai-prompts" aria-label="질문 예시"><button type="button" class="ai-prompt-chip" onclick="setAiQuestion('올해 커리어에서 집중할 방향과 실행 계획을 알려주세요.')">💼 커리어</button><button type="button" class="ai-prompt-chip" onclick="setAiQuestion('현재 인간관계에서 강점과 주의할 점을 알려주세요.')">🤝 관계</button><button type="button" class="ai-prompt-chip" onclick="setAiQuestion('생활 리듬과 자기계발을 어떻게 개선하면 좋을까요?')">🌱 성장</button><button type="button" class="ai-prompt-chip" onclick="setAiQuestion('올해 중요한 선택을 할 때 확인할 기준을 알려주세요.')">🧭 의사결정</button></div>
@@ -1042,6 +1052,13 @@ body {
             <span class="spinner" id="ai-spin"></span>
             🤖 맞춤 해석 생성
           </button>
+          <details class="ai-provider-details">
+            <summary>AI 연결 상태 확인</summary>
+            <div class="ai-provider-panel" aria-live="polite">
+              <div class="ai-provider-head"><h3>외부 AI 제공자 상태</h3><button type="button" class="ai-provider-refresh" onclick="loadAiProviderStatus()">새로고침</button></div>
+              <div id="ai-provider-status"><div class="alert alert-info">AI 제공자 상태를 확인하고 있습니다.</div></div>
+            </div>
+          </details>
         </div>
       </div>
       <div class="result-panel" id="ai-result" aria-live="polite" aria-busy="false">
@@ -1153,7 +1170,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadDiscordWebhookConfig();
   loadNotificationSchedules();
   updateProfileSummaries();
-  const requestedTab = location.hash.replace('#', '');
+  const now = new Date();
+  const heroDate = document.getElementById('hero-date');
+  heroDate.dateTime = localDateValue(now);
+  heroDate.textContent = new Intl.DateTimeFormat('ko-KR', {
+    year:'numeric', month:'long', day:'numeric', weekday:'long'
+  }).format(now);
+  const requestedTab = location.hash.replace('#', '') || 'daily';
   if (document.getElementById('sec-' + requestedTab)) showTab(requestedTab, false);
   loadSystemStatus();
   document.querySelector('.tabs').addEventListener('keydown', event => {
@@ -1239,7 +1262,7 @@ function adjustTojeongYear(delta) {
 }
 
 // ── TAB NAVIGATION ────────────────────────────────────
-let profileReturnTab = 'saju';
+let profileReturnTab = 'daily';
 
 function showTab(name, updateHistory = true) {
   const currentSection = document.querySelector('.section.active');
@@ -1249,6 +1272,7 @@ function showTab(name, updateHistory = true) {
   const section = document.getElementById('sec-' + name);
   const tab = document.getElementById('tab-' + name);
   if (!section || !tab) return;
+  document.body.dataset.activeTab = name;
   document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.hidden = true; });
   document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
   section.hidden = false;
@@ -1267,10 +1291,11 @@ function showTab(name, updateHistory = true) {
     if (active) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
-  document.getElementById('contentArea').scrollIntoView({
-    behavior: updateHistory ? 'smooth' : 'auto',
-    block: 'start'
-  });
+  if (updateHistory) {
+    document.getElementById('contentArea').scrollIntoView({behavior:'smooth', block:'start'});
+  } else {
+    window.scrollTo({top:0, behavior:'auto'});
+  }
   if (name === 'ai') loadAiProviderStatus();
   if (name === 'system') {
     loadSystemStatus();

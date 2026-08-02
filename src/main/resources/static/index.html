@@ -3,132 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="사주팔자, 토정비결, 별자리 운세 등 전통 한국 운세 서비스">
-    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="전통 만세력과 AI 통합 해석으로 오늘의 선택을 돕는 개인 맞춤 운세 서비스">
+    <meta name="theme-color" content="#f7f2e8">
+    <meta property="og:title" content="한국형 만세력 운세">
+    <meta property="og:description" content="오늘의 선택에, 오래된 지혜를 더하다.">
+    <meta property="og:type" content="website">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <title>🔮 한국형 만세력 운세 시스템</title>
+    <title>한국형 만세력 운세 | 오늘의 선택에 오래된 지혜를</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', 'Malgun Gothic', '맑은 고딕', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        :root {
+            --paper: #f7f2e8;
+            --paper-soft: #fcfaf5;
+            --ink: #10233f;
+            --ink-soft: #526073;
+            --cinnabar: #b43a2b;
+            --cinnabar-dark: #8f2c22;
+            --brass: #b58a46;
+            --line: rgba(16, 35, 63, 0.15);
+            --serif: "AppleMyungjo", "Batang", "Noto Serif KR", serif;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { min-width: 320px; background: var(--paper-soft); color: var(--ink); font-family: var(--sans); }
+        a { color: inherit; }
+        :focus-visible { outline: 3px solid var(--cinnabar); outline-offset: 4px; }
+
+        .site-header {
+            position: absolute;
+            inset: 0 0 auto;
+            z-index: 10;
+            height: 88px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 1rem;
+            justify-content: space-between;
+            padding: 0 clamp(1.25rem, 5vw, 5rem);
+            border-bottom: 1px solid rgba(16, 35, 63, 0.1);
         }
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.97);
-            padding: 3rem 2rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            max-width: 640px;
-            width: 100%;
-        }
-        h1 { color: #333; font-size: 2.2rem; margin-bottom: 0.5rem; }
-        .subtitle { color: #666; font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
-        .main-cta {
-            display: block;
-            padding: 1.1rem 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 14px;
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .main-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(102,126,234,0.45); }
-        .features {
+        .brand { font-family: var(--serif); font-size: clamp(1.12rem, 2vw, 1.45rem); font-weight: 800; text-decoration: none; }
+        .site-nav { display: flex; align-items: center; gap: clamp(1rem, 3vw, 2.6rem); font-size: 0.92rem; font-weight: 700; }
+        .site-nav a { padding: 0.65rem 0; text-decoration: none; }
+        .site-nav a:first-child { color: var(--cinnabar); border-bottom: 2px solid var(--cinnabar); }
+
+        .hero {
+            min-height: 760px;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 1.75rem;
+            align-items: center;
+            padding: 9rem clamp(1.25rem, 7vw, 7rem) 5rem;
+            background: var(--paper) url('/assets/fortune-hero-hanji.jpg') center / cover no-repeat;
         }
-        .feature {
-            background: linear-gradient(135deg, #f6f0ff 0%, #f0f4ff 100%);
-            border: 1px solid #c3dafe;
-            border-radius: 12px;
-            padding: 0.85rem 0.5rem;
-            font-size: 0.82rem;
-            color: #5a67d8;
-            font-weight: 600;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
+        .hero-copy { width: min(650px, 58vw); }
+        .eyebrow { margin-bottom: 1.4rem; color: var(--brass); font-size: 0.93rem; font-weight: 800; letter-spacing: 0.08em; }
+        h1 { max-width: 11em; font-family: var(--serif); font-size: clamp(2.8rem, 5.4vw, 5.2rem); line-height: 1.18; letter-spacing: -0.055em; }
+        .lead { max-width: 35rem; margin-top: 1.5rem; color: var(--ink-soft); font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.85; }
+        .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 2.2rem; }
+        .primary-cta, .secondary-cta { min-height: 56px; display: inline-flex; align-items: center; justify-content: center; padding: 0.9rem 1.6rem; border-radius: 4px; font-weight: 800; text-decoration: none; }
+        .primary-cta { min-width: 240px; background: var(--cinnabar); color: #fff; box-shadow: 0 10px 28px rgba(143, 44, 34, 0.2); }
+        .primary-cta:hover { background: var(--cinnabar-dark); }
+        .secondary-cta { color: var(--ink); text-decoration: underline; text-decoration-color: var(--brass); text-underline-offset: 8px; }
+        .trust-list { display: grid; gap: 0.65rem; margin-top: 2.4rem; color: var(--ink-soft); font-size: 0.84rem; line-height: 1.55; }
+        .trust-list p { padding-left: 1rem; border-left: 2px solid var(--brass); }
+
+        .journey { padding: 5.5rem clamp(1.25rem, 7vw, 7rem); background: var(--paper-soft); }
+        .section-kicker { color: var(--cinnabar); font-size: 0.8rem; font-weight: 900; letter-spacing: 0.12em; }
+        .journey h2 { max-width: 16em; margin-top: 0.8rem; font-family: var(--serif); font-size: clamp(2rem, 3.8vw, 3.4rem); line-height: 1.35; }
+        .journey-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 3rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+        .journey-item { padding: 2.2rem clamp(1rem, 2.5vw, 2.5rem); }
+        .journey-item + .journey-item { border-left: 1px solid var(--line); }
+        .journey-item:first-child { padding-left: 0; }
+        .journey-item:last-child { padding-right: 0; }
+        .journey-number { color: var(--brass); font-family: var(--serif); font-size: 0.95rem; }
+        .journey-item h3 { margin-top: 1rem; font-family: var(--serif); font-size: 1.45rem; }
+        .journey-item p { margin-top: 0.8rem; color: var(--ink-soft); font-size: 0.92rem; line-height: 1.75; }
+
+        .preview { display: grid; grid-template-columns: minmax(250px, 0.8fr) minmax(360px, 1.2fr); gap: clamp(2rem, 6vw, 7rem); align-items: center; padding: 5.5rem clamp(1.25rem, 7vw, 7rem); background: #fff; }
+        .preview h2 { margin-top: 0.8rem; font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3.2rem); line-height: 1.35; }
+        .preview-copy > p { margin-top: 1rem; color: var(--ink-soft); line-height: 1.8; }
+        .preview-panel { padding: clamp(1.5rem, 3vw, 2.7rem); border-top: 3px solid var(--cinnabar); background: var(--paper-soft); }
+        .preview-date { color: var(--brass); font-size: 0.85rem; font-weight: 800; }
+        .preview-panel h3 { margin-top: 0.8rem; font-family: var(--serif); font-size: clamp(1.55rem, 2.6vw, 2.35rem); line-height: 1.4; }
+        .preview-lanes { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 1.7rem; border-top: 1px solid var(--line); }
+        .preview-lanes div { padding: 1.2rem 1rem 0; }
+        .preview-lanes div:first-child { padding-left: 0; }
+        .preview-lanes div + div { border-left: 1px solid var(--line); }
+        .preview-lanes strong { display: block; margin-bottom: 0.4rem; color: var(--cinnabar); }
+        .preview-lanes span { color: var(--ink-soft); font-size: 0.82rem; line-height: 1.5; }
+
+        footer { display: flex; justify-content: space-between; gap: 1rem; padding: 2rem clamp(1.25rem, 7vw, 7rem); border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.8rem; }
+
+        @media (max-width: 760px) {
+            .site-header { height: 72px; }
+            .site-nav { position: fixed; z-index: 50; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; height: 64px; padding: 0 0 env(safe-area-inset-bottom); background: rgba(252,250,245,.98); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(16,35,63,.06); }
+            .site-nav a { display: flex; align-items: center; justify-content: center; padding: 0 .2rem; border-bottom: 0; font-size: .72rem; text-align: center; }
+            .site-nav a:first-child { border-top: 2px solid var(--cinnabar); border-bottom: 0; }
+            .hero { min-height: 720px; padding-top: 7.5rem; background-position: 64% center; }
+            .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(247,242,232,.98) 0%, rgba(247,242,232,.9) 58%, rgba(247,242,232,.3) 100%); pointer-events: none; }
+            .hero { position: relative; }
+            .hero-copy { position: relative; width: 100%; }
+            h1 { font-size: clamp(2.55rem, 12vw, 4rem); }
+            .journey-grid, .preview { grid-template-columns: 1fr; }
+            .journey-item { padding: 1.5rem 0; }
+            .journey-item + .journey-item { border-left: 0; border-top: 1px solid var(--line); }
+            .preview-lanes { grid-template-columns: 1fr; }
+            .preview-lanes div, .preview-lanes div:first-child { padding: 1rem 0; }
+            .preview-lanes div + div { border-left: 0; border-top: 1px solid var(--line); }
+            footer { flex-direction: column; padding-bottom: 6rem; }
         }
-        .feature:hover, .feature:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(90,103,216,.2); }
-        .feature .emoji { font-size: 1.4rem; display: block; margin-bottom: 0.25rem; }
-        .links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 1.25rem;
-            margin-top: 0.5rem;
-        }
-        .link {
-            display: inline-block;
-            padding: 0.6rem 1.25rem;
-            background: #f7f8fa;
-            color: #5a67d8;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            transition: background 0.2s;
-            border: 1px solid #e2e8f0;
-        }
-        .link:hover { background: #eef2ff; }
-        .status {
-            margin-bottom: 1.5rem;
-            padding: 0.75rem 1rem;
-            background: #f0fff4;
-            border: 1px solid #9ae6b4;
-            border-radius: 10px;
-            color: #276749;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-        .footer { margin-top: 1.5rem; color: #a0aec0; font-size: 0.82rem; }
-        @media (max-width: 480px) {
-            h1 { font-size: 1.7rem; }
-            .features { grid-template-columns: repeat(3, 1fr); }
-        }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔮 한국형 만세력 운세</h1>
-        <p class="subtitle">전통 사주팔자, 토정비결, 별자리 운세를<br>AI와 함께 제공하는 정통 운세 서비스</p>
+    <header class="site-header">
+        <a class="brand" href="/">한국형 만세력 운세</a>
+        <nav class="site-nav" aria-label="주요 메뉴">
+            <a href="/fortune-app.html#daily">오늘의 운세</a>
+            <a href="/fortune-app.html#saju">깊이 보기</a>
+            <a href="/fortune-app.html#ai">AI 상담</a>
+            <a href="/fortune-app.html#profile">내 정보</a>
+        </nav>
+    </header>
 
-        <div class="status">✅ 서버가 정상적으로 실행 중입니다</div>
+    <main>
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-copy">
+                <p class="eyebrow">전통 지혜 × AI 통합 해석</p>
+                <h1 id="hero-title">오늘의 선택에,<br>오래된 지혜를 더하다</h1>
+                <p class="lead">사주, 오늘운세, 토정비결과 점성 흐름을 함께 읽어 하루의 방향과 지금 필요한 한 걸음을 안내합니다.</p>
+                <div class="hero-actions">
+                    <a class="primary-cta" href="/fortune-app.html#daily">내 오늘의 흐름 보기</a>
+                    <a class="secondary-cta" href="#how-it-works">어떻게 해석하나요</a>
+                </div>
+                <div class="trust-list" aria-label="서비스 신뢰 정보">
+                    <p>입력한 출생정보는 개인 맞춤 계산에만 사용하며 외부에 공개하지 않습니다.</p>
+                    <p>전통 만세력 · 역학 분석 · AI 통합 해석으로 근거와 함께 안내합니다.</p>
+                </div>
+            </div>
+        </section>
 
-        <a href="/fortune-app.html#saju" class="main-cta">🔮 운세 서비스 시작하기</a>
+        <section class="journey" id="how-it-works" aria-labelledby="journey-title">
+            <p class="section-kicker">나를 이해하는 세 가지 흐름</p>
+            <h2 id="journey-title">복잡한 운세를 오늘의 언어로 읽습니다</h2>
+            <div class="journey-grid">
+                <article class="journey-item">
+                    <span class="journey-number">01</span>
+                    <h3>오늘</h3>
+                    <p>일·관계·마음의 흐름을 짧고 실용적인 행동 가이드로 확인합니다.</p>
+                </article>
+                <article class="journey-item">
+                    <span class="journey-number">02</span>
+                    <h3>깊이 보기</h3>
+                    <p>사주팔자, 토정비결, 점성술로 반복되는 패턴과 긴 흐름을 살펴봅니다.</p>
+                </article>
+                <article class="journey-item">
+                    <span class="journey-number">03</span>
+                    <h3>AI 상담</h3>
+                    <p>지금 마음에 걸리는 질문을 내 운세 흐름과 함께 구체적으로 해석합니다.</p>
+                </article>
+            </div>
+        </section>
 
-        <div class="features">
-            <a class="feature" href="/fortune-app.html#saju"><span class="emoji" aria-hidden="true">🔮</span>사주팔자</a>
-            <a class="feature" href="/fortune-app.html#daily"><span class="emoji" aria-hidden="true">📅</span>오늘운세</a>
-            <a class="feature" href="/fortune-app.html#tojeong"><span class="emoji" aria-hidden="true">📜</span>토정비결</a>
-            <a class="feature" href="/fortune-app.html#zodiac"><span class="emoji" aria-hidden="true">⭐</span>별자리운세</a>
-            <a class="feature" href="/fortune-app.html#calendar"><span class="emoji" aria-hidden="true">📆</span>간지달력</a>
-            <a class="feature" href="/fortune-app.html#ai"><span class="emoji" aria-hidden="true">🤖</span>AI운세</a>
-        </div>
+        <section class="preview" aria-labelledby="preview-title">
+            <div class="preview-copy">
+                <p class="section-kicker">오늘의 흐름 미리보기</p>
+                <h2 id="preview-title">예언보다, 오늘을 위한 한 걸음</h2>
+                <p>결과를 점수로만 보여주지 않고 지금 활용할 흐름과 주의할 지점을 함께 설명합니다.</p>
+            </div>
+            <div class="preview-panel">
+                <p class="preview-date">오늘의 해석 예시</p>
+                <h3>새로운 시작과 정리의 흐름이 교차하는 날입니다.</h3>
+                <div class="preview-lanes">
+                    <div><strong>일</strong><span>작은 실행을 먼저 시작해 보세요.</span></div>
+                    <div><strong>관계</strong><span>짧고 솔직한 대화가 힘이 됩니다.</span></div>
+                    <div><strong>마음</strong><span>복잡한 생각을 하나씩 비워보세요.</span></div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        <div class="links">
-            <a href="/fortune-app.html" class="link">🚀 운세 앱 바로가기</a>
-            <a href="/fortune-app.html#calendar" class="link">📅 간지달력 보기</a>
-            <a href="/fortune-app.html#system" class="link">🔍 시스템 상태 보기</a>
-            <a href="/api-docs.html" class="link">📚 API 문서 보기</a>
-            <a href="/api/docs/test" class="link">🧪 API 개발자 테스트</a>
-        </div>
-        <div style="margin-top: 2rem; color: #666; font-size: 0.9rem;">
-            <p>버전 3.0.0 · 2026년 7월 업데이트</p>
-            <p>© 2026 한국형 만세력 운세</p>
-        </div>
-    </div>
+    <footer>
+        <span>© 2026 한국형 만세력 운세</span>
+        <span>운세 해석은 삶의 결정을 돕는 참고 정보입니다.</span>
+    </footer>
 </body>
 </html>

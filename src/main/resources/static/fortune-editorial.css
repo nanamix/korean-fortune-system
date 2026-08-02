@@ -1,0 +1,113 @@
+:root {
+  --primary:#b43a2b;
+  --primary-dark:#8f2c22;
+  --secondary:#b58a46;
+  --accent:#d7b16c;
+  --gold:#b58a46;
+  --bg-dark:#10233f;
+  --bg-card:#fffdf8;
+  --text-dark:#10233f;
+  --text-muted:#5f6976;
+  --border:rgba(16,35,63,.15);
+  --radius:6px;
+  --shadow:0 18px 50px rgba(34,31,25,.08);
+  --paper:#f7f2e8;
+  --paper-soft:#fcfaf5;
+  --serif:"AppleMyungjo","Batang","Noto Serif KR",serif;
+}
+
+body { background:var(--paper-soft); color:var(--text-dark); }
+.topbar {
+  height:76px;
+  padding:0 clamp(1.25rem,5vw,5rem);
+  background:rgba(252,250,245,.96);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(16px);
+}
+.topbar-brand { color:var(--text-dark); font-family:var(--serif); font-size:1.25rem; font-weight:900; }
+.topbar-brand span { color:inherit; }
+.topbar-nav { gap:clamp(.3rem,1.5vw,1.4rem); }
+.topbar-nav a {
+  color:var(--text-dark);
+  padding:.65rem .75rem;
+  border-radius:0;
+  border-bottom:2px solid transparent;
+  font-size:.9rem;
+  font-weight:800;
+}
+.topbar-nav a:hover,.topbar-nav a.active { color:var(--primary); background:transparent; border-bottom-color:var(--primary); }
+.menu-btn { color:var(--text-dark); font-size:.85rem; font-weight:900; }
+.page { padding-top:76px; }
+.hero {
+  min-height:560px;
+  display:flex;
+  align-items:center;
+  padding:5rem clamp(1.25rem,7vw,7rem);
+  text-align:left;
+  color:var(--text-dark);
+  background:var(--paper) url('/assets/fortune-hero-hanji.jpg') center/cover no-repeat;
+}
+.hero-inner { width:min(650px,56vw); position:relative; z-index:1; }
+.hero-date { display:block; margin-bottom:1.1rem; color:#9a6d32; font-size:.9rem; font-weight:800; letter-spacing:.04em; }
+.hero h1 { max-width:11em; margin:0; font-family:var(--serif); font-size:clamp(2.6rem,4.6vw,4.6rem); line-height:1.24; letter-spacing:-.05em; }
+.hero p { max-width:34rem; margin:1.35rem 0 0; color:var(--text-muted); font-size:1.05rem; line-height:1.8; opacity:1; }
+.hero-btns { justify-content:flex-start; margin-top:2rem; }
+.btn { min-height:54px; padding:.85rem 1.45rem; border-radius:4px; }
+.btn-primary { background:var(--primary); color:#fff; box-shadow:0 10px 26px rgba(143,44,34,.18); }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-outline { color:var(--text-dark); border:1px solid rgba(16,35,63,.25); background:rgba(255,255,255,.65); }
+.btn-outline:hover { color:var(--primary); background:#fff; border-color:var(--primary); }
+.hero-basis { display:block; margin-top:1.35rem; color:var(--text-muted); font-size:.78rem; }
+.tabs-wrap { display:none !important; }
+.daily-guide {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  padding:0 clamp(1.25rem,7vw,7rem);
+  background:#fff;
+  border-bottom:1px solid var(--border);
+}
+.daily-guide article { padding:2.2rem clamp(1rem,2.5vw,2.5rem); }
+.daily-guide article:first-child { padding-left:0; }
+.daily-guide article:last-child { padding-right:0; }
+.daily-guide article+article { border-left:1px solid var(--border); }
+.daily-guide h2 { margin:0; color:var(--primary); font-family:var(--serif); font-size:1.35rem; }
+.daily-guide strong { display:block; margin-top:.65rem; font-family:var(--serif); font-size:1.05rem; }
+.daily-guide p { margin-top:.45rem; color:var(--text-muted); font-size:.8rem; line-height:1.65; }
+body:not([data-active-tab="daily"]) .hero,
+body:not([data-active-tab="daily"]) .daily-guide { display:none; }
+.content { max-width:1120px; padding:3rem 1.25rem 5rem; scroll-margin-top:76px; }
+.card { border:1px solid var(--border); border-radius:var(--radius); box-shadow:none; }
+.card-title { color:var(--text-dark); font-family:var(--serif); }
+.btn-action { background:var(--primary); border-radius:4px; }
+.btn-action:hover { background:var(--primary-dark); }
+.daily-start { padding:2.2rem; border-top:3px solid var(--primary); background:#fff; }
+.daily-start-label { color:#9a6d32; font-size:.78rem; font-weight:900; letter-spacing:.08em; }
+.daily-start h2 { margin:.65rem 0; font-family:var(--serif); font-size:clamp(1.7rem,3vw,2.5rem); }
+.daily-start p { max-width:58ch; color:var(--text-muted); line-height:1.75; }
+.daily-start .uses-common-profile { margin:1.4rem 0; background:var(--paper); color:var(--text-muted); }
+.deep-nav { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; margin-bottom:1.25rem; }
+.deep-nav button { min-height:52px; padding:.8rem 1rem; border:1px solid var(--border); border-radius:4px; background:#fff; color:var(--text-dark); font-weight:800; cursor:pointer; }
+.deep-nav button:hover { border-color:var(--primary); color:var(--primary); }
+.profile-operations { margin-top:1rem; text-align:right; }
+.profile-operations button { padding:.55rem .8rem; border:1px solid var(--border); border-radius:4px; background:transparent; color:var(--text-muted); cursor:pointer; }
+.ai-provider-details { margin-top:1.25rem; color:var(--text-muted); font-size:.82rem; }
+.ai-provider-details summary { width:max-content; cursor:pointer; font-weight:800; }
+.ai-provider-details .ai-provider-panel { margin-top:.8rem; }
+
+@media(max-width:760px) {
+  .topbar { height:68px; }
+  .page { padding-top:68px; }
+  .topbar-nav.mobile-open { top:68px; background:var(--paper-soft); border-bottom:1px solid var(--border); }
+  .topbar-nav.mobile-open a { color:var(--text-dark); }
+  .hero { min-height:620px; position:relative; background-position:65% center; }
+  .hero::before { content:""; position:absolute; inset:0; background:linear-gradient(90deg,rgba(247,242,232,.98),rgba(247,242,232,.88) 64%,rgba(247,242,232,.25)); }
+  .hero-inner { width:100%; }
+  .hero h1 { font-size:clamp(2.4rem,11vw,3.7rem); }
+  .hero-btns { align-items:stretch; flex-direction:column; }
+  .hero-btns .btn { width:100%; justify-content:center; }
+  .daily-guide { grid-template-columns:1fr; }
+  .daily-guide article,.daily-guide article:first-child,.daily-guide article:last-child { padding:1.4rem 0; }
+  .daily-guide article+article { border-left:0; border-top:1px solid var(--border); }
+  .deep-nav { grid-template-columns:1fr; }
+  .daily-start { padding:1.4rem; }
+}

@@ -11,6 +11,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FortuneAppProfileTest {
 
     @Test
+    void presentsValueLedLandingWithoutDeveloperNavigation() throws IOException {
+        String html = loadIndex();
+
+        assertThat(html)
+                .contains("오늘의 선택에, 오래된 지혜를 더하다")
+                .contains("내 오늘의 흐름 보기")
+                .contains("개인 맞춤 계산에만 사용")
+                .contains("전통 만세력 · 역학 분석 · AI 통합 해석")
+                .contains("href=\"/fortune-app.html#daily\"")
+                .doesNotContain("시스템 상태 보기")
+                .doesNotContain("API 문서 보기")
+                .doesNotContain("API 개발자 테스트");
+    }
+
+    @Test
+    void usesDailyRoutineAsTheConsumerAppHome() throws IOException {
+        String html = loadFortuneApp();
+
+        assertThat(html)
+                .contains("오늘은 정리보다 시작에 힘이 실리는 날")
+                .contains("오늘의 해석 자세히 보기")
+                .contains("AI에게 물어보기")
+                .contains("사주 일진 · 현재 천체 흐름 · 저장된 프로필 기준")
+                .contains("const requestedTab = location.hash.replace('#', '') || 'daily';")
+                .contains("<a href=\"#daily\" data-tab=\"daily\"")
+                .contains("<a href=\"#saju\" data-tab=\"saju\"")
+                .contains("깊이 보기")
+                .doesNotContain("<a href=\"#system\" data-tab=\"system\"");
+    }
+
+    @Test
     void separatesRequiredProfileFromOptionalNotifications() throws IOException {
         String html = loadFortuneApp();
 
@@ -197,6 +228,11 @@ class FortuneAppProfileTest {
 
     private String loadFortuneApp() throws IOException {
         return new ClassPathResource("static/fortune-app.html")
+                .getContentAsString(StandardCharsets.UTF_8);
+    }
+
+    private String loadIndex() throws IOException {
+        return new ClassPathResource("static/index.html")
                 .getContentAsString(StandardCharsets.UTF_8);
     }
 }
