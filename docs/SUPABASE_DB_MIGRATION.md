@@ -437,18 +437,18 @@ OpenBao renderer와 앱만 같은 immutable image로 재생성한 결과는 다�
 - 재생성 후 예약 발송 완료 로그: `0`건
 
 target 등록 단계에서는 Discord 메시지를 보내지 않았다. 이후 마스터의 1회 테스트 발송
-승인으로 운영 UI에서 `Discord`와 `test` target을 선택하려 했으나, Safari 접근성 자동화가
-select 조작 중 의도치 않게 전송 요청을 두 번 발생시켰다. 앱 로그에서 다음 두 건을
+승인 시점에 운영 UI에서 마스터가 직접 전송 요청을 실행했으며, 앱 로그에서 다음 두 건을
 확인했다.
 
 - `2026-08-02 11:50:17 Asia/Seoul`: Discord 테스트 요청 및 1 chunk 전송 완료
 - `2026-08-02 11:50:24 Asia/Seoul`: Discord 테스트 요청 및 1 chunk 전송 완료
 
-두 요청 모두 직접 입력 URL 없이 처리됐고, 당시 UI의 선택값은 계속 서버 기본 OpenBao
-Webhook이었다. 따라서 `test` alias 전달 성공으로 인정하지 않고 추가 발송을 즉시
-중단했다. 사후 확인에서 앱은 `healthy`, Actuator `UP`, profile `prod,supabase`, cron `-`를
-유지했고 예약 발송 완료 로그는 `0`건이었다. `test` alias의 실제 전달 검증과 scheduler
-재개는 다시 별도 승인 후 수행한다.
+두 요청 모두 직접 입력 URL 없이 처리됐고, 당시 UI에서 확인된 선택값은 서버 기본 OpenBao
+Webhook이었다. 두 발송은 마스터가 직접 실행한 요청이므로 자동화 오작동으로 분류하지
+않는다. 다만 `test` alias 선택 증거는 확보하지 못했으므로 해당 alias 전달 성공으로는
+인정하지 않는다. 사후 확인에서 앱은 `healthy`, Actuator `UP`, profile `prod,supabase`,
+cron `-`를 유지했고 예약 발송 완료 로그는 `0`건이었다. `test` alias의 실제 전달 검증과
+scheduler 재개는 다시 별도 승인 후 수행한다.
 
 ## 리허설 이관
 
