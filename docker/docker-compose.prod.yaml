@@ -9,6 +9,8 @@ services:
     environment:
       # DB-only cutover 이후 기본 운영 조합. rollback 시 SPRING_PROFILES_ACTIVE=prod로 덮어쓴다.
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod,supabase}
+      # @Scheduled placeholder는 configtree의 대문자 key로 비활성화되지 않으므로 환경변수로 고정한다.
+      - APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=${APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON:--}
       - JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError
     deploy:
       # 단일 host port 18080을 사용하므로 Compose 운영은 replica 1로 제한한다.

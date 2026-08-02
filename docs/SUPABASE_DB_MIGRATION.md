@@ -346,9 +346,11 @@ rollback trap이 같은 immutable image의 기존 `prod` 앱을 즉시 재생성
 기존 활성 예약 1건은 `08:40 Asia/Seoul`, 마지막 실행일 `2026-08-01`, 채널
 `discord/default`였다. cutover 시점에는 이미 당일 예약 시간이 지나 scheduler를 재개하면
 즉시 외부 발송될 수 있으므로 테스트 수신처 승인 없이 실행하지 않았다.
-OpenBao version `16`에 `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-`를 저장하고 live tmpfs
-렌더링을 확인했다. version `15`에는 CLI stdin 표기 해석으로 빈 값이 한 번 기록됐지만
-즉시 다음 CAS version에서 literal `-`로 교정했으며 현재값 검증을 통과했다.
+수동 cutover 앱에는 `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-` 환경변수를 직접 적용해
+scheduler를 비활성화했다. OpenBao version `16`에도 같은 대문자 key를 저장했지만,
+이 값은 아래 자동 배포 후 `@Scheduled`의 소문자 dotted placeholder에 적용되지 않는 것으로
+확인됐다. version `15`에는 CLI stdin 표기 해석으로 빈 값이 한 번 기록됐고 version `16`에서
+literal `-`로 교정했던 이력이 있다.
 
 현재 완료 범위는 DB cutover와 비인증 health 검증까지다. 사용자 Cloudflare Access 로그인
 후 운세 조회·예약 CRUD 브라우저 E2E와 테스트 수신처 예약 발송, scheduler 재개는 별도
@@ -373,6 +375,31 @@ OpenBao version `16`에 `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-`를 저장하�
 미인증 요청에 `HTTP 302`를 유지했다.
 
 이 영수증만 추가하는 후속 문서 커밋은 재배포가 불필요하므로 `[skip ci]`로 push한다.
+
+### 인증 E2E와 scheduler 교정
+
+Cloudflare Access 로그인 후 운영 브라우저에서 다음을 검증했다. 화면의 개인정보와 운세
+본문은 운영 기록에 남기지 않았다.
+
+- 사주팔자 계산 API 호출과 결과 표·해석 렌더링: 성공
+- 오늘운세 API 호출과 핵심·분야별 결과 렌더링: 성공
+- 시스템 화면: `RUNNING`, 필수 구성 요소 정상, database `PostgreSQL` 표시
+- 이관된 예약 1건 목록 조회: 성공
+- 예약 `enabled`를 `true → false → true`로 변경하는 PATCH: 성공, 원래 상태로 복원
+
+자동 배포된 앱에는 cron 환경변수가 없었다. configtree에 렌더링된 대문자
+`APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON` 파일은
+`${app.fortune.notification-schedule.cron:...}` placeholder를 비활성화하지 못했고,
+`2026-08-02 10:55 Asia/Seoul`에 기존 `discord/default` 예약 1건이 실제 발송됐다.
+로그의 `scheduleId=1`, `date=2026-08-02`, `channel=discord` 완료 기록과 DB의
+`last_run_date=2026-08-02`로 확인했다. 일일 중복 방지 조건 때문에 같은 날 추가 발송은
+발생하지 않는다.
+
+즉시 동일 image를 `APP_FORTUNE_NOTIFICATION_SCHEDULE_CRON=-` 환경으로 재생성해 Docker
+health `healthy`를 확인했다. 재발 방지를 위해 운영 Compose에 이 환경변수의 기본값 `-`를
+추가했다. 효과가 없던 OpenBao scheduler key는 CAS version `17`에서 제거했고 Supabase
+key가 보존됐음을 확인했다. 테스트 전용 Discord target이 등록되고 별도 발송 승인을 받을
+때까지 scheduler는 환경변수로 비활성 상태를 유지한다.
 
 ## 리허설 이관
 
