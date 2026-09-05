@@ -6,6 +6,7 @@ import com.fortune.dto.DailyFortuneResult;
 import com.fortune.dto.FortuneByCategory;
 import com.fortune.dto.SinsalInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import java.time.LocalDate;
 import java.util.*;
 /**
@@ -89,6 +90,10 @@ public class DailyFortuneService {
      * @param targetDate 대상 날짜
      * @return 일일 운세 결과
      */
+    @Cacheable(
+            value = "daily-fortune",
+            key = "T(String).valueOf(#targetDate) + '|' + #saju.yearPillar + '|' + #saju.monthPillar + '|' "
+                    + "+ #saju.dayPillar + '|' + #saju.timePillar + '|' + #saju.dayMaster")
     public DailyFortuneResult calculateDailyFortune(SajuResult saju, LocalDate targetDate) {
         log.info("🔮 일일 운세 계산 시작: {} - {}", saju.getDayMaster(), targetDate);
         try {

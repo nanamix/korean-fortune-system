@@ -46,6 +46,7 @@ public class CacheConfig {
     private static final List<CacheSpec> CACHES = List.of(
             new CacheSpec("users",                  1800,   500),
             new CacheSpec("daily-fortune",          3600,  1000),
+            new CacheSpec("saju-result",            3600,  1000),
             new CacheSpec("year-pillar",            86400,  200),
             new CacheSpec("day-pillar",             86400,  500),
             new CacheSpec("blacklist",              3600, 10000),

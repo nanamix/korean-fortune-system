@@ -2,6 +2,7 @@ package com.fortune.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import com.fortune.dto.TelegramTestRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
+import java.util.concurrent.Executor;
 import com.fortune.ai.AiProviderStatus;
 
 /**
@@ -45,6 +47,7 @@ public class FortuneController {
     private final DiscordService discordService;
     private final SlackService slackService;
     private final FortuneNotificationFormatter notificationFormatter;
+    private final Executor fortuneTaskExecutor;
 
     @Autowired
     public FortuneController(
@@ -58,7 +61,8 @@ public class FortuneController {
             TelegramService telegramService,
             DiscordService discordService,
             SlackService slackService,
-            FortuneNotificationFormatter notificationFormatter) {
+            FortuneNotificationFormatter notificationFormatter,
+            @Qualifier("fortuneTaskExecutor") Executor fortuneTaskExecutor) {
         this.ganjiCalculatorService = ganjiCalculatorService;
         this.dailyFortuneService = dailyFortuneService;
         this.tojeongBigyeolService = tojeongBigyeolService;
@@ -70,6 +74,7 @@ public class FortuneController {
         this.discordService = discordService;
         this.slackService = slackService;
         this.notificationFormatter = notificationFormatter;
+        this.fortuneTaskExecutor = fortuneTaskExecutor;
     }
 
     /**
@@ -419,7 +424,7 @@ public class FortuneController {
 
             // 2. 알림 발송 (알림 정보가 있는 경우에만)
             if (sajuRequest.getNotification() != null) {
-                sendNotification(sajuRequest.getNotification(), sajuResult, null, null, null, "saju");
+                sendNotificationAsync(sajuRequest.getNotification(), sajuResult, null, null, null, "saju");
             }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(sajuResult));
@@ -453,7 +458,7 @@ public class FortuneController {
 
             // 3. 알림 발송
             if (sajuRequest.getNotification() != null) {
-                sendNotification(sajuRequest.getNotification(), null, dailyResult, null, null, "daily");
+                sendNotificationAsync(sajuRequest.getNotification(), null, dailyResult, null, null, "daily");
             }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(dailyResult));
@@ -484,7 +489,7 @@ public class FortuneController {
 
             // 2. 알림 발송
             if (tojeongRequest.getNotification() != null) {
-                sendNotification(tojeongRequest.getNotification(), null, null, tojeongResult, null, "tojeong");
+                sendNotificationAsync(tojeongRequest.getNotification(), null, null, tojeongResult, null, "tojeong");
             }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(tojeongResult));
@@ -516,7 +521,7 @@ public class FortuneController {
 
             // 2. 알림 발송
             if (zodiacRequest.getNotification() != null) {
-                sendNotification(zodiacRequest.getNotification(), null, null, null, zodiacResult, "zodiac");
+                sendNotificationAsync(zodiacRequest.getNotification(), null, null, null, zodiacResult, "zodiac");
             }
 
             return ResponseEntity.ok(com.fortune.dto.ApiResponse.success(zodiacResult));
@@ -665,6 +670,22 @@ public class FortuneController {
                                         sajuResult, dailyResult, tojeongResult, zodiacResult, type);
                 break;
         }
+    }
+
+    private void sendNotificationAsync(NotificationRequest notificationRequest,
+                                       SajuResult sajuResult,
+                                       DailyFortuneResult dailyResult,
+                                       TojeongResult tojeongResult,
+                                       ZodiacFortuneResult zodiacResult,
+                                       String type) {
+        fortuneTaskExecutor.execute(() -> {
+            try {
+                sendNotification(notificationRequest, sajuResult, dailyResult, tojeongResult, zodiacResult, type);
+            } catch (Exception e) {
+                log.error("❌ 알림 비동기 발송 실패: type={}, recipient={}", type,
+                        notificationRequest.getRecipientName(), e);
+            }
+        });
     }
 
     /**
