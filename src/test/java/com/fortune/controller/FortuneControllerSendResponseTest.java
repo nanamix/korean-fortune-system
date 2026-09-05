@@ -28,6 +28,7 @@ import com.fortune.service.ZodiacFortuneService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,7 +66,8 @@ class FortuneControllerSendResponseTest {
                 telegramService,
                 discordService,
                 mock(SlackService.class),
-                new FortuneNotificationFormatter());
+                new FortuneNotificationFormatter(),
+                Runnable::run);
     }
 
     @Test
@@ -125,6 +127,37 @@ class FortuneControllerSendResponseTest {
         controller.calculateSajuAndSend(request);
 
         verify(telegramService).sendMessage(any(String.class), eq("-100123456789"));
+    }
+
+    @Test
+    void submitsNotificationWorkToExecutor() {
+        GanjiCalculatorService localGanjiCalculator = mock(GanjiCalculatorService.class);
+        Executor notificationExecutor = mock(Executor.class);
+        FortuneController asyncController = new FortuneController(
+                localGanjiCalculator,
+                dailyFortuneService,
+                tojeongBigyeolService,
+                zodiacFortuneService,
+                mock(GanjiCalendarService.class),
+                mock(AIFortuneService.class),
+                mock(EmailService.class),
+                telegramService,
+                discordService,
+                mock(SlackService.class),
+                new FortuneNotificationFormatter(),
+                notificationExecutor);
+        when(localGanjiCalculator.calculateSaju(any())).thenReturn(SajuResult.builder().dayPillar("갑자").build());
+        SajuRequest request = SajuRequest.builder()
+                .notification(NotificationRequest.builder()
+                        .recipientName("홍길동")
+                        .telegramChatId("-100123456789")
+                        .notificationType("telegram")
+                        .build())
+                .build();
+
+        asyncController.calculateSajuAndSend(request);
+
+        verify(notificationExecutor).execute(any(Runnable.class));
     }
 
     @Test

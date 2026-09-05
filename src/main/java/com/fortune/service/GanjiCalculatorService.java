@@ -69,6 +69,18 @@ public class GanjiCalculatorService {
     /**
      * 사주팔자 계산 메인 메서드 (lunar-java 위임).
      */
+    @Cacheable(
+            value = "saju-result",
+            key = "T(String).format('%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s', "
+                    + "#request.birthYear, #request.birthMonth, #request.birthDay, "
+                    + "#request.birthHour, #request.birthMinute, "
+                    + "(#request.birthSecond == null ? 0 : #request.birthSecond), "
+                    + "#request.gender, #request.calendarType, "
+                    + "(#request.leapMonth == null ? false : #request.leapMonth), "
+                    + "(#request.birthLongitude == null ? 127.5 : #request.birthLongitude), "
+                    + "(#request.applyEquationOfTime == null ? false : #request.applyEquationOfTime), "
+                    + "(#request.applyHistoricalDst == null ? true : #request.applyHistoricalDst)) "
+                    + "+ '-' + T(java.time.LocalDate).now().getYear()")
     public SajuResult calculateSaju(SajuRequest request) {
         log.info("🔮 사주팔자 계산 시작: {}년 {}월 {}일 {}시 {}분",
                 request.getBirthYear(), request.getBirthMonth(), request.getBirthDay(),
